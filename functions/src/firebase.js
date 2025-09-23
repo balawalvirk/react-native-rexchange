@@ -1,0 +1,11 @@
+"use strict";
+exports.__esModule = true;
+exports.rextimatePriceHistoriesCollection = exports.fpbsCollection = exports.positionsCollection = exports.propertiesCollection = void 0;
+var admin = require("firebase-admin");
+var firebase_admin_1 = require("firebase-admin");
+admin.initializeApp();
+exports.propertiesCollection = (0, firebase_admin_1.firestore)().collection('properties');
+exports.positionsCollection = (0, firebase_admin_1.firestore)().collection('thtls');
+exports.fpbsCollection = (0, firebase_admin_1.firestore)().collection('fixedPriceBids');
+exports.rextimatePriceHistoriesCollection = (0, firebase_admin_1.firestore)().collection('rextimatePriceHistories');
+exports["default"] = admin;

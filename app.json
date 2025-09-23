@@ -1,0 +1,79 @@
+{
+  "expo": {
+    "name": "Rexchange",
+    "slug": "rexchange",
+    "version": "3.1.13",
+    "main": "App.tsx",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "rexchange",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "userInterfaceStyle": "light",
+    "updates": {
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/b4b7e6c6-1b23-4e7f-80ec-e8b4e0763125"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.rexchange.rexchange",
+      "googleServicesFile": "./GoogleServices-Info.plist",
+      "usesAppleSignIn": true,
+      "infoPlist": {
+        "SKAdNetworkItems": [
+          {
+            "SKAdNetworkIdentifier": "v9wttpbfk9.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "n38lu8286q.skadnetwork"
+          }
+        ],
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": ["fb345762047270780"]
+          }
+        ]
+      },
+      "runtimeVersion": "3.1.13"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "runtimeVersion": {
+        "policy": "appVersion"
+      },
+      "package": "app.rexchange.rexchange"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "config": {
+        "firebase": {
+          "apiKey": "AIzaSyBB0Qv0kNZx0SawGXWoSGQAY8Q7FRyvYUY",
+          "measurementId": "G-QE82SG7T4T"
+        }
+      }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "b4b7e6c6-1b23-4e7f-80ec-e8b4e0763125"
+      }
+    },
+    "plugins": [
+      [
+        "react-native-fbsdk-next",
+        {
+          "appID": "345762047270780",
+          "clientToken": "YOUR_CLIENT_TOKEN",
+          "displayName": "Rexchange",
+          "scheme": "fb345762047270780"
+        }
+      ]
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+import { User } from 'firebase/auth';
+export type RXCUser = {
+  emailAddress: string;
+  firstName: string;
+  lastName: string;
+  authId: string;
+  zipCode: string;
+  birthday: Date | undefined;
+  isRealtor: boolean | null;
+  isOpenHouse?: boolean;
+  id: string;
+  isSetUp: boolean;
+  tutorialFinished: boolean;
+  zipCodeOrder: string[];
+  totalEarnings: number;
+  totalEquity: number;
+  openPositions: number;
+  token: string;
+  docId: string;
+} & User;

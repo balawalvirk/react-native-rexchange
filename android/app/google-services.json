@@ -1,0 +1,56 @@
+{
+  "project_info": {
+    "project_number": "546177265088",
+    "firebase_url": "https://rexchange-bfb0a-default-rtdb.firebaseio.com",
+    "project_id": "rexchange-bfb0a",
+    "storage_bucket": "rexchange-bfb0a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:546177265088:android:3d35d7edee8e57fa6eec25",
+        "android_client_info": {
+          "package_name": "app.rexchange.rexchange"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "546177265088-dttrm4b9ssdvdur0460e8rd024if2tk6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.rexchange.rexchange",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "546177265088-glv6lsobqtrmd4cjcbjb8fci6nnk69k6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDduZjSQR9Q8TxWu7y3Pjcbw6vCtuwf1e0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "546177265088-glv6lsobqtrmd4cjcbjb8fci6nnk69k6.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "546177265088-ll93f5utg5cb7v6ltcrpj69pi5ms3k6i.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "app.rexchange.rexchange",
+                "app_store_id": "1592136631"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
