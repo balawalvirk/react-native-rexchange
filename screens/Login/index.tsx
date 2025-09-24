@@ -6,6 +6,7 @@ import {
   KeyboardAvoidingView,
   SafeAreaView,
   Keyboard,
+  ScrollView,
 } from 'react-native';
 import tw from '../../lib/tailwind/tailwind';
 import Gradient from '../../lib/svg/Gradient';
@@ -54,16 +55,19 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     <SafeAreaView style={tw`flex-1`}>
       <View style={tw`flex-1 w-full h-full`}>
         <Gradient />
-        <KeyboardAvoidingView
-          behavior="position"
-          style={tw`flex-1 relative flex items-center justify-center max-w-full w-[600px]`}
+        <ScrollView 
+          contentContainerStyle={tw`flex-grow`}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          style={tw`flex-1`}
         >
-        <Image
-          resizeMode="contain"
-          style={tw`h-48`}
-          source={require('../../assets/white_logo.png')}
-        ></Image>
-        <View style={tw`relative w-full p-4 text-white`}>
+          <View style={tw`flex-1 relative flex items-center justify-center max-w-full w-[600px] min-h-full`}>
+            <Image
+              resizeMode="contain"
+              style={tw`h-48`}
+              source={require('../../assets/white_logo.png')}
+            ></Image>
+            <View style={tw`relative w-full p-4 text-white`}>
           {state.error && (
             <Alert message="Incorrect email or password" status={'error'} />
           )}
@@ -144,8 +148,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               <Text style={tw`font-bold font-overpass600`}>Sign Up.</Text>
             </Text>
           </Pressable>
-        </View>
-        </KeyboardAvoidingView>
+            </View>
+          </View>
+        </ScrollView>
       </View>
     </SafeAreaView>
   );

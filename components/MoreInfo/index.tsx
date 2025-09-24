@@ -26,7 +26,7 @@ const MoreInfo: React.FC<MoreInfoProps> = ({
       </Text>
       {close && (
         <Pressable onPress={close}>
-          <View style={tw`absolute w-8 h-8 -top-8 right-4`}>
+          <View style={tw`absolute w-8 h-8 -top-12 right-4`}>
             <Image
               style={tw`w-3 h-3`}
               source={require('../../assets/times_gray.png')}

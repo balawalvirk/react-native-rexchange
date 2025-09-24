@@ -112,7 +112,7 @@ const Details: React.FC<DetailsProps> = ({
         </View>
         <Pressable onPress={onMoreInfoPress}>
           <View
-            style={tw`flex flex-row items-center p-1 mx-1 rounded-md border-1 border-purple`}
+            style={tw`flex flex-row items-center p-1 mx- rounded-md border-1 border-purple`}
           >
             <Image
               style={tw`mr-1`}

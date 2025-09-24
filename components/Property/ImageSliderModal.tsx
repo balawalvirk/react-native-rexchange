@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Pressable, View, Image, BackHandler, Modal } from 'react-native';
+import { Pressable, View, Image, BackHandler, Modal, ActivityIndicator } from 'react-native';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import { WINDOW_HEIGHT, WINDOW_WIDTH } from '../../lib/helpers/dimensions';
 import tw from '../../lib/tailwind/tailwind';
@@ -59,6 +59,14 @@ const ImageSliderModal: React.FC<ImageSliderModalProps> = ({
           show={true}
           imageUrls={imageUrls}
           index={state.index}
+          enableSwipeDown={true}
+          onSwipeDown={handleCloseClick}
+          failImageSource={require('../../assets/times_gray.png')}
+          loadingRender={() => (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'black' }}>
+              <ActivityIndicator size="large" color="white" />
+            </View>
+          )}
         />
         <Pressable
           style={tw`absolute top-16 right-6 z-10`}
