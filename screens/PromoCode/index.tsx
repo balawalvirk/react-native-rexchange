@@ -1,21 +1,28 @@
-import { View, Text, Pressable, KeyboardAvoidingView, Keyboard } from 'react-native';
-import tw from '../../lib/tailwind/tailwind';
-import Gradient from '../../lib/svg/Gradient';
-import { FloatingLabelInput } from 'react-native-floating-label-input';
-import React, { useState } from 'react';
-import { Rajdhani_700Bold, useFonts } from '@expo-google-fonts/rajdhani';
-import { Overpass_600SemiBold } from '@expo-google-fonts/overpass';
+import {
+  View,
+  Text,
+  Pressable,
+  KeyboardAvoidingView,
+  Keyboard,
+  ToastAndroid,
+} from "react-native";
+import tw from "../../lib/tailwind/tailwind";
+import Gradient from "../../lib/svg/Gradient";
+import { FloatingLabelInput } from "react-native-floating-label-input";
+import React, { useState } from "react";
+import { Rajdhani_700Bold, useFonts } from "@expo-google-fonts/rajdhani";
+import { Overpass_600SemiBold } from "@expo-google-fonts/overpass";
 import {
   customLabelStyles,
   inputStyles,
   labelStyles,
   largeInputStyles,
   largeLabelStyles,
-} from '../../lib/forms/textInput';
-import Alert from '../../components/Alert';
-import { validatePromoCode } from '../../firebase/collections/promoCode';
-import { TouchableOpacity } from 'react-native-gesture-handler';
-import { isLarge } from '../../lib/helpers/dimensions';
+} from "../../lib/forms/textInput";
+import Alert from "../../components/Alert";
+import { validatePromoCode } from "../../firebase/collections/promoCode";
+import { TouchableOpacity } from "react-native-gesture-handler";
+import { isLarge } from "../../lib/helpers/dimensions";
 
 interface PromoCodeScreenProps {
   navigation: any;
@@ -26,23 +33,23 @@ const PromoCodeScreen: React.FC<PromoCodeScreenProps> = ({ navigation }) => {
     Rajdhani_700Bold,
     Overpass_600SemiBold,
   });
-  const [state, setState] = useState({ promoCode: '', error: false });
+  const [state, setState] = useState({ promoCode: "", error: false });
 
   const handlePress = async () => {
     // Dismiss keyboard before navigation
     Keyboard.dismiss();
-    
+
     // TODO: Implement promo code validation
     // Temporarily commented out for development
     // navigation.navigate('login');
-    
+
     // Original promo code validation logic (commented out):
     setState({ ...state, error: false });
     const isValid = await validatePromoCode(state.promoCode);
     if (isValid) {
       // Small delay to ensure keyboard is dismissed before navigation
       setTimeout(() => {
-        navigation.navigate('login');
+        navigation.navigate("login");
       }, 100);
       return;
     }
@@ -68,11 +75,11 @@ const PromoCodeScreen: React.FC<PromoCodeScreenProps> = ({ navigation }) => {
         >
           {state.error && <Alert status="error" message="Invalid code" />}
           <FloatingLabelInput
-            label={'Promo Code'}
+            label={"Promo Code"}
             value={state.promoCode}
             onChangeText={(value) => setState({ ...state, promoCode: value })}
             containerStyles={{
-              borderBottomColor: 'white',
+              borderBottomColor: "white",
               borderBottomWidth: 1,
               paddingTop: isLarge ? 60 : 30,
               paddingBottom: 10,
@@ -91,9 +98,13 @@ const PromoCodeScreen: React.FC<PromoCodeScreenProps> = ({ navigation }) => {
             </View>
           </TouchableOpacity>
 
-          <Pressable>
+          <Pressable
+            onPress={() => {
+              ToastAndroid.show("Coming Soon", ToastAndroid.SHORT);
+            }}
+          >
             <Text
-              style={tw`my-8 text-lg text-center text-white font-overpass600`}
+              style={tw`my-8 text-lg text-center text-white font-overpass600 opacity-50`}
             >
               Need an invite? Click here.
             </Text>

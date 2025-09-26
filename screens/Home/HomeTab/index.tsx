@@ -1,16 +1,16 @@
-import { useEffect, useRef, useState } from 'react';
-import { Pressable, View, Text, Animated, FlatList, Image } from 'react-native';
-import { getProperties } from '../../../firebase/collections/properties';
+import { useEffect, useRef, useState } from "react";
+import { Pressable, View, Text, Animated, FlatList, Image } from "react-native";
+import { getProperties } from "../../../firebase/collections/properties";
 import {
   getUniqMLSIdsForClosedPositions,
   getUniqMLSIdsForOpenPositions,
-} from '../../../firebase/collections/positions';
-import { Property } from '../../../lib/models/property';
-import tw from '../../../lib/tailwind/tailwind';
-import { useAuth } from '../../../providers/authProvider';
-import PropertyView from './PropertyView';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import _ from 'lodash';
+} from "../../../firebase/collections/positions";
+import { Property } from "../../../lib/models/property";
+import tw from "../../../lib/tailwind/tailwind";
+import { useAuth } from "../../../providers/authProvider";
+import PropertyView from "./PropertyView";
+import { SafeAreaView } from "react-native-safe-area-context";
+import _ from "lodash";
 
 const NUMBER_TO_PULL = 4;
 
@@ -19,10 +19,10 @@ interface HomeTabProps {}
 const HomeTab: React.FC<HomeTabProps> = () => {
   const [openProperties, setOpenProperties] = useState<Property[] | null>(null);
   const [openPropertyMLSIds, setOpenPropertyMLSIds] = useState<string[] | null>(
-    null,
+    null
   );
   const [closedProperties, setClosedProperties] = useState<Property[] | null>(
-    null,
+    null
   );
   const [closedPropertyMLSIds, setClosedPropertyMLSIds] = useState<
     string[] | null
@@ -54,7 +54,7 @@ const HomeTab: React.FC<HomeTabProps> = () => {
 
   const loadClosedProperties = async () => {
     const closedPropertyMLSIds = await getUniqMLSIdsForClosedPositions(
-      user?.id,
+      user?.id
     );
     setClosedPropertyMLSIds(closedPropertyMLSIds);
   };
@@ -63,7 +63,7 @@ const HomeTab: React.FC<HomeTabProps> = () => {
     const startIndex = closedProperties?.length ? closedProperties.length : 0;
     const mlsIdsToGet = closedPropertyMLSIds?.slice(
       startIndex,
-      startIndex + NUMBER_TO_PULL,
+      startIndex + NUMBER_TO_PULL
     );
     if (!mlsIdsToGet?.length) return;
     const nextProperties = await getProperties(mlsIdsToGet);
@@ -78,14 +78,14 @@ const HomeTab: React.FC<HomeTabProps> = () => {
 
   const loadNextClosedPropertiesDebounced = _.debounce(
     loadNextClosedProperties,
-    500,
+    500
   );
 
   const loadNextOpenProperties = async () => {
     const startIndex = openProperties?.length ? openProperties.length : 0;
     const mlsIdsToGet = openPropertyMLSIds?.slice(
       startIndex,
-      startIndex + NUMBER_TO_PULL,
+      startIndex + NUMBER_TO_PULL
     );
 
     if (!mlsIdsToGet?.length) return;
@@ -100,7 +100,7 @@ const HomeTab: React.FC<HomeTabProps> = () => {
   };
   const loadNextOpenPropertiesDebounced = _.debounce(
     loadNextOpenProperties,
-    500,
+    500
   );
 
   const slideToOpen = () => {
@@ -144,7 +144,7 @@ const HomeTab: React.FC<HomeTabProps> = () => {
   };
 
   return (
-    <SafeAreaView style={tw`bg-white pb-44`}>
+    <SafeAreaView style={tw`bg-white pb-50`}>
       <View style={tw`flex items-center justify-center h-28 bg-purple`}>
         <Text style={tw`my-2 text-xl text-center text-white font-rajdhani700`}>
           Valuations
@@ -167,7 +167,7 @@ const HomeTab: React.FC<HomeTabProps> = () => {
           >
             <Text
               style={tw`${
-                isOpen ? 'text-white' : 'text-darkGray'
+                isOpen ? "text-white" : "text-darkGray"
               } uppercase ml-5 `}
             >
               Open
@@ -182,7 +182,7 @@ const HomeTab: React.FC<HomeTabProps> = () => {
           >
             <Text
               style={tw`${
-                !isOpen ? 'text-white' : 'text-darkGray'
+                !isOpen ? "text-white" : "text-darkGray"
               }  uppercase ml-10`}
             >
               Closed

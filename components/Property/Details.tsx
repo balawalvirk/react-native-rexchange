@@ -1,12 +1,12 @@
-import { View, Text, Pressable, Image } from 'react-native';
-import { WINDOW_WIDTH } from '../../lib/helpers/dimensions';
+import { View, Text, Pressable, Image } from "react-native";
+import { WINDOW_WIDTH } from "../../lib/helpers/dimensions";
 
-import { formatMoney } from '../../lib/helpers/money';
-import { Property } from '../../lib/models/property';
-import { RextimatePriceHistory } from '../../lib/models/rextimatePriceHistory';
-import tw from '../../lib/tailwind/tailwind';
-import CircleButton from '../CircleButton';
-import HorizontalLine from '../HorizontalLine';
+import { formatMoney } from "../../lib/helpers/money";
+import { Property } from "../../lib/models/property";
+import { RextimatePriceHistory } from "../../lib/models/rextimatePriceHistory";
+import tw from "../../lib/tailwind/tailwind";
+import CircleButton from "../CircleButton";
+import HorizontalLine from "../HorizontalLine";
 
 interface DetailsProps {
   property: Property;
@@ -30,23 +30,24 @@ const Details: React.FC<DetailsProps> = ({
   const isLarge = WINDOW_WIDTH > 600;
   const textSize =
     isLarge && isOpenHouse
-      ? 'text-lg -mt-2'
+      ? "text-lg -mt-2"
       : isLarge
-      ? 'text-xl -mt-2'
-      : 'text-xs -mt-2 mb-0.5';
-  const addressTextSize = isLarge ? 'text-2xl' : 'text-sm';
+      ? "text-xl -mt-2"
+      : "text-xs -mt-2 mb-0.5";
+  const addressTextSize = isLarge ? "text-2xl" : "text-sm";
   const rextimateTextSize =
     isLarge && isOpenHouse
-      ? 'text-4xl py-2'
+      ? "text-4xl py-2"
       : isLarge
-      ? 'text-5xl py-4'
-      : 'text-3xl';
-  const currentTextSize = isLarge ? 'text-2xl' : 'text-lg';
-  const circleButtonSize = isLarge ? 'w-16 h-16' : 'w-6 h-6';
-  const circleButtonText = isLarge ? 'ml-4 text-lg' : 'ml-1 text-xs';
-  const moreInfoText = isLarge ? 'text-lg' : 'text-xs';
+      ? "text-5xl py-4"
+      : "text-3xl";
+  const currentTextSize = isLarge ? "text-2xl" : "text-lg";
+  const circleButtonSize = isLarge ? "w-16 h-16" : "w-6 h-6";
+  const circleButtonText = isLarge ? "ml-4 text-lg" : "ml-1 text-xs";
+  const moreInfoText = isLarge ? "text-lg" : "text-xs";
   const detailsMargin =
-    isLarge && isOpenHouse ? '-mt-2 mb-1' : isLarge ? '-mt-4' : '';
+    isLarge && isOpenHouse ? "-mt-2 mb-1" : isLarge ? "-mt-4" : "";
+
   return (
     <View style={tw`p-4`}>
       <Pressable onPress={onListingAgentPress}>
@@ -66,18 +67,18 @@ const Details: React.FC<DetailsProps> = ({
           {formatMoney(currentRextimate.amount)}
         </Text>
         <View style={tw`flex flex-row items-center`}>
-          <Image source={require('../../assets/crown_gold.png')}></Image>
+          <Image source={require("../../assets/crown_gold.png")}></Image>
           <Text
             style={tw`ml-1 ${currentTextSize} uppercase text-purple font-rajdhani700`}
           >
-            {final ? 'Final' : 'Current'} Rextimate
+            {final ? "Final" : "Current"} Rextimate
           </Text>
         </View>
       </View>
       {final && (
         <Text style={tw`text-darkGray font-overpass600 `}>
-          Sale Price:{' '}
-          {property.salePrice ? formatMoney(property.salePrice) : 'PENDING'}
+          Sale Price:{" "}
+          {property.salePrice ? formatMoney(property.salePrice) : "PENDING"}
         </Text>
       )}
       <View
@@ -86,7 +87,7 @@ const Details: React.FC<DetailsProps> = ({
         <View style={tw`flex flex-row items-center`}>
           <CircleButton
             style={tw`${circleButtonSize} border-1 border-borderGray bg-light`}
-            imageURL={require('../../assets/bed_purple.png')}
+            imageURL={require("../../assets/bed_purple.png")}
           />
           <Text style={tw`${circleButtonText} font-overpass500 text-darkGray`}>
             {property.beds} beds
@@ -95,7 +96,7 @@ const Details: React.FC<DetailsProps> = ({
         <View style={tw`flex flex-row items-center`}>
           <CircleButton
             style={tw`${circleButtonSize} ml-1 shadow-sm border-1 border-borderGray bg-light`}
-            imageURL={require('../../assets/bath_purple.png')}
+            imageURL={require("../../assets/bath_purple.png")}
           />
           <Text style={tw`${circleButtonText} font-overpass500 text-darkGray`}>
             {property.baths.total} baths
@@ -104,10 +105,10 @@ const Details: React.FC<DetailsProps> = ({
         <View style={tw`flex flex-row items-center`}>
           <CircleButton
             style={tw`${circleButtonSize} ml-1 shadow-sm border-1 border-borderGray bg-light`}
-            imageURL={require('../../assets/ruler_triangle_purple.png')}
+            imageURL={require("../../assets/ruler_triangle_purple.png")}
           />
           <Text style={tw`${circleButtonText} font-overpass500 text-darkGray`}>
-            {property.size} sqft
+            {property.size || "N/A"} sqft
           </Text>
         </View>
         <Pressable onPress={onMoreInfoPress}>
@@ -116,7 +117,7 @@ const Details: React.FC<DetailsProps> = ({
           >
             <Image
               style={tw`mr-1`}
-              source={require('../../assets/info_outline_purple.png')}
+              source={require("../../assets/info_outline_purple.png")}
             ></Image>
 
             <Text style={tw`${moreInfoText} text-purple font-overpass600`}>

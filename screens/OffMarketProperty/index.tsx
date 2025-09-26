@@ -2,9 +2,9 @@ import {
   BottomSheetModal,
   WINDOW_HEIGHT,
   WINDOW_WIDTH,
-} from '@gorhom/bottom-sheet';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { useMemo, useRef, useState } from 'react';
+} from "@gorhom/bottom-sheet";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -12,30 +12,30 @@ import {
   ScrollView,
   Image,
   Linking,
-} from 'react-native';
-import Modal from 'react-native-modal/dist/modal';
-import CircleButton from '../../components/CircleButton';
-import HorizontalLine from '../../components/HorizontalLine';
-import MoreInfo from '../../components/MoreInfo';
-import MyTotals from '../../components/MyTotals';
-import Details from '../../components/Property/Details';
-import ImageSlider from '../../components/Property/ImageSlider';
-import ImageSliderModal from '../../components/Property/ImageSliderModal';
-import PriceHistoryChart from '../../components/Property/PriceHistoryChart';
-import { useEquity } from '../../firebase/equity';
+} from "react-native";
+import Modal from "react-native-modal/dist/modal";
+import CircleButton from "../../components/CircleButton";
+import HorizontalLine from "../../components/HorizontalLine";
+import MoreInfo from "../../components/MoreInfo";
+import MyTotals from "../../components/MyTotals";
+import Details from "../../components/Property/Details";
+import ImageSlider from "../../components/Property/ImageSlider";
+import ImageSliderModal from "../../components/Property/ImageSliderModal";
+import PriceHistoryChart from "../../components/Property/PriceHistoryChart";
+import { useEquity } from "../../firebase/equity";
 import {
   getDateFromTimestamp,
   getDaysOnRexchange,
   getRextimateChange,
-} from '../../lib/helpers/calculations';
-import { TALL_SHEET } from '../../lib/helpers/dimensions';
+} from "../../lib/helpers/calculations";
+import { TALL_SHEET } from "../../lib/helpers/dimensions";
 import {
   getFixedPriceBidEquity,
   getPositionEquity,
-} from '../../lib/helpers/calculations';
-import { formatMoney } from '../../lib/helpers/money';
-import { Property } from '../../lib/models/property';
-import tw from '../../lib/tailwind/tailwind';
+} from "../../lib/helpers/calculations";
+import { formatMoney } from "../../lib/helpers/money";
+import { Property } from "../../lib/models/property";
+import tw from "../../lib/tailwind/tailwind";
 
 interface OffMarketPropertyProps {
   isOpenHouse: boolean;
@@ -60,9 +60,9 @@ const OffMarketProperty: React.FC<OffMarketPropertyProps> = ({
   });
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const disclaimerBottomSheetRef = useRef<BottomSheetModal>(null);
-  const snapPoints = useMemo(() => ['1%', '50%'], []);
+  const snapPoints = useMemo(() => ["1%", "50%"], []);
   const myTotalsBottomSheetModalRef = useRef<BottomSheetModal>(null);
-  const myTotalsSnapPoints = useMemo(() => ['1%', '90%'], []);
+  const myTotalsSnapPoints = useMemo(() => ["1%", "90%"], []);
   if (route.params) {
     const { property: paramProp } = route.params as any;
     property = paramProp as Property;
@@ -78,20 +78,20 @@ const OffMarketProperty: React.FC<OffMarketPropertyProps> = ({
     property?.id,
     property?.listPrice,
     property?.salePrice,
-    isOpenHouse,
+    isOpenHouse
   );
   const handleImagePress = (index: number) => {
     setState({ ...state, show: true, index });
   };
   const navigateHome = () => {
     // @ts-expect-error
-    navigation.navigate('home');
+    navigation.navigate("home");
   };
   const handleImageIndex = (event: any) => {
     const offset = event.nativeEvent.contentOffset.x;
     const fullWidth = WINDOW_WIDTH * (property?.images?.length || 0);
     const currentPos = Math.round(
-      (offset / fullWidth) * (property?.images?.length || 0) + 1,
+      (offset / fullWidth) * (property?.images?.length || 0) + 1
     );
     setImageIndex(currentPos);
   };
@@ -115,7 +115,7 @@ const OffMarketProperty: React.FC<OffMarketPropertyProps> = ({
   };
   const handleAddressPress = () => {
     const encodedAddress = encodeURI(
-      `${property?.address.deliveryLine} ${property?.address.city} ${property?.address.state} ${property?.zipCode}`,
+      `${property?.address.deliveryLine} ${property?.address.city} ${property?.address.state} ${property?.zipCode}`
     );
     Linking.openURL(`https://maps.apple.com/?address=${encodedAddress}`);
   };
@@ -134,8 +134,10 @@ const OffMarketProperty: React.FC<OffMarketPropertyProps> = ({
     disclaimerBottomSheetRef.current?.present();
   };
   const imageUrls = property?.images.map((image) => {
-    return { 
-      url: `https://images.weserv.nl/?url=${encodeURIComponent(image)}&w=1200&h=800&fit=cover`
+    return {
+      url: `https://images.weserv.nl/?url=${encodeURIComponent(
+        image
+      )}&w=1200&h=800&fit=cover`,
     };
   });
   if (!property) {
@@ -164,7 +166,7 @@ const OffMarketProperty: React.FC<OffMarketPropertyProps> = ({
             <CircleButton
               style={tw`w-12 h-12 bg-purple`}
               imageStyle={tw`w-5 h-5`}
-              imageURL={require('../../assets/home_logo_white.png')}
+              imageURL={require("../../assets/home_logo_white.png")}
               onPress={navigateHome}
             />
           </View>
@@ -172,7 +174,7 @@ const OffMarketProperty: React.FC<OffMarketPropertyProps> = ({
             <CircleButton
               style={tw`w-12 h-12 bg-black`}
               imageStyle={tw`h-7 w-7`}
-              imageURL={require('../../assets/fullscreen.png')}
+              imageURL={require("../../assets/fullscreen.png")}
               onPress={() => handleImagePress(imageIndex - 1)}
             />
           </View>
@@ -180,7 +182,7 @@ const OffMarketProperty: React.FC<OffMarketPropertyProps> = ({
             <CircleButton
               style={tw`w-12 h-12 bg-yellow`}
               imageStyle={tw`w-5 h-5`}
-              imageURL={require('../../assets/chart_purple.png')}
+              imageURL={require("../../assets/chart_purple.png")}
               onPress={() => setState({ ...state, chartIsOpen: true })}
             />
           </View>
@@ -230,8 +232,8 @@ const OffMarketProperty: React.FC<OffMarketPropertyProps> = ({
                       getFixedPriceBidEquity(
                         existingFixedPriceBid,
                         property.salePrice,
-                        numJustRight,
-                      ),
+                        numJustRight
+                      )
                     )}
                   </Text>
                 </View>
@@ -323,7 +325,7 @@ const OffMarketProperty: React.FC<OffMarketPropertyProps> = ({
           <View style={tw`flex flex-row p-4`}>
             <Image
               style={tw`w-4 h-4 mr-2`}
-              source={require('../../assets/gsrein_logo.png')}
+              source={require("../../assets/gsrein_logo.png")}
             ></Image>
             <Text numberOfLines={1} style={tw`flex-1 text-xs`}>
               Information herein is deemed reliable but not guaranteed and is
@@ -353,7 +355,7 @@ const OffMarketProperty: React.FC<OffMarketPropertyProps> = ({
         <Pressable onPress={handleCloseDisclaimerSheet}>
           <Image
             style={tw`absolute w-3 h-3 -top-8 right-4`}
-            source={require('../../assets/times_gray.png')}
+            source={require("../../assets/times_gray.png")}
           ></Image>
         </Pressable>
         <HorizontalLine />
@@ -385,7 +387,7 @@ const OffMarketProperty: React.FC<OffMarketPropertyProps> = ({
         snapPoints={myTotalsSnapPoints}
         onChange={handleChange}
       >
-        <View style={[{ height: '100%', marginBottom: 100 }]}>
+        <View style={[{ height: "100%", marginBottom: 100 }]}>
           <MyTotals property={property} />
           <View
             style={tw`absolute bottom-0 flex justify-start h-32 p-4 bg-white left-4 right-4`}
@@ -406,7 +408,7 @@ const OffMarketProperty: React.FC<OffMarketPropertyProps> = ({
       </BottomSheetModal>
       <Modal
         isVisible={state.chartIsOpen}
-        animationIn={'slideInDown'}
+        animationIn={"slideInDown"}
         animationInTiming={300}
         onSwipeComplete={() => {
           setState({ ...state, chartIsOpen: false });
@@ -435,7 +437,7 @@ const OffMarketProperty: React.FC<OffMarketPropertyProps> = ({
             )}
           </View>
           <Text style={tw`px-4 font-overpass500`}>
-            Listed at: {formatMoney(property.listPrice)} on{' '}
+            Listed at: {formatMoney(property.listPrice)} on{" "}
             {getDateFromTimestamp(property.dateCreated)}
           </Text>
           <Text style={tw`px-4 font-overpass500`}>
@@ -443,7 +445,7 @@ const OffMarketProperty: React.FC<OffMarketPropertyProps> = ({
           </Text>
           <Image
             style={tw`w-10 h-10 px-4 mx-auto mt-4`}
-            source={require('../../assets/gsrein_logo.png')}
+            source={require("../../assets/gsrein_logo.png")}
           ></Image>
         </View>
       </Modal>

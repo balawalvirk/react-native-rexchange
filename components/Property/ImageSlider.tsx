@@ -1,7 +1,7 @@
-import { Pressable, ScrollView } from 'react-native';
-import { IMAGE_HEIGHT, WINDOW_WIDTH } from '../../lib/helpers/dimensions';
-import { Property } from '../../lib/models/property';
-import LazyLoadedImage from '../LazyLoadedImage';
+import { Pressable, ScrollView } from "react-native";
+import { IMAGE_HEIGHT, WINDOW_WIDTH } from "../../lib/helpers/dimensions";
+import { Property } from "../../lib/models/property";
+import LazyLoadedImage from "../LazyLoadedImage";
 
 interface ImageSliderProps {
   property: Property;
@@ -16,14 +16,14 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
   onPress,
   handleScrollPosition,
   show,
-  showThumbnail
+  showThumbnail,
 }) => {
   return (
     <ScrollView
       horizontal={true}
       decelerationRate={0}
       snapToInterval={WINDOW_WIDTH}
-      snapToAlignment={'center'}
+      snapToAlignment={"center"}
       disableIntervalMomentum={true}
       showsVerticalScrollIndicator={false}
       showsHorizontalScrollIndicator={false}
@@ -39,7 +39,7 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
           >
             <LazyLoadedImage
               image={`${image}`}
-              imageWidth={'1200'}
+              imageWidth={"1200"}
               thumbnail={`${image}?width=100`}
               showThumbnail={showThumbnail}
               show={show}

@@ -1,14 +1,14 @@
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
-import { useNavigation } from '@react-navigation/native';
-import { useMemo, useRef, useState } from 'react';
-import { View, Text, Image, Pressable } from 'react-native';
-import CircleButton from '../../../components/CircleButton';
-import LazyLoadedImage from '../../../components/LazyLoadedImage';
-import MyTotals from '../../../components/MyTotals';
-import { useEquity } from '../../../firebase/equity';
-import { formatMoney } from '../../../lib/helpers/money';
-import { Property } from '../../../lib/models/property';
-import tw from '../../../lib/tailwind/tailwind';
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { useNavigation } from "@react-navigation/native";
+import { useMemo, useRef, useState } from "react";
+import { View, Text, Image, Pressable } from "react-native";
+import CircleButton from "../../../components/CircleButton";
+import LazyLoadedImage from "../../../components/LazyLoadedImage";
+import MyTotals from "../../../components/MyTotals";
+import { useEquity } from "../../../firebase/equity";
+import { formatMoney } from "../../../lib/helpers/money";
+import { Property } from "../../../lib/models/property";
+import tw from "../../../lib/tailwind/tailwind";
 
 interface PropertyViewProps {
   property: Property;
@@ -31,11 +31,11 @@ const PropertyView: React.FC<PropertyViewProps> = ({
     property.id,
     property.listPrice,
     property.salePrice,
-    isOpenHouse,
+    isOpenHouse
   );
 
   const myTotalsBottomSheetModalRef = useRef<BottomSheetModal>(null);
-  const myTotalsSnapPoints = useMemo(() => ['1%', '90%'], []);
+  const myTotalsSnapPoints = useMemo(() => ["1%", "90%"], []);
   const [_showOverlay, setShowOverlay] = useState(false);
   const navigation = useNavigation();
 
@@ -49,9 +49,9 @@ const PropertyView: React.FC<PropertyViewProps> = ({
   };
 
   const navigateToProperty = () => {
-    if (property.status === 'Active') {
+    if (property.status === "Active") {
       // @ts-expect-error
-      navigation.navigate('for-sale-property', {
+      navigation.navigate("for-sale-property", {
         property,
         currentIndex: 0,
         queueIndex: 0,
@@ -59,7 +59,7 @@ const PropertyView: React.FC<PropertyViewProps> = ({
       });
     } else {
       // @ts-expect-error
-      navigation.navigate('off-market-property', {
+      navigation.navigate("off-market-property", {
         property,
       });
     }
@@ -81,8 +81,8 @@ const PropertyView: React.FC<PropertyViewProps> = ({
           ></LazyLoadedImage>
           <View style={tw`absolute inset-0 rounded-lg bg-overlay`}></View>
           {Boolean(
-            property.status === 'Active' &&
-              (!positionSinceMidnight || isOpenHouse),
+            property.status === "Active" &&
+              (!positionSinceMidnight || isOpenHouse)
           ) ? (
             <View
               style={tw`absolute px-4 py-2 rounded-full top-4 left-4 bg-green/80`}
@@ -91,7 +91,7 @@ const PropertyView: React.FC<PropertyViewProps> = ({
                 Submit a valuation
               </Text>
             </View>
-          ) : property.status === 'Active' ? (
+          ) : property.status === "Active" ? (
             <View
               style={tw`absolute px-4 py-2 rounded-full top-4 left-4 bg-red/80`}
             >
@@ -99,7 +99,7 @@ const PropertyView: React.FC<PropertyViewProps> = ({
                 Submit a valuation tomorrow
               </Text>
             </View>
-          ) : property.status === 'Pending' ? (
+          ) : property.status === "Pending" ? (
             <View
               style={tw`absolute px-4 py-2 rounded-full top-4 left-4 bg-yellow/50`}
             >
@@ -127,7 +127,7 @@ const PropertyView: React.FC<PropertyViewProps> = ({
           Courtesy of {property.listingOffice.name}
         </Text>
         <View style={tw`flex flex-row items-center`}>
-          <Image source={require('../../../assets/crown_gold.png')}></Image>
+          <Image source={require("../../../assets/crown_gold.png")}></Image>
           <Text style={tw`ml-1 text-xl uppercase text-purple font-rajdhani700`}>
             Rextimate: {formatMoney(currentRextimate.amount)}
           </Text>
@@ -142,11 +142,11 @@ const PropertyView: React.FC<PropertyViewProps> = ({
         )}
         {!isOpenHouse && (
           <View
-            style={tw`flex flex-row flex-wrap items-start p-1 rounded-md bg-lightGreen`}
+            style={tw`flex flex-row flex-wrap items-start p-1 rounded-md bg-lightGreen items-center`}
           >
             <Image
               style={tw`h-2 w-2 mx-1 mt-1.5`}
-              source={require('../../../assets/user_green.png')}
+              source={require("../../../assets/user_green.png")}
             ></Image>
 
             <View style={tw`flex flex-row flex-wrap items-center flex-1`}>
@@ -161,8 +161,8 @@ const PropertyView: React.FC<PropertyViewProps> = ({
               {Boolean(positions.length) && (
                 <>
                   <Text style={[tw`text-xs text-green font-overpass600 `]}>
-                    {positions.length}{' '}
-                    {positions.length > 1 ? 'valuations' : 'valuation'}
+                    {positions.length}{" "}
+                    {positions.length > 1 ? "valuations" : "valuation"}
                   </Text>
                   <View style={tw`h-3.5 w-0.3 bg-green mx-1`}></View>
                 </>
@@ -175,13 +175,13 @@ const PropertyView: React.FC<PropertyViewProps> = ({
         )}
       </Pressable>
       {!isOpenHouse && (
-        <View style={tw`absolute right-6 top-45`}>
+        <View style={tw`absolute right-2 top-45 items-center`}>
           <CircleButton
             style={tw`w-20 h-20 bg-white border-solid shadow-md border-1 border-borderGray z-100`}
-            imageURL={require('../../../assets/house_dollarsign_green.png')}
+            imageURL={require("../../../assets/house_dollarsign_green.png")}
             onPress={() => myTotalsBottomSheetModalRef.current?.present()}
           />
-          <Text style={tw`text-xs text-green font-overpass500 mt-0.5`}>
+          <Text style={tw`text-xs text-green font-overpass500 mt-1`}>
             Your Valuations
           </Text>
         </View>
@@ -190,7 +190,7 @@ const PropertyView: React.FC<PropertyViewProps> = ({
         <Image
           style={tw`w-20 mx-auto`}
           resizeMode="contain"
-          source={require('../../../assets/gsrein_logo.png')}
+          source={require("../../../assets/gsrein_logo.png")}
         ></Image>
       )}
       {/* Bottom Sheets */}
@@ -201,7 +201,7 @@ const PropertyView: React.FC<PropertyViewProps> = ({
         snapPoints={myTotalsSnapPoints}
         onChange={handleChange}
       >
-        <View style={[{ height: '100%', marginBottom: 100 }]}>
+        <View style={[{ height: "100%", marginBottom: 100 }]}>
           <MyTotals property={property} />
           <View
             style={tw`absolute bottom-0 flex justify-start h-32 p-4 bg-white left-4 right-4`}

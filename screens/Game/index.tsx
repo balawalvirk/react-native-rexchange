@@ -1,31 +1,41 @@
-import { DocumentSnapshot, QuerySnapshot } from '@google-cloud/firestore';
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
-import { useNavigation } from '@react-navigation/native';
-import { Unsubscribe } from 'firebase/firestore';
-import _ from 'lodash';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Image, View, Text, Pressable, FlatList, ScrollView } from 'react-native';
-import HorizontalLine from '../../components/HorizontalLine';
-import PropertyView from '../../components/Property';
-import { updateUser } from '../../firebase/collections/users';
-import { positionsSinceMidnightSnapshot } from '../../firebase/collections/positions';
-import { WINDOW_HEIGHT } from '../../lib/helpers/dimensions';
-import { Position } from '../../lib/models/positions';
-import { Property } from '../../lib/models/property';
-import tw from '../../lib/tailwind/tailwind';
-import { useAuth } from '../../providers/authProvider';
-import { useScrollEnabled } from '../../providers/scrollEnabledProvider';
-import { Skip, getQueuedProperties } from '../../firebase/game';
+import { DocumentSnapshot, QuerySnapshot } from "@google-cloud/firestore";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { useNavigation } from "@react-navigation/native";
+import { Unsubscribe } from "firebase/firestore";
+import _ from "lodash";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Image,
+  View,
+  Text,
+  Pressable,
+  FlatList,
+  ScrollView,
+  Dimensions,
+} from "react-native";
+import HorizontalLine from "../../components/HorizontalLine";
+import PropertyView from "../../components/Property";
+import { updateUser } from "../../firebase/collections/users";
+import { positionsSinceMidnightSnapshot } from "../../firebase/collections/positions";
+import { WINDOW_HEIGHT } from "../../lib/helpers/dimensions";
+import { Position } from "../../lib/models/positions";
+import { Property } from "../../lib/models/property";
+import tw from "../../lib/tailwind/tailwind";
+import { useAuth } from "../../providers/authProvider";
+import { useScrollEnabled } from "../../providers/scrollEnabledProvider";
+import { Skip, getQueuedProperties } from "../../firebase/game";
 
 interface GameScreenProps {}
 
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const GameScreen: React.FC<GameScreenProps> = () => {
   const [properties, setProperties] = useState<Property[] | null>(null);
   const { scrollEnabled, setScrollEnabled } = useScrollEnabled();
   const { user, setUser } = useAuth();
 
   const [mlsIdsSinceMidnight, setMLSIdsSinceMidnight] = useState(
-    [] as string[],
+    [] as string[]
   );
   const [propertyFeed, setPropertyFeed] = useState<Property[] | null>(null);
   const [queueIsLoaded, setQueueIsLoaded] = useState(false);
@@ -37,7 +47,9 @@ const GameScreen: React.FC<GameScreenProps> = () => {
   const [isSkipping, setIsSkipping] = useState(false);
   const naviation = useNavigation();
   const tutorialBottomSheetModalRef = useRef<BottomSheetModal>(null);
-  const myTotalsSnapPoints = useMemo(() => ['1%', '90%'], []);
+  const myTotalsSnapPoints = useMemo(() => ["1%", "90%"], []);
+  const flatListRef = useRef<FlatList<any>>(null);
+
   const handleChange = (index: number) => {
     if (index == -1) {
       setScrollEnabled(true);
@@ -49,14 +61,14 @@ const GameScreen: React.FC<GameScreenProps> = () => {
     let unsubscribe: Unsubscribe;
     if (user && !mlsIdsLoaded) {
       unsubscribe = positionsSinceMidnightSnapshot(
-        user?.id || '',
+        user?.id || "",
         (querySnapshot: QuerySnapshot) => {
           const mlsIds = querySnapshot.docs.map(
-            (doc: DocumentSnapshot) => (doc.data() as Position).mlsId,
+            (doc: DocumentSnapshot) => (doc.data() as Position).mlsId
           );
           setMLSIdsSinceMidnight(mlsIds);
           setMLSIdsLoaded(true);
-        },
+        }
       );
     }
 
@@ -85,7 +97,6 @@ const GameScreen: React.FC<GameScreenProps> = () => {
       queueSkips();
     }
   }, [consecutiveSkipCount]);
-
 
   useEffect(() => {
     if (
@@ -196,22 +207,40 @@ const GameScreen: React.FC<GameScreenProps> = () => {
 
   const navigateHome = () => {
     // @ts-expect-error
-    naviation.navigate('home');
+    naviation.navigate("home");
+  };
+
+  const goToNextCard = () => {
+    if (currentIndex < (properties?.length || 0) - 1) {
+      const nextIndex = currentIndex + 1;
+      flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+      setCurrentIndex(nextIndex);
+    }
   };
 
   // FlatList render function
-  const renderProperty = ({ item, index }: { item: Property; index: number }) => {
+  const renderProperty = ({
+    item,
+    index,
+  }: {
+    item: Property;
+    index: number;
+  }) => {
     return (
-      <PropertyView
-        key={item.id}
-        property={item}
-        queueIndex={index}
-        currentIndex={index}
-        addSkip={addSkip}
-        clearSkips={() => setConsecutiveSkipCount(0)}
-        setPositionWasSet={setPositionWasSet}
-        isOpenHouse={false}
-      />
+      <View style={{ height: WINDOW_HEIGHT }}>
+        {/* 👈 full screen height */}
+        <PropertyView
+          key={item.id}
+          property={item}
+          queueIndex={index}
+          currentIndex={index}
+          addSkip={addSkip}
+          clearSkips={() => setConsecutiveSkipCount(0)}
+          setPositionWasSet={setPositionWasSet}
+          isOpenHouse={false}
+          goToNextCard={goToNextCard}
+        />
+      </View>
     );
   };
 
@@ -258,7 +287,7 @@ const GameScreen: React.FC<GameScreenProps> = () => {
         <Image
           style={tw`-my-4 h-1/3`}
           resizeMode="contain"
-          source={require('../../assets/dino-logo.png')}
+          source={require("../../assets/dino-logo.png")}
         ></Image>
         <ActivityIndicator />
       </View>
@@ -285,11 +314,11 @@ const GameScreen: React.FC<GameScreenProps> = () => {
   return (
     <View style={tw`flex-1`}>
       <FlatList
+        ref={flatListRef}
         data={properties || []}
         renderItem={renderProperty}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
-        showsHorizontalScrollIndicator={false}
         scrollEnabled={scrollEnabled}
         onScroll={handleScroll}
         scrollEventThrottle={16}
@@ -304,6 +333,12 @@ const GameScreen: React.FC<GameScreenProps> = () => {
           index,
         })}
         ListFooterComponent={renderFooter}
+        // 👇 important for "one card at a time"
+        pagingEnabled // makes swipe snap to each item
+        decelerationRate="fast" // smoother snap
+        snapToInterval={WINDOW_HEIGHT} // snap distance
+        snapToAlignment="start"
+        disableIntervalMomentum={true} // prevents skipping 2+ items in one swipe
       />
       {isSkipping && (
         <View
@@ -322,7 +357,7 @@ const GameScreen: React.FC<GameScreenProps> = () => {
           setUser({ ...user, tutorialFinished: true });
         }}
       >
-        <View style={[{ height: '100%', marginBottom: 100 }]}>
+        <View style={[{ height: "100%", marginBottom: 100 }]}>
           <ScrollView style={tw`px-4 pb-8`}>
             <Text
               style={tw`p-4 text-center capitalize font-overpass600 text-purple`}
@@ -334,29 +369,29 @@ const GameScreen: React.FC<GameScreenProps> = () => {
             >
               <Image
                 style={tw`absolute w-3 h-3 -top-8 right-4`}
-                source={require('../../assets/times_gray.png')}
+                source={require("../../assets/times_gray.png")}
               ></Image>
             </Pressable>
             <HorizontalLine />
             <Text style={tw`my-4 text-base font-overpass400`}>
               Who knows how much a house is worth? At Rexchange, we believe that
-              locals know their neighborhoods better than anyone else. Our{' '}
+              locals know their neighborhoods better than anyone else. Our{" "}
               <Text style={tw`italic`}>Rextimate</Text> is set through a
               real-time price guessing game.
             </Text>
             <Text style={tw`my-4 text-base font-overpass400`}>
-              In a moment, you will see some homes{' '}
+              In a moment, you will see some homes{" "}
               <Text style={tw`font-overpass500`}>
                 that are actually on the market,
-              </Text>{' '}
+              </Text>{" "}
               and your job is to guess whether our Rextimate is close to the
               price the house will really sell for.
             </Text>
             <Text style={tw`my-4 text-base font-overpass400`}>
-              The best part is that your{' '}
+              The best part is that your{" "}
               <Text style={tw`font-overpass500`}>
                 guess will actually change our Rextimate in real time.
-              </Text>{' '}
+              </Text>{" "}
               The closer you get to the right price, the more equity you get!
               Get the most equity, win the game!
             </Text>
