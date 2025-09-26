@@ -1,15 +1,16 @@
 // Import the functions you need from the SDKs you need
 import 'firebase/firestore';
-import { initializeApp } from 'firebase/app';
-import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { initializeAuth, getReactNativePersistence, getAuth } from 'firebase/auth';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+import { env } from '../config/env';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 export const stagingConfig = {
-  apiKey: 'AIzaSyDs7RuBJgNQd_XgJ-OXp2C8X4iJxbb_JMQ',
+  apiKey: env.firebaseApiKey, // Use environment variable
   authDomain: 'rexchange-bfb0a.firebaseapp.com',
   databaseURL: 'https://rexchange-bfb0a-default-rtdb.firebaseio.com',
   projectId: 'rexchange-bfb0a',
@@ -20,7 +21,7 @@ export const stagingConfig = {
 };
 
 export const productionConfig = {
-  apiKey: 'AIzaSyBs3hByLOE-3EvmLXWC4Fu3b5aYvXbGn-I',
+  apiKey: env.firebaseApiKey,
   authDomain: 'rexchange-bfb0a.firebaseapp.com',
   databaseURL: 'https://rexchange-bfb0a-default-rtdb.firebaseio.com',
   projectId: 'rexchange-bfb0a',
@@ -30,11 +31,18 @@ export const productionConfig = {
   measurementId: 'G-04X6EQYGCW',
 };
 
-const app = initializeApp(productionConfig);
+// Initialize Firebase app only if it doesn't exist
+const app = getApps().length === 0 ? initializeApp(productionConfig) : getApp();
 
-const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(ReactNativeAsyncStorage),
-});
-// Initialize Firebase
+// Initialize Auth only if it doesn't exist
+let auth;
+try {
+  auth = getAuth(app);
+} catch (error) {
+  auth = initializeAuth(app, {
+    persistence: getReactNativePersistence(ReactNativeAsyncStorage),
+  });
+}
 
+export { auth };
 export default app;

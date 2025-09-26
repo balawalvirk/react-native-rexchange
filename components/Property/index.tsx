@@ -1,45 +1,41 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-  View,
-  Text,
-  Pressable,
-  Linking,
+  FlatList,
   Image,
   KeyboardAvoidingView,
-} from 'react-native';
-import { useEquity } from '../../firebase/equity';
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
-import Modal from 'react-native-modal';
-import {
-  IMAGE_HEIGHT,
-  TALL_SHEET,
-  WINDOW_HEIGHT,
-  WINDOW_WIDTH,
-} from '../../lib/helpers/dimensions';
+  Linking,
+  Pressable,
+  Text,
+  View,
+} from "react-native";
+import Modal from "react-native-modal";
+import { useEquity } from "../../firebase/equity";
+import { TALL_SHEET, WINDOW_WIDTH } from "../../lib/helpers/dimensions";
 
-import { Property } from '../../lib/models/property';
-import tw from '../../lib/tailwind/tailwind';
-import { useScrollEnabled } from '../../providers/scrollEnabledProvider';
-import MoreInfo from '../MoreInfo';
-import MyTotals from '../MyTotals';
-import ImageSliderModal from './ImageSliderModal';
-import ImageSlider from './ImageSlider';
-import Details from './Details';
-import OpenAPosition from './OpenAPosition';
-import ActivityGrid from './ActivityGrid';
-import EnterAGuess from './EnterAGuess';
-import HorizontalLine from '../HorizontalLine';
-import { recordAPosition } from '../../firebase/collections/positions';
-import { useAuth } from '../../providers/authProvider';
-import { recordFixedPriceBid } from '../../firebase/collections/fixedPriceBids';
-import { formatMoney } from '../../lib/helpers/money';
-import CircleButton from '../CircleButton';
-import PriceHistoryChart from './PriceHistoryChart';
-import { getDateFromTimestamp } from '../../lib/helpers/calculations';
-import { Skip } from '../../firebase/game';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import ListingAgentInfo from '../ListingAgentInfo';
-import * as Sentry from '@sentry/react-native';
+import { useNavigation, useRoute } from "@react-navigation/native";
+import * as Sentry from "@sentry/react-native";
+import { recordFixedPriceBid } from "../../firebase/collections/fixedPriceBids";
+import { recordAPosition } from "../../firebase/collections/positions";
+import { Skip } from "../../firebase/game";
+import { getDateFromTimestamp } from "../../lib/helpers/calculations";
+import { formatMoney } from "../../lib/helpers/money";
+import { Property } from "../../lib/models/property";
+import tw from "../../lib/tailwind/tailwind";
+import { useAuth } from "../../providers/authProvider";
+import { useScrollEnabled } from "../../providers/scrollEnabledProvider";
+import CircleButton from "../CircleButton";
+import HorizontalLine from "../HorizontalLine";
+import ListingAgentInfo from "../ListingAgentInfo";
+import MoreInfo from "../MoreInfo";
+import MyTotals from "../MyTotals";
+import ActivityGrid from "./ActivityGrid";
+import Details from "./Details";
+import EnterAGuess from "./EnterAGuess";
+import ImageSlider from "./ImageSlider";
+import ImageSliderModal from "./ImageSliderModal";
+import OpenAPosition from "./OpenAPosition";
+import PriceHistoryChart from "./PriceHistoryChart";
 interface PropertyProps {
   property: Property;
   queueIndex: number;
@@ -48,6 +44,7 @@ interface PropertyProps {
   addSkip: (skip: Skip) => void;
   clearSkips: () => void;
   setPositionWasSet?: (args: any) => void;
+  goToNextCard?: () => void;
 }
 const Backdrop: React.FC<any> = ({ animatedIndex, animatedPosition }) => {
   return <View style={tw`absolute inset-0 bg-black opacity-50`}></View>;
@@ -56,6 +53,7 @@ const Backdrop: React.FC<any> = ({ animatedIndex, animatedPosition }) => {
 const PropertyView: React.FC<PropertyProps> = ({
   property,
   queueIndex,
+  goToNextCard,
   currentIndex,
   isOpenHouse,
   addSkip,
@@ -63,6 +61,7 @@ const PropertyView: React.FC<PropertyProps> = ({
   setPositionWasSet,
 }) => {
   const route = useRoute();
+
   if (route.params) {
     const {
       property: paramProp,
@@ -85,7 +84,7 @@ const PropertyView: React.FC<PropertyProps> = ({
     chartIsOpen: false,
   });
   const [selectedPosition, setSelectedPosition] = useState<0 | 1 | 2 | null>(
-    null,
+    null
   );
   const { user } = useAuth();
   const [step, setStep] = useState<1 | 2>(1);
@@ -102,15 +101,18 @@ const PropertyView: React.FC<PropertyProps> = ({
 
   const [showImage, setShowImage] = useState(true);
   const [imageIndex, setImageIndex] = useState(1);
-  
+
   // Memoize image URLs to prevent recalculation on every render
   const imageUrls = useMemo(() => {
     return property.images.map((image) => {
-      return { 
-        url: `https://images.weserv.nl/?url=${encodeURIComponent(image)}&w=1200&h=800&fit=cover`
+      return {
+        url: `https://images.weserv.nl/?url=${encodeURIComponent(
+          image
+        )}&w=1200&h=800&fit=cover`,
       };
     });
   }, [property.images]);
+
   useEffect(() => {
     if (selectedPosition != null) {
       setStep(2);
@@ -156,7 +158,7 @@ const PropertyView: React.FC<PropertyProps> = ({
 
   const handleAddressPress = () => {
     const encodedAddress = encodeURI(
-      `${property.address.deliveryLine} ${property.address.city} ${property.address.state} ${property.zipCode}`,
+      `${property.address.deliveryLine} ${property.address.city} ${property.address.state} ${property.zipCode}`
     );
     Linking.openURL(`https://maps.apple.com/?address=${encodedAddress}`);
   };
@@ -165,9 +167,9 @@ const PropertyView: React.FC<PropertyProps> = ({
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const listingAgentInfoBottomSheetRef = useRef<BottomSheetModal>(null);
   const disclaimerBottomSheetRef = useRef<BottomSheetModal>(null);
-  const snapPoints = useMemo(() => ['50%'], []);
+  const snapPoints = useMemo(() => ["50%"], []);
   const myTotalsBottomSheetModalRef = useRef<BottomSheetModal>(null);
-  const myTotalsSnapPoints = useMemo(() => ['90%'], []);
+  const myTotalsSnapPoints = useMemo(() => ["90%"], []);
   const openAPositionBottomSheetModalRef = useRef<BottomSheetModal>(null);
   const handlePresentModalPress = () => {
     bottomSheetModalRef.current?.present();
@@ -207,13 +209,13 @@ const PropertyView: React.FC<PropertyProps> = ({
 
   const handleSubmit = async () => {
     if (selectedPosition == null) {
-      Sentry.captureException('no selectedPosition');
+      Sentry.captureException("no selectedPosition");
       return;
     }
     setStep(1);
     if (isOpenHouse) {
       // @ts-expect-error
-      navigation.navigate('open-house-form', {
+      navigation.navigate("open-house-form", {
         address: property.address.deliveryLine,
       });
       setShowImage(false);
@@ -232,11 +234,12 @@ const PropertyView: React.FC<PropertyProps> = ({
       user,
       currentRextimate.amount,
       property.id,
-      isOpenHouse,
+      isOpenHouse
     );
     if (fixedPriceBid) {
       await recordFixedPriceBid(fixedPriceBid, user, property.id, isOpenHouse);
     }
+    goToNextCard?.();
   };
 
   const onPress = (position: any) => {
@@ -247,9 +250,9 @@ const PropertyView: React.FC<PropertyProps> = ({
   };
   const navigateHome = () => {
     if (isOpenHouse) {
-      navigation.navigate('open-house-home');
+      navigation.navigate("open-house-home");
     } else {
-      navigation.navigate('home');
+      navigation.navigate("home");
     }
   };
 
@@ -257,24 +260,24 @@ const PropertyView: React.FC<PropertyProps> = ({
     const offset = event.nativeEvent.contentOffset.x;
     const fullWidth = WINDOW_WIDTH * property.images.length;
     const currentPos = Math.round(
-      (offset / fullWidth) * property.images.length + 1,
+      (offset / fullWidth) * property.images.length + 1
     );
     setImageIndex(currentPos);
   };
 
   const isLarge = WINDOW_WIDTH > 600;
-  const listPriceText = isLarge ? 'text-lg' : 'text-xs';
-  const circleButtonSize = 'w-12 h-12';
-  const circleButtonImageSize = 'w-5 h-5';
-  const homeButtonPosition = 'top-20 right-8';
-  const fullScreenButtonPosition = 'top-36';
-  const graphButtonPosition = 'top-54';
-  const imageIndexText = isLarge ? 'text-lg' : 'text-xs';
-  const termsConditionIcon = isLarge ? 'w-8 h-8' : 'w-3 h-3';
-  const termsConditionInfo = isLarge ? 'text-2xl' : 'text-base';
-  const chartMargin = isLarge ? '-mx-12 -top-16' : '-mx-5 -mt-32';
-  const chartTitle = isLarge ? 'text-2xl' : 'text-base';
-  const imageCount = 'bottom-4 right-6';
+  const listPriceText = isLarge ? "text-lg" : "text-xs";
+  const circleButtonSize = "w-12 h-12";
+  const circleButtonImageSize = "w-5 h-5";
+  const homeButtonPosition = "top-20 right-8";
+  const fullScreenButtonPosition = "top-36";
+  const graphButtonPosition = "top-54";
+  const imageIndexText = isLarge ? "text-lg" : "text-xs";
+  const termsConditionIcon = isLarge ? "w-8 h-8" : "w-3 h-3";
+  const termsConditionInfo = isLarge ? "text-2xl" : "text-base";
+  const chartMargin = isLarge ? "-mx-12 -top-16" : "-mx-5 -mt-32";
+  const chartTitle = isLarge ? "text-2xl" : "text-base";
+  const imageCount = "bottom-4 right-6";
   return (
     <View style={[tw`bg-white`]}>
       <KeyboardAvoidingView behavior="position">
@@ -300,7 +303,7 @@ const PropertyView: React.FC<PropertyProps> = ({
             <CircleButton
               style={tw`${circleButtonSize} bg-purple`}
               imageStyle={tw`${circleButtonImageSize}`}
-              imageURL={require('../../assets/home_logo_white.png')}
+              imageURL={require("../../assets/home_logo_white.png")}
               onPress={navigateHome}
             />
           </View>
@@ -308,7 +311,7 @@ const PropertyView: React.FC<PropertyProps> = ({
             <CircleButton
               style={tw`${circleButtonSize} bg-black`}
               imageStyle={tw`${circleButtonImageSize}`}
-              imageURL={require('../../assets/fullscreen.png')}
+              imageURL={require("../../assets/fullscreen.png")}
               onPress={() => handleImagePress(imageIndex - 1)}
             />
           </View>
@@ -316,7 +319,7 @@ const PropertyView: React.FC<PropertyProps> = ({
             <CircleButton
               style={tw`${circleButtonSize} bg-yellow`}
               imageStyle={tw`${circleButtonImageSize} flex-1`}
-              imageURL={require('../../assets/chart_purple.png')}
+              imageURL={require("../../assets/chart_purple.png")}
               onPress={() => setState({ ...state, chartIsOpen: true })}
             />
           </View>
@@ -359,7 +362,7 @@ const PropertyView: React.FC<PropertyProps> = ({
               <View style={tw`flex flex-row p-4`}>
                 <Image
                   style={tw`${termsConditionIcon} mr-2`}
-                  source={require('../../assets/gsrein_logo.png')}
+                  source={require("../../assets/gsrein_logo.png")}
                 ></Image>
                 <Text numberOfLines={1} style={tw`flex-1 ${imageIndexText}`}>
                   Information herein is deemed reliable but not guaranteed and
@@ -400,7 +403,7 @@ const PropertyView: React.FC<PropertyProps> = ({
         }}
         onAnimate={handleChange}
         style={{
-          shadowColor: '#000',
+          shadowColor: "#000",
           shadowOffset: {
             width: 0,
             height: 12,
@@ -419,7 +422,7 @@ const PropertyView: React.FC<PropertyProps> = ({
         <Pressable onPress={handleCloseDisclaimerSheet}>
           <Image
             style={tw`absolute w-3 h-3 -top-8 right-4`}
-            source={require('../../assets/times_gray.png')}
+            source={require("../../assets/times_gray.png")}
           ></Image>
         </Pressable>
         <HorizontalLine />
@@ -441,7 +444,7 @@ const PropertyView: React.FC<PropertyProps> = ({
           setScrollEnabled(true);
         }}
         style={{
-          shadowColor: '#000',
+          shadowColor: "#000",
           shadowOffset: {
             width: 0,
             height: 12,
@@ -468,7 +471,7 @@ const PropertyView: React.FC<PropertyProps> = ({
         }}
         style={[
           {
-            shadowColor: '#000',
+            shadowColor: "#000",
             shadowOffset: {
               width: 0,
               height: 12,
@@ -484,7 +487,7 @@ const PropertyView: React.FC<PropertyProps> = ({
         <View style={tw`px-4 py-8`}>
           <Text style={tw`my-2 font-overpass400 ${termsConditionInfo}`}>
             <Text style={tw`font-bold font-overpass700 ${termsConditionInfo}`}>
-              Important:{' '}
+              Important:{" "}
             </Text>
             Your valuations and guesses made on properties are not real offers
             or bids to purchase those properties.
@@ -522,7 +525,7 @@ const PropertyView: React.FC<PropertyProps> = ({
         }}
         style={[
           {
-            shadowColor: '#000',
+            shadowColor: "#000",
             shadowOffset: {
               width: 0,
               height: 12,
@@ -534,7 +537,7 @@ const PropertyView: React.FC<PropertyProps> = ({
           },
         ]}
       >
-        <View style={[{ height: '100%' }]}>
+        <View style={[{ height: "100%" }]}>
           <MyTotals property={property} />
           <View
             style={tw`absolute bottom-0 flex justify-start h-32 p-4 bg-white left-4 right-4`}
@@ -563,7 +566,7 @@ const PropertyView: React.FC<PropertyProps> = ({
         }}
         style={[
           {
-            shadowColor: '#000',
+            shadowColor: "#000",
             shadowOffset: {
               width: 0,
               height: 12,
@@ -580,7 +583,7 @@ const PropertyView: React.FC<PropertyProps> = ({
       </BottomSheetModal>
       <Modal
         isVisible={state.chartIsOpen}
-        animationIn={'slideInDown'}
+        animationIn={"slideInDown"}
         animationInTiming={300}
         onSwipeComplete={() => {
           setState({ ...state, chartIsOpen: false });
@@ -609,7 +612,7 @@ const PropertyView: React.FC<PropertyProps> = ({
             )}
           </View>
           <Text style={tw`px-4 font-overpass500 ${listPriceText}`}>
-            Listed at: {formatMoney(property.listPrice)} on{' '}
+            Listed at: {formatMoney(property.listPrice)} on{" "}
             {getDateFromTimestamp(property.dateCreated)}
           </Text>
           <Text style={tw`px-4 font-overpass500 ${listPriceText}`}>
@@ -618,7 +621,7 @@ const PropertyView: React.FC<PropertyProps> = ({
           <Image
             style={tw`w-16 h-16 px-4 mx-auto mt-4`}
             resizeMode="contain"
-            source={require('../../assets/gsrein_logo.png')}
+            source={require("../../assets/gsrein_logo.png")}
           ></Image>
         </View>
       </Modal>

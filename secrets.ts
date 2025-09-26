@@ -1,6 +1,8 @@
 // Firebase configuration for Rexchange CMS
+import { env } from './config/env';
+
 export const firebaseConfig = {
-  apiKey: "AIzaSyBs3hByLOE-3EvmLXWC4Fu3b5aYvXbGn-I",
+  apiKey: env.firebaseApiKey, // Use environment variable
   authDomain: "rexchange-bfb0a.firebaseapp.com",
   databaseURL: "https://rexchange-bfb0a-default-rtdb.firebaseio.com",
   projectId: "rexchange-bfb0a",
