@@ -17,7 +17,9 @@
       "fallbackToCacheTimeout": 0,
       "url": "https://u.expo.dev/b4b7e6c6-1b23-4e7f-80ec-e8b4e0763125"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "app.rexchange.rexchange",
@@ -34,7 +36,9 @@
         ],
         "CFBundleURLTypes": [
           {
-            "CFBundleURLSchemes": ["fb345762047270780"]
+            "CFBundleURLSchemes": [
+              "fb345762047270780"
+            ]
           }
         ]
       },
@@ -54,7 +58,7 @@
       "favicon": "./assets/favicon.png",
       "config": {
         "firebase": {
-          "apiKey": "AIzaSyBB0Qv0kNZx0SawGXWoSGQAY8Q7FRyvYUY",
+          "apiKey": "PLACEHOLDER_FIREBASE_API_KEY",
           "measurementId": "G-QE82SG7T4T"
         }
       }
