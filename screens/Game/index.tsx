@@ -57,6 +57,7 @@ const GameScreen: React.FC<GameScreenProps> = () => {
       setScrollEnabled(false);
     }
   };
+
   useEffect(() => {
     let unsubscribe: Unsubscribe;
     if (user && !mlsIdsLoaded) {
@@ -335,7 +336,7 @@ const GameScreen: React.FC<GameScreenProps> = () => {
         ListFooterComponent={renderFooter}
         // 👇 important for "one card at a time"
         pagingEnabled // makes swipe snap to each item
-        decelerationRate="fast" // smoother snap
+        decelerationRate="normal" // smoother snap
         snapToInterval={WINDOW_HEIGHT} // snap distance
         snapToAlignment="start"
         disableIntervalMomentum={true} // prevents skipping 2+ items in one swipe

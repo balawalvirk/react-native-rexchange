@@ -1,6 +1,8 @@
 // Firebase configuration for Rexchange CMS
+const FIREBASE_API_KEY = "AIzaSyBB0Qv0kNZx0SawGXWoSGQAY8Q7FRyvYUY";
+
 export const firebaseConfig = {
-  apiKey: "AIzaSyBs3hByLOE-3EvmLXWC4Fu3b5aYvXbGn-I",
+  apiKey: FIREBASE_API_KEY,
   authDomain: "rexchange-bfb0a.firebaseapp.com",
   databaseURL: "https://rexchange-bfb0a-default-rtdb.firebaseio.com",
   projectId: "rexchange-bfb0a",

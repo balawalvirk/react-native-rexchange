@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { getAuth } from "firebase/auth";
+import { auth } from "./firebase/config";
 import { Settings } from "react-native-fbsdk-next";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -198,7 +198,7 @@ export default function App() {
   const pushNotification = usePushNotifications();
 
   const checkForAuth = async () => {
-    const user = getAuth().currentUser;
+    const user = auth.currentUser;
     if (user) {
       return;
     }

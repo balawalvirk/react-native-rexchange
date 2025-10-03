@@ -5,6 +5,7 @@ import {
   KeyboardAvoidingView,
   Keyboard,
   ToastAndroid,
+  Platform,
 } from "react-native";
 import tw from "../../lib/tailwind/tailwind";
 import Gradient from "../../lib/svg/Gradient";
@@ -34,6 +35,14 @@ const PromoCodeScreen: React.FC<PromoCodeScreenProps> = ({ navigation }) => {
     Overpass_600SemiBold,
   });
   const [state, setState] = useState({ promoCode: "", error: false });
+
+  const showToast = () => {
+    if (Platform.OS === "android") {
+      ToastAndroid.show("Coming Soon", ToastAndroid.SHORT);
+    } else {
+      <Alert status="success" message="Coming Soon" />;
+    }
+  };
 
   const handlePress = async () => {
     // Dismiss keyboard before navigation
@@ -98,11 +107,7 @@ const PromoCodeScreen: React.FC<PromoCodeScreenProps> = ({ navigation }) => {
             </View>
           </TouchableOpacity>
 
-          <Pressable
-            onPress={() => {
-              ToastAndroid.show("Coming Soon", ToastAndroid.SHORT);
-            }}
-          >
+          <Pressable onPress={showToast}>
             <Text
               style={tw`my-8 text-lg text-center text-white font-overpass600 opacity-50`}
             >

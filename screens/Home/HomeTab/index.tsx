@@ -12,7 +12,7 @@ import PropertyView from "./PropertyView";
 import { SafeAreaView } from "react-native-safe-area-context";
 import _ from "lodash";
 
-const NUMBER_TO_PULL = 4;
+const NUMBER_TO_PULL = 2;
 
 interface HomeTabProps {}
 
@@ -67,13 +67,23 @@ const HomeTab: React.FC<HomeTabProps> = () => {
     );
     if (!mlsIdsToGet?.length) return;
     const nextProperties = await getProperties(mlsIdsToGet);
+    
+    // Filter Closed to include Pending (Under Contract) and Sold only
+    const filteredNext = nextProperties.filter((p) =>
+      ["Pending", "Sold"].includes(p.status)
+    );
     const nextPropertiesOrdered = _.sortBy(nextProperties, function (obj) {
       return _.indexOf(mlsIdsToGet, obj.id);
     });
-    setClosedProperties([
+    const nextOrderedFiltered = nextPropertiesOrdered.filter((p) =>
+      filteredNext.some((f) => f.id === p.id)
+    );
+    const updatedClosed = [
       ...(closedProperties ? closedProperties : []),
-      ...nextPropertiesOrdered,
-    ]);
+      ...nextOrderedFiltered,
+    ];
+    
+    setClosedProperties(updatedClosed);
   };
 
   const loadNextClosedPropertiesDebounced = _.debounce(
@@ -90,13 +100,21 @@ const HomeTab: React.FC<HomeTabProps> = () => {
 
     if (!mlsIdsToGet?.length) return;
     const nextProperties = await getProperties(mlsIdsToGet);
+    
+    // Filter Open to include Active only
+    const filteredNext = nextProperties.filter((p) => p.status === "Active");
     const nextPropertiesOrdered = _.sortBy(nextProperties, function (obj) {
       return _.indexOf(mlsIdsToGet, obj.id);
     });
-    setOpenProperties([
+    const nextOrderedFiltered = nextPropertiesOrdered.filter((p) =>
+      filteredNext.some((f) => f.id === p.id)
+    );
+    const updatedOpen = [
       ...(openProperties ? openProperties : []),
-      ...nextPropertiesOrdered,
-    ]);
+      ...nextOrderedFiltered,
+    ];
+    
+    setOpenProperties(updatedOpen);
   };
   const loadNextOpenPropertiesDebounced = _.debounce(
     loadNextOpenProperties,
@@ -163,6 +181,7 @@ const HomeTab: React.FC<HomeTabProps> = () => {
             onPress={() => {
               setIsOpen(true);
               slideToOpen();
+              
             }}
           >
             <Text
@@ -178,6 +197,7 @@ const HomeTab: React.FC<HomeTabProps> = () => {
             onPress={() => {
               setIsOpen(false);
               slideToClosed();
+              
             }}
           >
             <Text
