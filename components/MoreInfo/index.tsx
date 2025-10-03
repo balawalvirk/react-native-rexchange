@@ -21,17 +21,21 @@ const MoreInfo: React.FC<MoreInfoProps> = ({
   const moreInfoTextSize = isLarge ? 'text-lg' : 'text-sm'
   return (
     <>
+      {/* Swipe indicator */}
+      <View style={tw`flex items-center`}>
+        <Text style={tw`text-xs text-gray-500`}>Swipe down to close more info</Text>
+      </View>
       <Text style={tw`p-4 ${moreInfoTextSize} text-center capitalize font-overpass600 text-purple`}>
         {property.fullListingAddress}
       </Text>
       {close && (
         <Pressable onPress={close}>
-          <View style={tw`absolute w-8 h-8 -top-12 right-4`}>
+          <Pressable onPress={close}  style={tw`absolute w-8 h-8 -top-16 right-4`}>
             <Image
               style={tw`w-3 h-3`}
               source={require('../../assets/times_gray.png')}
             ></Image>
-          </View>
+          </Pressable>
         </Pressable>
       )}
       <HorizontalLine />

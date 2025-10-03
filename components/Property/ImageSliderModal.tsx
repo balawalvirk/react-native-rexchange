@@ -6,6 +6,7 @@ import {
   BackHandler,
   Modal,
   ActivityIndicator,
+  Text,
 } from "react-native";
 import ImageViewer from "react-native-image-zoom-viewer";
 import { WINDOW_HEIGHT, WINDOW_WIDTH } from "../../lib/helpers/dimensions";
@@ -72,6 +73,7 @@ const ImageSliderModal: React.FC<ImageSliderModalProps> = ({
           enableSwipeDown={true}
           onSwipeDown={handleCloseClick}
           failImageSource={require("../../assets/times_gray.png")}
+          enablePreload={true} // Enable preloading for faster navigation
           loadingRender={() => (
             <View
               style={{
@@ -82,6 +84,9 @@ const ImageSliderModal: React.FC<ImageSliderModalProps> = ({
               }}
             >
               <ActivityIndicator size="large" color="white" />
+              <Text style={tw`text-white text-lg mt-4 font-overpass500`}>
+                Loading image...
+              </Text>
             </View>
           )}
         />

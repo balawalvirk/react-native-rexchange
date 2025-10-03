@@ -27,6 +27,7 @@ export const getProperties = async (mlsIds?: string[]): Promise<Property[]> => {
     querySnapshot.docs,
     (doc: DocumentSnapshot) => doc.data() as Property,
   );
+  
   return properties;
 };
 

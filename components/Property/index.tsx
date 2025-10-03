@@ -75,6 +75,9 @@ const PropertyView: React.FC<PropertyProps> = ({
     isOpenHouse = paramIsOpenHouse || false;
   }
 
+  // Console log full property data
+  console.log('🏠 [PROPERTY DATA] Full property details:', JSON.stringify(property, null, 2));
+
   const [state, setState] = useState({
     show: false,
     index: 0,
@@ -89,6 +92,8 @@ const PropertyView: React.FC<PropertyProps> = ({
   const { user } = useAuth();
   const [step, setStep] = useState<1 | 2>(1);
   const [fixedPriceBid, setFixedPriceBid] = useState(0);
+  const [rextimateUpdatedAfterSubmission, setRextimateUpdatedAfterSubmission] = useState(false);
+  const [isProcessingSubmission, setIsProcessingSubmission] = useState(false);
 
   const { setScrollEnabled } = useScrollEnabled();
   const {
@@ -108,7 +113,7 @@ const PropertyView: React.FC<PropertyProps> = ({
       return {
         url: `https://images.weserv.nl/?url=${encodeURIComponent(
           image
-        )}&w=1200&h=800&fit=cover`,
+        )}&w=1200&h=800&fit=cover&q=85`, // Added quality parameter for faster loading
       };
     });
   }, [property.images]);
@@ -125,6 +130,39 @@ const PropertyView: React.FC<PropertyProps> = ({
     }
     () => setSelectedPosition(null);
   }, [selectedPosition]);
+
+  // Reset the rextimate updated flag and processing state when property changes
+  useEffect(() => {
+    setRextimateUpdatedAfterSubmission(false);
+    setIsProcessingSubmission(false);
+  }, [property.id]);
+
+  // Preload images for faster full screen viewing
+  useEffect(() => {
+    const preloadImages = async () => {
+      try {
+        // Preload the first few images for faster access
+        const imagesToPreload = property.images.slice(0, 3);
+        await Promise.all(
+          imagesToPreload.map((image) => {
+            return new Promise((resolve) => {
+              const img = new Image();
+              img.onload = () => resolve(true);
+              img.onerror = () => resolve(false);
+              img.src = `https://images.weserv.nl/?url=${encodeURIComponent(
+                image
+              )}&w=1200&h=800&fit=cover&q=85`;
+            });
+          })
+        );
+      } catch (error) {
+        // Silently fail - preloading is optional
+        console.log('Image preloading failed:', error);
+      }
+    };
+
+    preloadImages();
+  }, [property.images]);
 
   useEffect(() => {
     if (step === 2) {
@@ -212,7 +250,11 @@ const PropertyView: React.FC<PropertyProps> = ({
       Sentry.captureException("no selectedPosition");
       return;
     }
+    console.log('🎯 [SUBMIT] User submitted bid at:', new Date().toISOString());
     setStep(1);
+    setIsProcessingSubmission(true);
+    console.log('⏳ [SUBMIT] Processing submission started...');
+    
     if (isOpenHouse) {
       // @ts-expect-error
       navigation.navigate("open-house-form", {
@@ -236,10 +278,63 @@ const PropertyView: React.FC<PropertyProps> = ({
       property.id,
       isOpenHouse
     );
+    console.log('✅ [SUBMIT] Position recorded to Firebase');
+    
     if (fixedPriceBid) {
       await recordFixedPriceBid(fixedPriceBid, user, property.id, isOpenHouse);
+      console.log('💰 [SUBMIT] Fixed price bid recorded:', fixedPriceBid);
     }
-    goToNextCard?.();
+
+    const initialRextimate = currentRextimate.amount;
+    console.log('🔍 [REXTIMATE] Initial Rextimate value:', initialRextimate);
+    console.log('🔄 [REXTIMATE] Starting to check for updates every 50ms...');
+    
+    const checkForRextimateUpdate = () => {
+      return new Promise<void>((resolve) => {
+        let hasUpdated = false;
+        let checkCount = 0;
+        const checkInterval = setInterval(() => {
+          checkCount++;
+          if (currentRextimate.amount !== initialRextimate && !hasUpdated) {
+            hasUpdated = true;
+            clearInterval(checkInterval);
+            console.log('🎉 [REXTIMATE] Update detected after', checkCount * 50, 'ms');
+            console.log('📊 [REXTIMATE] Old value:', initialRextimate, '→ New value:', currentRextimate.amount);
+            console.log('💬 [MESSAGE] Displaying "already bid" message now...');
+            setRextimateUpdatedAfterSubmission(true);
+            setIsProcessingSubmission(false);
+            console.log('⏰ [NAVIGATION] Will navigate to next house in 2.5 seconds...');
+            // Wait 2.5 seconds AFTER the message displays so users can read it
+            setTimeout(() => {
+              console.log('➡️ [NAVIGATION] Navigating to next house now!');
+              goToNextCard?.();
+              resolve();
+            }, 2500); 
+          }
+        }, 50); // Check frequently (every 50ms) for faster response
+        
+        // Fallback: if no update after 5 seconds, show message and wait before navigating
+        setTimeout(() => {
+          if (!hasUpdated) {
+            console.log('⚠️ [REXTIMATE] No update detected after 5 seconds - using fallback');
+            clearInterval(checkInterval);
+            console.log('💬 [MESSAGE] Displaying "already bid" message (fallback)...');
+            setRextimateUpdatedAfterSubmission(true);
+            setIsProcessingSubmission(false);
+            console.log('⏰ [NAVIGATION] Will navigate to next house in 2.5 seconds (fallback)...');
+            // Still wait 2.5 seconds before navigating
+            setTimeout(() => {
+              console.log('➡️ [NAVIGATION] Navigating to next house now (fallback)!');
+              goToNextCard?.();
+              resolve();
+            }, 1000);
+          }
+        }, 1000);
+      });
+    };
+
+    await checkForRextimateUpdate();
+    console.log('✨ [SUBMIT] Complete!');
   };
 
   const onPress = (position: any) => {
@@ -357,6 +452,8 @@ const PropertyView: React.FC<PropertyProps> = ({
               selectedPosition={selectedPosition}
               onPress={onPress}
               isOpenHouse={isOpenHouse}
+              rextimateUpdatedAfterSubmission={rextimateUpdatedAfterSubmission}
+              isProcessingSubmission={isProcessingSubmission}
             />
             <Pressable onPress={handleDisclaimerPress}>
               <View style={tw`flex flex-row p-4`}>

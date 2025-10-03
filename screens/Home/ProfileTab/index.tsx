@@ -1,6 +1,6 @@
 import { useNavigation } from "@react-navigation/native";
 import { useEffect, useState } from "react";
-import { View, Image, Text, Pressable, FlatList, Modal } from "react-native";
+import { View, Image, Text, Pressable, FlatList, Modal, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { formatMoney } from "../../../lib/helpers/money";
 import tw from "../../../lib/tailwind/tailwind";
@@ -69,29 +69,36 @@ const ProfileTab: React.FC<ProfileTabProps> = () => {
     refresh,
     isRefreshing,
   } = usePortfolio();
+  const data = usePortfolio();
+  console.log('portfolioLineItems', data);
 
   useEffect(() => {
     refresh();
   }, []);
   return (
-    <SafeAreaView style={tw`flex items-center justify-center pt-10`}>
-      <Pressable
-        style={tw`w-full`}
-        onPress={() => setState({ ...state, showSettings: true })}
+    <SafeAreaView style={tw`flex-1`}>
+      <ScrollView 
+        style={tw`flex-1`}
+        contentContainerStyle={tw`flex items-center justify-center pt-10 pb-20`}
+        showsVerticalScrollIndicator={true}
       >
-        <Image
-          style={tw`ml-auto mr-8`}
-          resizeMode="contain"
-          source={require("../../../assets/settings_light_gray.png")}
-        />
-      </Pressable>
-      <View
-        style={tw`flex items-center justify-center mx-auto rounded-full bg-lightGreen h-28 w-28`}
-      >
-        <Image source={require("../../../assets/profile_icon_green.png")} />
-        <Text style={tw`mt-1 text-green font-overpass500`}>Portfolio</Text>
-      </View>
-      <View style={tw`w-full p-8`}>
+        <Pressable
+          style={tw`w-full`}
+          onPress={() => setState({ ...state, showSettings: true })}
+        >
+          <Image
+            style={tw`ml-auto mr-8`}
+            resizeMode="contain"
+            source={require("../../../assets/settings_light_gray.png")}
+          />
+        </Pressable>
+        <View
+          style={tw`flex items-center justify-center mx-auto rounded-full bg-lightGreen h-28 w-28`}
+        >
+          <Image source={require("../../../assets/profile_icon_green.png")} />
+          <Text style={tw`mt-1 text-green font-overpass500`}>Portfolio</Text>
+        </View>
+        <View style={tw`w-full p-8`}>
         <Pressable
           onPress={() =>
             setState({
@@ -132,7 +139,8 @@ const ProfileTab: React.FC<ProfileTabProps> = () => {
             data={portfolioLineItems.filter((item) => item.status === "Sold")}
             renderItem={ListViewItem as any}
             keyExtractor={(item) => `pli-${item.mlsId}`}
-            style={tw`max-h-40`}
+            showsVerticalScrollIndicator={false}
+            scrollEnabled={false}
           ></FlatList>
         )}
         <Pressable
@@ -177,7 +185,8 @@ const ProfileTab: React.FC<ProfileTabProps> = () => {
             data={portfolioLineItems.filter((item) => item.status !== "Sold")}
             renderItem={ListViewItem as any}
             keyExtractor={(item) => `pli-${item.mlsId}`}
-            style={tw`max-h-40`}
+            showsVerticalScrollIndicator={false}
+            scrollEnabled={false}
             refreshing={isRefreshing}
             onRefresh={refresh}
           ></FlatList>
@@ -205,28 +214,32 @@ const ProfileTab: React.FC<ProfileTabProps> = () => {
           <FlatList
             data={portfolioLineItems}
             keyExtractor={(item, index) => `pli-${item.mlsId}-${index}`}
-            renderItem={({ item }) => (
-              <View
-                style={tw`flex flex-row justify-between items-center border-b border-borderGray py-2`}
-              >
-                <View>
-                  <Text style={tw`font-overpass500`}>{item.address}</Text>
-                  <Text style={tw`text-sm text-darkGray italic`}>
-                    Status: {item.status}
+            renderItem={({ item, index }) => {
+              // console.log('ProfileTab - Rendering item:', index, item);
+              return (
+                <View
+                  style={tw`flex flex-row justify-between items-center border-b border-borderGray py-2`}
+                >
+                  <View>
+                    <Text style={tw`font-overpass500`}>{item.address}</Text>
+                    <Text style={tw`text-sm text-darkGray italic`}>
+                      Status: {item.status}
+                    </Text>
+                  </View>
+                  <Text
+                    style={tw`font-rajdhani600 ${
+                      item.equity > 0 ? "text-green" : "text-red"
+                    }`}
+                  >
+                    {formatMoney(item.equity)}
                   </Text>
                 </View>
-                <Text
-                  style={tw`font-rajdhani600 ${
-                    item.equity > 0 ? "text-green" : "text-red"
-                  }`}
-                >
-                  {formatMoney(item.equity)}
-                </Text>
-              </View>
-            )}
+              );
+            }}
           />
         </View>
       </View>
+      </ScrollView>
       <Modal
         visible={state.showSettings}
         presentationStyle="pageSheet"

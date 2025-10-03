@@ -80,11 +80,11 @@ const LazyLoadedImage: React.FC<LazyLoadedImageProps> = ({
     style,
   ];
 
-  // Build safe URL with cache buster
+  // Build safe URL with cache buster and optimized parameters
   const buildUrl = (url: string, params = "") =>
     `https://images.weserv.nl/?url=${encodeURIComponent(
       url
-    )}${params}&t=${retryKey}`;
+    )}${params}&t=${retryKey}&q=85`; // Added quality parameter for faster loading
 
   return (
     <View

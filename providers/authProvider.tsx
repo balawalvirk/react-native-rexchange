@@ -53,6 +53,8 @@ export function AuthProvider({ children }: any) {
         });
       } else {
         console.log('ℹ️ Not first launch, keeping existing auth');
+        // Return immediately for subsequent launches
+        return Promise.resolve();
       }
     } catch (error) {
       console.log('❌ Error clearing auth on first launch:', error);
@@ -66,7 +68,10 @@ export function AuthProvider({ children }: any) {
       
       // Now set up the auth state listener
       return getAuth(app).onAuthStateChanged(async (user) => {
-        console.log({ user });
+        console.log('🔍 Auth state changed:', { 
+          user: user ? { uid: user.uid, email: user.email } : null,
+          timestamp: new Date().toISOString()
+        });
         
         // Keep loading state until we determine where to navigate
         if (!user) {

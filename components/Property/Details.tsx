@@ -52,14 +52,14 @@ const Details: React.FC<DetailsProps> = ({
     <View style={tw`p-4`}>
       <Pressable onPress={onListingAgentPress}>
         <Text style={tw`text-black font-overpass400 underline ${textSize}`}>
-          Courtesy of {property.listingOffice.name}
+          Courtesy of {property.listingOffice?.name || 'Unknown Office'}
         </Text>
       </Pressable>
       <Pressable onPress={onAddressPress}>
         <Text
           style={tw`underline capitalize font-overpass400 ${addressTextSize}`}
         >
-          {property.fullListingAddress}
+          {property.fullListingAddress || 'Address not available'}
         </Text>
       </Pressable>
       <View style={tw`flex flex-row items-center justify-between`}>
@@ -90,7 +90,7 @@ const Details: React.FC<DetailsProps> = ({
             imageURL={require("../../assets/bed_purple.png")}
           />
           <Text style={tw`${circleButtonText} font-overpass500 text-darkGray`}>
-            {property.beds} beds
+            {property.beds || 0} beds
           </Text>
         </View>
         <View style={tw`flex flex-row items-center`}>
@@ -99,7 +99,7 @@ const Details: React.FC<DetailsProps> = ({
             imageURL={require("../../assets/bath_purple.png")}
           />
           <Text style={tw`${circleButtonText} font-overpass500 text-darkGray`}>
-            {property.baths.total} baths
+            {property.baths?.total || 0} baths
           </Text>
         </View>
         <View style={tw`flex flex-row items-center`}>

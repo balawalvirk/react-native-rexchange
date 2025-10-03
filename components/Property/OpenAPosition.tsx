@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { View, Text, Pressable, Image } from 'react-native';
+import { View, Text, Pressable, Image, ActivityIndicator } from 'react-native';
 import { WINDOW_WIDTH } from '../../lib/helpers/dimensions';
 import { formatMoney } from '../../lib/helpers/money';
 import { Position } from '../../lib/models/positions';
@@ -14,6 +14,8 @@ interface OpenAPositionProps {
   selectedPosition: 0 | 1 | 2 | null;
   onPress: (args: any) => any;
   isOpenHouse?: boolean;
+  rextimateUpdatedAfterSubmission?: boolean;
+  isProcessingSubmission?: boolean;
 }
 
 const OpenAPosition: React.FC<OpenAPositionProps> = ({
@@ -24,6 +26,8 @@ const OpenAPosition: React.FC<OpenAPositionProps> = ({
   selectedPosition,
   onPress,
   isOpenHouse,
+  rextimateUpdatedAfterSubmission = false,
+  isProcessingSubmission = false,
 }) => {
   const hasJustRight = Boolean(_.some(positions, (pos) => pos.type == 2));
   const toggleSelectedPosition = (position: 0 | 1 | 2) => {
@@ -34,7 +38,23 @@ const OpenAPosition: React.FC<OpenAPositionProps> = ({
     }
   };
 
-  if (positionSinceMidnight && !isOpenHouse) {
+  // Show loading indicator while processing submission
+  if (isProcessingSubmission && !isOpenHouse) {
+    return (
+      <View style={tw` mt-4 flex items-center justify-center`}>
+        <ActivityIndicator size="large" color="#8B5CF6" />
+        <Text style={tw`p-4 text-lg text-center text-purple font-rajdhani700`}>
+          Processing your submission...
+        </Text>
+        <Text style={tw`text-sm text-center text-darkGray font-overpass400`}>
+          Updating Rextimate
+        </Text>
+      </View>
+    );
+  }
+
+  // Show "already bid" message after Rextimate has been updated
+  if (positionSinceMidnight && !isOpenHouse && rextimateUpdatedAfterSubmission) {
     return (
       <View style={tw`flex items-center justify-center`}>
         <Text style={tw`p-10 text-xl text-center text-purple font-rajdhani700`}>
