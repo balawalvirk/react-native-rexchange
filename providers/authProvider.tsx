@@ -25,10 +25,8 @@ export function AuthProvider({ children }: any) {
   const clearAuthOnFirstLaunch = async () => {
     try {
       const hasLaunchedBefore = await AsyncStorage.getItem('hasLaunchedBefore');
-      console.log('hasLaunchedBefore:', hasLaunchedBefore);
       
       if (hasLaunchedBefore === null) {
-        console.log('🚨 FIRST LAUNCH DETECTED - Clearing auth session');
         await AsyncStorage.setItem('hasLaunchedBefore', 'true');
         
         // Wait for Firebase Auth to initialize and load any persisted user
@@ -37,14 +35,10 @@ export function AuthProvider({ children }: any) {
           
           // Listen for auth state to initialize
           const unsubscribe = auth.onAuthStateChanged(async (user) => {
-            console.log('Auth initialized with user:', user?.email || 'no user');
             
             if (user) {
-              console.log('🧹 Signing out existing user:', user.email);
               await signOut(auth);
-              console.log('✅ Auth cleared successfully');
             } else {
-              console.log('ℹ️ No existing user to clear');
             }
             
             unsubscribe(); // Stop listening
@@ -52,26 +46,22 @@ export function AuthProvider({ children }: any) {
           });
         });
       } else {
-        console.log('ℹ️ Not first launch, keeping existing auth');
         // Return immediately for subsequent launches
         return Promise.resolve();
       }
-    } catch (error) {
-      console.log('❌ Error clearing auth on first launch:', error);
-    }
+      } catch (error) {
+        // Handle error silently
+      }
   };
   
   useEffect(() => {
     const initializeAuth = async () => {
-      // Clear auth on first launch BEFORE setting up listener
-      await clearAuthOnFirstLaunch();
-      
-      // Now set up the auth state listener
-      return getAuth(app).onAuthStateChanged(async (user) => {
-        console.log('🔍 Auth state changed:', { 
-          user: user ? { uid: user.uid, email: user.email } : null,
-          timestamp: new Date().toISOString()
-        });
+      try {
+        // Clear auth on first launch BEFORE setting up listener
+        await clearAuthOnFirstLaunch();
+        
+        // Now set up the auth state listener
+        return getAuth(app).onAuthStateChanged(async (user) => {
         
         // Keep loading state until we determine where to navigate
         if (!user) {
@@ -113,11 +103,23 @@ export function AuthProvider({ children }: any) {
           });
         }
       });
+      } catch (error) {
+        setIsLoading(false);
+        setUser(null);
+        // Navigate to promo-code on error
+        (navigation as any).reset({
+          index: 0,
+          routes: [{ name: 'promo-code' }],
+        });
+      }
     };
     
     let unsubscribe: any;
     initializeAuth().then((unsub) => {
       unsubscribe = unsub;
+    }).catch(error => {
+      setIsLoading(false);
+      setUser(null);
     });
     
     return () => {

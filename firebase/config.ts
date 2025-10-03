@@ -33,22 +33,30 @@ export const productionConfig = {
 };
 
 // Initialize Firebase app only if it doesn't exist
-const app = getApps().length === 0 ? initializeApp(productionConfig) : getApp();
+let app;
+try {
+  app = getApps().length === 0 ? initializeApp(productionConfig) : getApp();
+} catch (error) {
+  console.error('❌ Firebase app initialization failed:', error);
+  // Fallback to staging config if production fails
+  try {
+    app = initializeApp(stagingConfig);
+  } catch (stagingError) {
+    console.error('❌ Firebase staging config also failed:', stagingError);
+    throw stagingError;
+  }
+}
 
 // Initialize Auth with React Native persistence
 let auth;
 try {
   // Always try to initialize with React Native persistence first
-  console.log('🔧 Initializing Firebase Auth with React Native persistence...');
   auth = initializeAuth(app, {
     persistence: getReactNativePersistence(ReactNativeAsyncStorage),
   });
-  console.log('✅ Firebase Auth initialized with persistence');
-} catch (error) {
+} catch (error: any) {
   // If initialization fails (auth already exists), get the existing instance
-  console.log('⚠️ Auth already initialized, getting existing instance:', error.message);
   auth = getAuth(app);
-  console.log('📱 Using existing auth instance');
 }
 
 export { auth };

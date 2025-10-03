@@ -190,10 +190,14 @@ export default function App() {
   useEffect(() => {
     let firebase = app;
 
-    // Initialize Facebook SDK
-    Settings.setAppID("345762047270780");
-    Settings.initializeSDK();
-    console.log("Facebook SDK initialized");
+    // Initialize Facebook SDK with error handling
+    try {
+      Settings.setAppID("345762047270780");
+      Settings.initializeSDK();
+    } catch (error) {
+      console.error("❌ Facebook SDK initialization failed:", error);
+      // Continue app execution even if Facebook SDK fails
+    }
   }, []);
   const pushNotification = usePushNotifications();
 
@@ -205,7 +209,11 @@ export default function App() {
   };
 
   if (!fontsLoaded) {
-    return <></>;
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#ffffff' }}>
+        <Text style={{ fontSize: 18, color: '#666' }}>Loading...</Text>
+      </View>
+    );
   }
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

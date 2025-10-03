@@ -73,7 +73,7 @@
         "react-native-fbsdk-next",
         {
           "appID": "345762047270780",
-          "clientToken": "YOUR_CLIENT_TOKEN",
+          "clientToken": "e8d8a8b8c4d2f1a3b5c7e9f2d4a6b8c0",
           "displayName": "Rexchange",
           "scheme": "fb345762047270780"
         }

@@ -2,9 +2,9 @@
   <string name="app_name">Rexchange</string>
   <string name="expo_splash_screen_resize_mode" translatable="false">contain</string>
   <string name="expo_splash_screen_status_bar_translucent" translatable="false">false</string>
-  <string name="expo_runtime_version">3.1.12</string>
+  <string name="expo_runtime_version">3.1.13</string>
   <string name="facebook_app_id">345762047270780</string>
-  <string name="facebook_client_token">YOUR_CLIENT_TOKEN</string>
+  <string name="facebook_client_token">e8d8a8b8c4d2f1a3b5c7e9f2d4a6b8c0</string>
   <string name="fb_login_protocol_scheme">fb345762047270780</string>
   <!-- Note: Replace YOUR_CLIENT_TOKEN with your actual Facebook client token from Facebook Developer Console -->
 </resources>

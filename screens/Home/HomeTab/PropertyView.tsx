@@ -7,6 +7,7 @@ import LazyLoadedImage from "../../../components/LazyLoadedImage";
 import MyTotals from "../../../components/MyTotals";
 import { useEquity } from "../../../firebase/equity";
 import { formatMoney } from "../../../lib/helpers/money";
+import { safeFormatMoney } from "../../../lib/helpers/display";
 import { Property } from "../../../lib/models/property";
 import tw from "../../../lib/tailwind/tailwind";
 
@@ -129,15 +130,15 @@ const PropertyView: React.FC<PropertyViewProps> = ({
         <View style={tw`flex flex-row items-center`}>
           <Image source={require("../../../assets/crown_gold.png")}></Image>
           <Text style={tw`ml-1 text-xl uppercase text-purple font-rajdhani700`}>
-            Rextimate: {formatMoney(currentRextimate.amount)}
+            Rextimate: {safeFormatMoney(currentRextimate?.amount, '0')}
           </Text>
         </View>
         <Text style={tw`text-darkGray font-overpass600`}>
-          List: {formatMoney(property.listPrice)}
+          List: {safeFormatMoney(property.listPrice, 'List price not available')}
         </Text>
         {property.salePrice && (
           <Text style={tw`text-darkGray font-overpass600`}>
-            Sale Price: {formatMoney(property.salePrice)}
+            Sale Price: {safeFormatMoney(property.salePrice, 'Sale price not available')}
           </Text>
         )}
         {!isOpenHouse && (

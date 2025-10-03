@@ -325,9 +325,9 @@ const GameScreen: React.FC<GameScreenProps> = () => {
         scrollEventThrottle={16}
         keyboardShouldPersistTaps="always"
         removeClippedSubviews={true}
-        maxToRenderPerBatch={5}
-        windowSize={10}
-        initialNumToRender={5}
+        maxToRenderPerBatch={1}
+        windowSize={3}
+        initialNumToRender={1}
         getItemLayout={(data, index) => ({
           length: WINDOW_HEIGHT,
           offset: WINDOW_HEIGHT * index,

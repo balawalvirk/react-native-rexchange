@@ -7,6 +7,7 @@ import {
   getFixedPriceBidEquity,
 } from "../../lib/helpers/calculations";
 import { formatMoney } from "../../lib/helpers/money";
+import { safeFormatMoney } from "../../lib/helpers/display";
 import { Position } from "../../lib/models/positions";
 import { Property } from "../../lib/models/property";
 import tw from "../../lib/tailwind/tailwind";
@@ -51,7 +52,7 @@ const MyTotals: React.FC<MyTotalsProps> = ({ property }) => {
           </View>
 
           <Text style={tw`text-lg font-rajdhani700 text-darkGray`}>
-            {formatMoney(equity)}
+            {safeFormatMoney(equity, '$0')}
           </Text>
         </View>
         <View style={tw`p-4 my-6 rounded-md bg-lightPurple`}>
@@ -72,15 +73,15 @@ const MyTotals: React.FC<MyTotalsProps> = ({ property }) => {
               >
                 <Text style={tw`text-purple font-rajdhani600`}>
                   {getDateFromTimestamp(position.dateCreated)}{" "}
-                  {formatMoney(position.rextimate)}
+                  {safeFormatMoney(position.rextimate, 'N/A')}
                 </Text>
                 <Text style={tw`text-purple font-rajdhani600`}>
-                  {formatMoney(
+                  {safeFormatMoney(
                     getEquityForOnePosition(
                       position,
                       currentRextimate.amount,
                       numJustRight
-                    )
+                    ), '$0'
                   )}
                 </Text>
               </View>
@@ -90,7 +91,7 @@ const MyTotals: React.FC<MyTotalsProps> = ({ property }) => {
             style={tw`mt-2 text-base text-center text-purple font-rajdhani700`}
           >
             Too Low Gains/Losses{" "}
-            {formatMoney(
+            {safeFormatMoney(
               _.reduce(
                 tooLow,
                 (total: number, position: Position) => {
@@ -102,7 +103,7 @@ const MyTotals: React.FC<MyTotalsProps> = ({ property }) => {
                   return total;
                 },
                 0
-              )
+              ), '$0'
             )}
           </Text>
         </View>
@@ -124,15 +125,15 @@ const MyTotals: React.FC<MyTotalsProps> = ({ property }) => {
               >
                 <Text style={tw`text-orange font-rajdhani600`}>
                   {getDateFromTimestamp(position.dateCreated)}{" "}
-                  {formatMoney(position.rextimate)}
+                  {safeFormatMoney(position.rextimate, 'N/A')}
                 </Text>
                 <Text style={tw`text-orange font-rajdhani600`}>
-                  {formatMoney(
+                  {safeFormatMoney(
                     getEquityForOnePosition(
                       position,
                       currentRextimate.amount,
                       numJustRight
-                    )
+                    ), '$0'
                   )}
                 </Text>
               </View>
@@ -142,7 +143,7 @@ const MyTotals: React.FC<MyTotalsProps> = ({ property }) => {
             style={tw`mt-2 text-base text-center text-orange font-rajdhani700`}
           >
             Too High Gains/Losses{" "}
-            {formatMoney(
+            {safeFormatMoney(
               _.reduce(
                 tooHigh,
                 (total: number, position: Position) => {
@@ -154,7 +155,7 @@ const MyTotals: React.FC<MyTotalsProps> = ({ property }) => {
                   return total;
                 },
                 0
-              )
+              ), '$0'
             )}
           </Text>
         </View>
@@ -182,15 +183,15 @@ const MyTotals: React.FC<MyTotalsProps> = ({ property }) => {
               >
                 <Text style={tw`text-green font-rajdhani600`}>
                   {getDateFromTimestamp(position.dateCreated)}{" "}
-                  {formatMoney(position.rextimate)}
+                  {safeFormatMoney(position.rextimate, 'N/A')}
                 </Text>
                 <Text style={tw`text-green font-rajdhani600`}>
-                  {formatMoney(
+                  {safeFormatMoney(
                     getEquityForOnePosition(
                       position,
                       currentRextimate.amount,
                       numJustRight
-                    )
+                    ), '$0'
                   )}
                 </Text>
               </View>
@@ -203,7 +204,7 @@ const MyTotals: React.FC<MyTotalsProps> = ({ property }) => {
               {property.status != "Sold" && "Potential"}{" "}
             </Text>
             Just Right Gains/Losses{" "}
-            {formatMoney(
+            {safeFormatMoney(
               _.reduce(
                 justRight,
                 (total: number, position: Position) => {
@@ -215,7 +216,7 @@ const MyTotals: React.FC<MyTotalsProps> = ({ property }) => {
                   return total;
                 },
                 0
-              )
+              ), '$0'
             )}
           </Text>
         </View>
@@ -230,15 +231,15 @@ const MyTotals: React.FC<MyTotalsProps> = ({ property }) => {
             <View style={tw`flex flex-row items-center justify-between`}>
               <Text style={tw`text-black font-rajdhani600`}>
                 {getDateFromTimestamp(fixedPriceBid.dateCreated)}{" "}
-                {formatMoney(fixedPriceBid.amount)}
+                {safeFormatMoney(fixedPriceBid.amount, 'N/A')}
               </Text>
               <Text style={tw`text-black font-rajdhani600`}>
-                {formatMoney(
+                {safeFormatMoney(
                   getFixedPriceBidEquity(
                     fixedPriceBid,
                     currentRextimate.amount,
                     numJustRight
-                  )
+                  ), '$0'
                 )}
               </Text>
             </View>
@@ -249,12 +250,12 @@ const MyTotals: React.FC<MyTotalsProps> = ({ property }) => {
                 {property.status != "Sold" && "Potential"}{" "}
               </Text>
               Guess Gains/Losses{" "}
-              {formatMoney(
+              {safeFormatMoney(
                 getFixedPriceBidEquity(
                   fixedPriceBid,
                   currentRextimate.amount,
                   numJustRight
-                )
+                ), '$0'
               )}
             </Text>
           </View>

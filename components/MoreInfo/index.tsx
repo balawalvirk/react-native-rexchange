@@ -2,6 +2,7 @@ import { Text, ScrollView, View, Image, Pressable } from 'react-native';
 import { getPricePerSquareFoot } from '../../lib/helpers/calculations';
 import { WINDOW_WIDTH } from '../../lib/helpers/dimensions';
 import { formatMoney } from '../../lib/helpers/money';
+import { safeFormatMoney, safeFormatPricePerSqft } from '../../lib/helpers/display';
 import { Property } from '../../lib/models/property';
 import { RextimatePriceHistory } from '../../lib/models/rextimatePriceHistory';
 import tw from '../../lib/tailwind/tailwind';
@@ -44,7 +45,7 @@ const MoreInfo: React.FC<MoreInfoProps> = ({
           <View style={tw`flex flex-row m-1 w-100`}>
             <Text style={tw`flex-1 font-overpass700 ${moreInfoTextSize}`}>List Price:</Text>
             <Text style={tw`flex-1 font-overpass500 mr-14 ${moreInfoTextSize}`}>
-              {formatMoney(property.listPrice)}
+              {safeFormatMoney(property.listPrice, 'List price not available')}
             </Text>
           </View>
           <View style={tw`flex flex-row m-1 w-100`}>
@@ -52,7 +53,7 @@ const MoreInfo: React.FC<MoreInfoProps> = ({
               List Price per Sqft:
             </Text>
             <Text style={tw`flex-1 font-overpass500 mr-14 ${moreInfoTextSize}`}>
-              {getPricePerSquareFoot(property.listPrice, property.size)}
+              {safeFormatPricePerSqft(property.listPrice, property.size, 'Price per sqft not available', 'Size not available')}
             </Text>
           </View>
           <View style={tw`flex flex-row m-1 w-100`}>
@@ -60,7 +61,7 @@ const MoreInfo: React.FC<MoreInfoProps> = ({
               Rextimate Price per Sqft:
             </Text>
             <Text style={tw`flex-1 font-overpass500 mr-14 ${moreInfoTextSize}`}>
-              {getPricePerSquareFoot(currentRextimate.amount, property.size)}
+              {safeFormatPricePerSqft(currentRextimate?.amount, property.size, 'Rextimate per sqft not available', 'Size not available')}
             </Text>
           </View>
           <View style={tw`flex flex-row m-1 w-100`}>

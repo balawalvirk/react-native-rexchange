@@ -2,6 +2,7 @@ import { View, Text, Pressable, Image } from "react-native";
 import { WINDOW_WIDTH } from "../../lib/helpers/dimensions";
 
 import { formatMoney } from "../../lib/helpers/money";
+import { safeFormatMoney, safeFormatSqft, safeFormatBedBath } from "../../lib/helpers/display";
 import { Property } from "../../lib/models/property";
 import { RextimatePriceHistory } from "../../lib/models/rextimatePriceHistory";
 import tw from "../../lib/tailwind/tailwind";
@@ -64,7 +65,7 @@ const Details: React.FC<DetailsProps> = ({
       </Pressable>
       <View style={tw`flex flex-row items-center justify-between`}>
         <Text style={tw`${rextimateTextSize} text-purple font-rajdhani700`}>
-          {formatMoney(currentRextimate.amount)}
+          {safeFormatMoney(currentRextimate?.amount, '0')}
         </Text>
         <View style={tw`flex flex-row items-center`}>
           <Image source={require("../../assets/crown_gold.png")}></Image>
@@ -78,7 +79,7 @@ const Details: React.FC<DetailsProps> = ({
       {final && (
         <Text style={tw`text-darkGray font-overpass600 `}>
           Sale Price:{" "}
-          {property.salePrice ? formatMoney(property.salePrice) : "PENDING"}
+          {safeFormatMoney(property.salePrice, "PENDING")}
         </Text>
       )}
       <View
@@ -90,7 +91,7 @@ const Details: React.FC<DetailsProps> = ({
             imageURL={require("../../assets/bed_purple.png")}
           />
           <Text style={tw`${circleButtonText} font-overpass500 text-darkGray`}>
-            {property.beds || 0} beds
+            {safeFormatBedBath(property.beds, 'bed')}
           </Text>
         </View>
         <View style={tw`flex flex-row items-center`}>
@@ -99,7 +100,7 @@ const Details: React.FC<DetailsProps> = ({
             imageURL={require("../../assets/bath_purple.png")}
           />
           <Text style={tw`${circleButtonText} font-overpass500 text-darkGray`}>
-            {property.baths?.total || 0} baths
+            {safeFormatBedBath(property.baths?.total, 'bath')}
           </Text>
         </View>
         <View style={tw`flex flex-row items-center`}>
@@ -108,7 +109,7 @@ const Details: React.FC<DetailsProps> = ({
             imageURL={require("../../assets/ruler_triangle_purple.png")}
           />
           <Text style={tw`${circleButtonText} font-overpass500 text-darkGray`}>
-            {property.size || "N/A"} sqft
+            {safeFormatSqft(property.size)}
           </Text>
         </View>
         <Pressable onPress={onMoreInfoPress}>
