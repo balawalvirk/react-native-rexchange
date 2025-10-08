@@ -41,7 +41,7 @@ export const useEquity = (
   );
   const [fixedPriceBids, setFixedPriceBids] = useState<FixedPriceBid[]>([]);
   const [currentRextimate, setCurrentRextimate] = useState({
-    amount: listPrice,
+    amount: listPrice || 0,
   } as RextimatePriceHistory);
   const [numJustRight, setNumJustRight] = useState(0);
   const [positionSinceMidnight, setPositionSinceMidnight] =
@@ -53,7 +53,6 @@ export const useEquity = (
   }, [positions, currentRextimate, fixedPriceBid, positionSinceMidnight]);
 
   useEffect(() => {
-    console.log('userIsssssd', userId);
     if (!userId) return; // Don't access Firestore if user is not authenticated
     
     let posUnsubscribe: Unsubscribe | undefined;
@@ -102,9 +101,17 @@ export const useEquity = (
     getCurrentRextimateSnapshot(
       mlsId,
       (snapshot: any) => {
+        console.log(`Rextimate snapshot for ${mlsId} (isOpenHouse: ${isOpenHouse}):`, {
+          docsLength: snapshot?.docs?.length,
+          data: snapshot?.docs?.[0]?.data(),
+          listPrice
+        });
+        
         const currentRextimate = snapshot?.docs?.length
           ? snapshot.docs[0].data()
-          : 0;
+          : { amount: listPrice || 0 };
+        
+        console.log(`Setting currentRextimate for ${mlsId}:`, currentRextimate);
         setCurrentRextimate(currentRextimate);
       },
       isOpenHouse,

@@ -13,6 +13,7 @@ import {
   FlatList,
   ScrollView,
   Dimensions,
+  Platform,
 } from "react-native";
 import HorizontalLine from "../../components/HorizontalLine";
 import PropertyView from "../../components/Property";
@@ -336,10 +337,10 @@ const GameScreen: React.FC<GameScreenProps> = () => {
         ListFooterComponent={renderFooter}
         // 👇 important for "one card at a time"
         pagingEnabled // makes swipe snap to each item
-        decelerationRate="normal" // smoother snap
+        decelerationRate={Platform.OS === 'android' ? 'normal' : 'fast'} // normal on Android, fast on iOS
         snapToInterval={WINDOW_HEIGHT} // snap distance
         snapToAlignment="start"
-        disableIntervalMomentum={true} // prevents skipping 2+ items in one swipe
+        disableIntervalMomentum={Platform.OS === 'android'} // disable momentum on Android only
       />
       {isSkipping && (
         <View

@@ -4,7 +4,7 @@ import {
   WINDOW_WIDTH,
 } from "@gorhom/bottom-sheet";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,8 @@ import {
   ScrollView,
   Image,
   Linking,
+  Platform,
+  PermissionsAndroid,
 } from "react-native";
 import Modal from "react-native-modal/dist/modal";
 import CircleButton from "../../components/CircleButton";
@@ -23,6 +25,7 @@ import ImageSlider from "../../components/Property/ImageSlider";
 import ImageSliderModal from "../../components/Property/ImageSliderModal";
 import PriceHistoryChart from "../../components/Property/PriceHistoryChart";
 import { useEquity } from "../../firebase/equity";
+import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 import {
   getDateFromTimestamp,
   getDaysOnRexchange,
@@ -58,6 +61,44 @@ const OffMarketProperty: React.FC<OffMarketPropertyProps> = ({
     myTotalsOpen: false,
     chartIsOpen: false,
   });
+
+  // Request photo library permissions when user enters off-market property screen
+  useEffect(() => {
+    const requestPhotoPermissions = async () => {
+      try {
+        console.log('📸 Off-market property screen: Requesting photo library permissions...');
+        
+        if (Platform.OS === 'ios') {
+          // iOS permission request
+          const permission = await CameraRoll.getPhotos({ first: 1 });
+          console.log('✅ iOS photo library permission granted on off-market property screen');
+        } else {
+          // Android explicit permission request
+          console.log('📱 Requesting Android storage permissions on off-market property screen...');
+          
+          const granted = await PermissionsAndroid.requestMultiple([
+            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          ]);
+          
+          const readGranted = granted[PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE] === PermissionsAndroid.RESULTS.GRANTED;
+          const writeGranted = granted[PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE] === PermissionsAndroid.RESULTS.GRANTED;
+          
+          if (readGranted && writeGranted) {
+            console.log('✅ Android storage permissions granted on off-market property screen');
+          } else {
+            console.log('⚠️ Android storage permissions not fully granted on off-market property screen:', { readGranted, writeGranted });
+          }
+        }
+      } catch (error) {
+        console.log('⚠️ Photo library permission not granted on off-market property screen:', error);
+        // This is normal - user can grant permission later when saving images
+      }
+    };
+
+    // Request permissions after a short delay to ensure component is fully loaded
+    setTimeout(requestPhotoPermissions, 1000);
+  }, []);
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const disclaimerBottomSheetRef = useRef<BottomSheetModal>(null);
   const snapPoints = useMemo(() => ["1%", "50%"], []);
@@ -89,11 +130,10 @@ const OffMarketProperty: React.FC<OffMarketPropertyProps> = ({
   };
   const handleImageIndex = (event: any) => {
     const offset = event.nativeEvent.contentOffset.x;
-    const fullWidth = WINDOW_WIDTH * (property?.images?.length || 0);
-    const currentPos = Math.round(
-      (offset / fullWidth) * (property?.images?.length || 0) + 1
-    );
-    setImageIndex(currentPos);
+    const currentPos = Math.floor(offset / WINDOW_WIDTH) + 1;
+    const maxImages = property?.images?.length || 1;
+    const clampedPos = Math.min(Math.max(currentPos, 1), maxImages);
+    setImageIndex(clampedPos);
   };
 
   const handleChange = (index: number) => {
@@ -162,7 +202,7 @@ const OffMarketProperty: React.FC<OffMarketPropertyProps> = ({
               List Price: {formatMoney(property.listPrice)}
             </Text>
           </View>
-          <View style={tw`absolute top-20 right-8`}>
+          <View style={tw`absolute ${Platform.OS === 'android' ? 'top-28' : 'top-20'} right-6`}>
             <CircleButton
               style={tw`w-12 h-12 bg-purple`}
               imageStyle={tw`w-5 h-5`}
@@ -170,7 +210,7 @@ const OffMarketProperty: React.FC<OffMarketPropertyProps> = ({
               onPress={navigateHome}
             />
           </View>
-          <View style={tw`absolute top-36 right-8`}>
+          <View style={tw`absolute ${Platform.OS === 'android' ? 'top-44' : 'top-36'} right-6`}>
             <CircleButton
               style={tw`w-12 h-12 bg-black`}
               imageStyle={tw`h-7 w-7`}
@@ -178,7 +218,7 @@ const OffMarketProperty: React.FC<OffMarketPropertyProps> = ({
               onPress={() => handleImagePress(imageIndex - 1)}
             />
           </View>
-          <View style={tw`absolute top-54 right-8`}>
+          <View style={tw`absolute ${Platform.OS === 'android' ? 'top-62' : 'top-54'} right-6`}>
             <CircleButton
               style={tw`w-12 h-12 bg-yellow`}
               imageStyle={tw`w-5 h-5`}
@@ -190,7 +230,7 @@ const OffMarketProperty: React.FC<OffMarketPropertyProps> = ({
             style={tw`absolute px-2 py-1 text-xs rounded-md bg-purple bottom-4 right-6`}
           >
             <Text style={tw`text-white`}>
-              {imageIndex} of {property.images.length}
+              {Math.min(Math.max(imageIndex, 1), property.images.length)} of {property.images.length}
             </Text>
           </View>
         </View>
@@ -200,6 +240,7 @@ const OffMarketProperty: React.FC<OffMarketPropertyProps> = ({
           onAddressPress={handleAddressPress}
           currentRextimate={currentRextimate}
           onMoreInfoPress={handlePresentModalPress}
+          onListingAgentPress={() => {}}
         />
         <View style={tw`flex flex-row flex-wrap mb-2 -mt-2`}>
           {existingFixedPriceBid && (

@@ -77,7 +77,6 @@ const PropertyView: React.FC<PropertyViewProps> = ({
             height="100%"
             style={tw`rounded-lg`}
             imageWidth="500"
-            thumbNailWidth="100"
             showThumbnail={true}
           ></LazyLoadedImage>
           <View style={tw`absolute inset-0 rounded-lg bg-overlay`}></View>

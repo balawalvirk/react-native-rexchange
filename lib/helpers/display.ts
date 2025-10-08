@@ -6,6 +6,7 @@ import { formatMoney } from './money';
 export const safeFormatMoney = (value: any, fallback: string = 'Not Available'): string => {
   // Handle null, undefined, or empty values
   if (value === null || value === undefined || value === '') {
+    console.warn('safeFormatMoney: Received null/undefined/empty value:', { value, fallback });
     return fallback;
   }
   
@@ -14,11 +15,13 @@ export const safeFormatMoney = (value: any, fallback: string = 'Not Available'):
   
   // Handle NaN or invalid numbers
   if (isNaN(numValue) || !isFinite(numValue)) {
+    console.warn('safeFormatMoney: Received invalid number:', { value, numValue, fallback });
     return fallback;
   }
   
   // Handle zero or negative values (might want to show different message)
   if (numValue <= 0) {
+    console.warn('safeFormatMoney: Received zero or negative value:', { value, numValue, fallback });
     return fallback;
   }
   
@@ -115,4 +118,65 @@ export const safeFormatBedBath = (value: any, type: 'bed' | 'bath'): string => {
   
   const count = Math.round(numValue);
   return count === 1 ? `${count} ${type}` : `${count} ${type}s`;
+};
+
+export const safeFormatRextimateChange = (
+  listPrice: number | string | null | undefined,
+  rextimate: number | string | null | undefined,
+  fallback: string = '$0'
+): string => {
+  if (listPrice === null || listPrice === undefined || listPrice === '') {
+    return fallback;
+  }
+  if (rextimate === null || rextimate === undefined || rextimate === '') {
+    return fallback;
+  }
+  
+  const numListPrice = typeof listPrice === 'string' ? parseFloat(listPrice) : listPrice;
+  const numRextimate = typeof rextimate === 'string' ? parseFloat(rextimate) : rextimate;
+  
+  if (isNaN(numListPrice) || !isFinite(numListPrice) || isNaN(numRextimate) || !isFinite(numRextimate)) {
+    return fallback;
+  }
+  
+  return formatMoney(numRextimate - numListPrice);
+};
+
+/**
+ * Validates property data and logs potential issues with bid values
+ */
+export const validatePropertyBidData = (property: any, propertyId?: string): void => {
+  const issues: string[] = [];
+  
+  // Check listPrice
+  if (property.listPrice === null || property.listPrice === undefined) {
+    issues.push('listPrice is null/undefined');
+  } else if (property.listPrice === 0) {
+    issues.push('listPrice is 0');
+  } else if (typeof property.listPrice === 'string' && property.listPrice === '') {
+    issues.push('listPrice is empty string');
+  }
+  
+  // Check salePrice if it exists
+  if (property.salePrice !== undefined) {
+    if (property.salePrice === null || property.salePrice === undefined) {
+      issues.push('salePrice is null/undefined');
+    } else if (property.salePrice === 0) {
+      issues.push('salePrice is 0');
+    } else if (typeof property.salePrice === 'string' && property.salePrice === '') {
+      issues.push('salePrice is empty string');
+    }
+  }
+  
+  // Log issues if any found
+  if (issues.length > 0) {
+    console.warn('Property bid data validation issues:', {
+      propertyId: propertyId || property.id,
+      address: property.fullListingAddress || property.address?.deliveryLine || 'Unknown address',
+      issues,
+      listPrice: property.listPrice,
+      salePrice: property.salePrice,
+      status: property.status
+    });
+  }
 };

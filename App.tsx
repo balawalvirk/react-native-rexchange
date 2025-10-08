@@ -198,6 +198,7 @@ export default function App() {
       console.error("❌ Facebook SDK initialization failed:", error);
       // Continue app execution even if Facebook SDK fails
     }
+
   }, []);
   const pushNotification = usePushNotifications();
 

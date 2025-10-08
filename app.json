@@ -2,7 +2,7 @@
   "expo": {
     "name": "Rexchange",
     "slug": "rexchange",
-    "version": "3.1.13",
+    "version": "3.1.16",
     "main": "App.tsx",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -42,7 +42,7 @@
           }
         ]
       },
-      "runtimeVersion": "3.1.13"
+      "runtimeVersion": "3.1.16"
     },
     "android": {
       "adaptiveIcon": {

@@ -3,6 +3,7 @@ import {
   getDaysOnRexchange,
   getRextimateChange,
 } from '../../lib/helpers/calculations';
+import { safeFormatRextimateChange } from '../../lib/helpers/display';
 import { WINDOW_WIDTH } from '../../lib/helpers/dimensions';
 import { formatMoney } from '../../lib/helpers/money';
 import { Position } from '../../lib/models/positions';
@@ -55,7 +56,7 @@ const ActivityGrid: React.FC<ActivityGridProps> = ({
               tw`${rextimateValueText} font-rajdhani700`,
             ]}
           >
-            {getRextimateChange(property.listPrice, currentRextimate.amount)}
+            {safeFormatRextimateChange(property.listPrice, currentRextimate?.amount)}
           </Text>
         </View>
       </View>

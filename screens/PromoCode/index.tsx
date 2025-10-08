@@ -6,6 +6,7 @@ import {
   Keyboard,
   ToastAndroid,
   Platform,
+  StatusBar,
 } from "react-native";
 import tw from "../../lib/tailwind/tailwind";
 import Gradient from "../../lib/svg/Gradient";
@@ -66,6 +67,11 @@ const PromoCodeScreen: React.FC<PromoCodeScreenProps> = ({ navigation }) => {
   };
   return (
     <View style={tw`flex items-center justify-center h-full`}>
+      <StatusBar 
+        barStyle="light-content" 
+        backgroundColor="transparent" 
+        translucent={true} 
+      />
       <Gradient />
 
       <KeyboardAvoidingView

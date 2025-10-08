@@ -8,6 +8,7 @@ import {
 } from 'firebase/firestore';
 import _ from 'lodash';
 import { Property } from '../lib/models/property';
+import { validatePropertyBidData } from '../lib/helpers/display';
 
 export type Skip = { zipCode: string; mlsId: string };
 
@@ -94,11 +95,13 @@ export const getPropertiesForGame = async (): Promise<Property[]> => {
       return property;
     });
 
-    // Console log properties from API
+    // Console log properties from API and validate bid data
     console.log('=== PROPERTIES FROM API (FINAL RESULT) ===');
     console.log(`Total properties: ${properties?.length || 0}`);
     properties?.forEach((property, index) => {
       console.log(`${index + 1}. ID: ${property.id}, Name: ${property.fullListingAddress || 'No name'}, Price: $${property.listPrice || 'N/A'}`);
+      // Validate bid data for each property
+      validatePropertyBidData(property, property.id);
     });
     console.log('=== END PROPERTIES FROM API ===');
 

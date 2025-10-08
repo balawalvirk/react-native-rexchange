@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   Keyboard,
   ScrollView,
+  StatusBar,
 } from 'react-native';
 import tw from '../../lib/tailwind/tailwind';
 import Gradient from '../../lib/svg/Gradient';
@@ -53,6 +54,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   };
   return (
     <SafeAreaView style={tw`flex-1`}>
+      <StatusBar 
+        barStyle="light-content" 
+        backgroundColor="transparent" 
+        translucent={true} 
+      />
       <View style={tw`flex-1 w-full h-full`}>
         <Gradient />
         <ScrollView 

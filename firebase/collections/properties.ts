@@ -31,10 +31,20 @@ export const getProperties = async (mlsIds?: string[]): Promise<Property[]> => {
   return properties;
 };
 
-export const getProperty = async (mlsId: string): Promise<Property> => {
-  const docref = doc(getFirestore(), 'properties', mlsId);
-  const _doc = await getDoc(docref);
-  return _doc.data() as Property;
+export const getProperty = async (mlsId: string): Promise<Property | null> => {
+  try {
+    const docref = doc(getFirestore(), 'properties', mlsId);
+    const _doc = await getDoc(docref);
+    
+    if (!_doc.exists()) {
+      return null;
+    }
+    
+    return _doc.data() as Property;
+  } catch (error) {
+    console.error(`Error fetching property ${mlsId}:`, error);
+    return null;
+  }
 };
 
 export const getOpenHouseProperties = async (): Promise<Property[]> => {

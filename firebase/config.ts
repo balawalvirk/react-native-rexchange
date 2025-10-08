@@ -33,7 +33,7 @@ export const productionConfig = {
 };
 
 // Initialize Firebase app only if it doesn't exist
-let app;
+let app: any;
 try {
   app = getApps().length === 0 ? initializeApp(productionConfig) : getApp();
 } catch (error) {
@@ -48,7 +48,7 @@ try {
 }
 
 // Initialize Auth with React Native persistence
-let auth;
+let auth: any;
 try {
   // Always try to initialize with React Native persistence first
   auth = initializeAuth(app, {

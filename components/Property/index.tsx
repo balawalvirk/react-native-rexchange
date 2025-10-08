@@ -5,9 +5,11 @@ import {
   Image,
   KeyboardAvoidingView,
   Linking,
+  Platform,
   Pressable,
   Text,
   View,
+  PermissionsAndroid,
 } from "react-native";
 import Modal from "react-native-modal";
 import { useEquity } from "../../firebase/equity";
@@ -20,10 +22,12 @@ import { recordAPosition } from "../../firebase/collections/positions";
 import { Skip } from "../../firebase/game";
 import { getDateFromTimestamp } from "../../lib/helpers/calculations";
 import { formatMoney } from "../../lib/helpers/money";
+import { safeFormatMoney, validatePropertyBidData } from "../../lib/helpers/display";
 import { Property } from "../../lib/models/property";
 import tw from "../../lib/tailwind/tailwind";
 import { useAuth } from "../../providers/authProvider";
 import { useScrollEnabled } from "../../providers/scrollEnabledProvider";
+import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 import CircleButton from "../CircleButton";
 import HorizontalLine from "../HorizontalLine";
 import ListingAgentInfo from "../ListingAgentInfo";
@@ -61,6 +65,51 @@ const PropertyView: React.FC<PropertyProps> = ({
   setPositionWasSet,
 }) => {
   const route = useRoute();
+  
+  // Validate property bid data on component mount
+  useEffect(() => {
+    if (property) {
+      validatePropertyBidData(property);
+    }
+  }, [property]);
+
+  // Request photo library permissions when user enters property screen
+  useEffect(() => {
+    const requestPhotoPermissions = async () => {
+      try {
+        console.log('📸 Property screen: Requesting photo library permissions...');
+        
+        if (Platform.OS === 'ios') {
+          // iOS permission request
+          const permission = await CameraRoll.getPhotos({ first: 1 });
+          console.log('✅ iOS photo library permission granted on property screen');
+        } else {
+          // Android explicit permission request
+          console.log('📱 Requesting Android storage permissions on property screen...');
+          
+          const granted = await PermissionsAndroid.requestMultiple([
+            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          ]);
+          
+          const readGranted = granted[PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE] === PermissionsAndroid.RESULTS.GRANTED;
+          const writeGranted = granted[PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE] === PermissionsAndroid.RESULTS.GRANTED;
+          
+          if (readGranted && writeGranted) {
+            console.log('✅ Android storage permissions granted on property screen');
+          } else {
+            console.log('⚠️ Android storage permissions not fully granted on property screen:', { readGranted, writeGranted });
+          }
+        }
+      } catch (error) {
+        console.log('⚠️ Photo library permission not granted on property screen:', error);
+        // This is normal - user can grant permission later when saving images
+      }
+    };
+
+    // Request permissions after a short delay to ensure component is fully loaded
+    setTimeout(requestPhotoPermissions, 1000);
+  }, []);
 
   if (route.params) {
     const {
@@ -92,6 +141,7 @@ const PropertyView: React.FC<PropertyProps> = ({
   const [fixedPriceBid, setFixedPriceBid] = useState(0);
   const [rextimateUpdatedAfterSubmission, setRextimateUpdatedAfterSubmission] = useState(false);
   const [isProcessingSubmission, setIsProcessingSubmission] = useState(false);
+  const [submissionInitialRextimate, setSubmissionInitialRextimate] = useState<number | null>(null);
 
   const { setScrollEnabled } = useScrollEnabled();
   const {
@@ -100,18 +150,33 @@ const PropertyView: React.FC<PropertyProps> = ({
     positions,
     positionSinceMidnight,
     fixedPriceBid: existingFixedPriceBid,
-  } = useEquity(property.id, property.listPrice, undefined, isOpenHouse);
+  } = useEquity(
+    property?.id || '', 
+    property?.listPrice || 0, 
+    undefined, 
+    isOpenHouse
+  );
 
   const [showImage, setShowImage] = useState(true);
   const [imageIndex, setImageIndex] = useState(1);
 
-  // Memoize image URLs to prevent recalculation on every render
+  // Memoize image URLs with optimized caching and sizes
   const imageUrls = useMemo(() => {
-    return property.images.map((image) => {
+    if (!property?.images) return [];
+    return property.images.map((image, index) => {
+      // Use different quality based on position for faster initial loading
+      const quality = index < 3 ? 90 : 75; // Higher quality for first 3 images
+      const width = index < 3 ? 1200 : 800; // Larger size for first 3 images
+      const height = index < 3 ? 800 : 600;
+      
       return {
         url: `https://images.weserv.nl/?url=${encodeURIComponent(
           image
-        )}&w=1200&h=800&fit=cover&q=85`, // Added quality parameter for faster loading
+        )}&w=${width}&h=${height}&fit=cover&q=${quality}`,
+        // Add cache headers for better caching
+        headers: {
+          'Cache-Control': 'public, max-age=31536000', // 1 year cache
+        }
       };
     });
   }, [property.images]);
@@ -126,40 +191,104 @@ const PropertyView: React.FC<PropertyProps> = ({
         setFixedPriceBid(currentRextimate.amount);
       }
     }
-    () => setSelectedPosition(null);
-  }, [selectedPosition]);
+  }, [selectedPosition, setPositionWasSet, fixedPriceBid, currentRextimate.amount]);
+
+  // Ensure scrolling is re-enabled when component unmounts
+  useEffect(() => {
+    return () => {
+      setScrollEnabled(true);
+    };
+  }, [setScrollEnabled]);
+
+  // Ensure scrolling is enabled when component mounts (no modals open initially)
+  useEffect(() => {
+    setScrollEnabled(true);
+  }, [setScrollEnabled]);
 
   // Reset the rextimate updated flag and processing state when property changes
   useEffect(() => {
     setRextimateUpdatedAfterSubmission(false);
     setIsProcessingSubmission(false);
+    setSubmissionInitialRextimate(null);
   }, [property.id]);
 
-  // Preload images for faster full screen viewing
+  // Listen for rextimate changes after submission
+  useEffect(() => {
+    if (submissionInitialRextimate !== null && isProcessingSubmission) {
+      if (currentRextimate.amount !== submissionInitialRextimate) {
+        console.log('Rextimate change detected via useEffect:', {
+          initial: submissionInitialRextimate,
+          current: currentRextimate.amount
+        });
+        setRextimateUpdatedAfterSubmission(true);
+        setIsProcessingSubmission(false);
+        setSubmissionInitialRextimate(null);
+        
+        // Navigate after showing the update message
+        setTimeout(() => {
+          goToNextCard?.();
+        }, 2500);
+      }
+    }
+  }, [currentRextimate.amount, submissionInitialRextimate, isProcessingSubmission]);
+
+  // Enhanced preloading strategy for better performance
   useEffect(() => {
     const preloadImages = async () => {
       try {
-        // Preload the first few images for faster access
-        const imagesToPreload = property.images.slice(0, 3);
+        if (!property?.images || property.images.length === 0) return;
+        
+        // Preload images in batches for better performance
+        const batchSize = 2;
+        const totalImages = property.images.length;
+        
+        // Preload first batch immediately (higher priority)
+        const firstBatch = property.images.slice(0, batchSize);
         await Promise.all(
-          imagesToPreload.map((image) => {
+          firstBatch.map((image, index) => {
             return new Promise((resolve) => {
-              const img = new Image();
+              const img = new (global as any).Image();
               img.onload = () => resolve(true);
               img.onerror = () => resolve(false);
-              img.src = `https://images.weserv.nl/?url=${encodeURIComponent(
-                image
-              )}&w=1200&h=800&fit=cover&q=85`;
+              // Use optimized URL from imageUrls
+              img.src = imageUrls[index]?.url || '';
             });
           })
         );
+        
+        // Preload remaining images in background with delay
+        setTimeout(async () => {
+          const remainingImages = property.images.slice(batchSize, totalImages);
+          const chunks: string[][] = [];
+          for (let i = 0; i < remainingImages.length; i += batchSize) {
+            chunks.push(remainingImages.slice(i, i + batchSize));
+          }
+          
+          for (const chunk of chunks) {
+            await Promise.all(
+              chunk.map((image, chunkIndex) => {
+                const actualIndex = batchSize + chunks.indexOf(chunk) * batchSize + chunkIndex;
+                return new Promise((resolve) => {
+                  const img = new (global as any).Image();
+                  img.onload = () => resolve(true);
+                  img.onerror = () => resolve(false);
+                  img.src = imageUrls[actualIndex]?.url || '';
+                });
+              })
+            );
+            // Small delay between batches to not overwhelm the network
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
+        }, 500);
+        
       } catch (error) {
         // Silently fail - preloading is optional
+        console.log('Preloading failed:', error);
       }
     };
 
     preloadImages();
-  }, [property.images]);
+  }, [property.images, imageUrls]);
 
   useEffect(() => {
     if (step === 2) {
@@ -192,9 +321,16 @@ const PropertyView: React.FC<PropertyProps> = ({
   };
 
   const handleAddressPress = () => {
-    const encodedAddress = encodeURI(
-      `${property.address.deliveryLine} ${property.address.city} ${property.address.state} ${property.zipCode}`
-    );
+    // Use fullListingAddress as primary source since address object may be corrupted
+    let addressToUse;
+    
+    if (property.fullListingAddress && property.fullListingAddress !== 'No address available') {
+      addressToUse = property.fullListingAddress;
+    } else {
+      addressToUse = `${property.address.deliveryLine} ${property.address.city} ${property.address.state} ${property.zipCode}`;
+    }
+    
+    const encodedAddress = encodeURI(addressToUse);
     Linking.openURL(`https://maps.apple.com/?address=${encodedAddress}`);
   };
 
@@ -233,11 +369,13 @@ const PropertyView: React.FC<PropertyProps> = ({
   };
   const handleChange = (index: number) => {
     if (index == -1) {
-      // setShowOverlay(false);
+      // Modal is closed/dismissed
+      console.log('Modal closed - enabling scroll');
       setScrollEnabled(true);
     }
     if (index == 0) {
-      // setShowOverlay(true);
+      // Modal is open/presented
+      console.log('Modal opened - disabling scroll');
       setScrollEnabled(false);
     }
   };
@@ -249,6 +387,14 @@ const PropertyView: React.FC<PropertyProps> = ({
     }
     setStep(1);
     setIsProcessingSubmission(true);
+    
+    console.log('Bid submission started:', {
+      selectedPosition,
+      currentRextimate: currentRextimate.amount,
+      propertyId: property.id,
+      isOpenHouse,
+      fixedPriceBid
+    });
     
     if (isOpenHouse) {
       // @ts-expect-error
@@ -266,56 +412,48 @@ const PropertyView: React.FC<PropertyProps> = ({
     setSelectedPosition(null);
     setFixedPriceBid(0);
 
-    await recordAPosition(
-      selectedPosition,
-      user,
-      currentRextimate.amount,
-      property.id,
-      isOpenHouse
-    );
+    try {
+      await recordAPosition(
+        selectedPosition,
+        user,
+        currentRextimate.amount,
+        property.id,
+        isOpenHouse
+      );
+      console.log('Position recorded successfully');
+    } catch (error) {
+      console.error('Error recording position:', error);
+    }
     
     if (fixedPriceBid) {
-      await recordFixedPriceBid(fixedPriceBid, user, property.id, isOpenHouse);
+      try {
+        await recordFixedPriceBid(fixedPriceBid, user, property.id, isOpenHouse);
+        console.log('Fixed price bid recorded successfully');
+      } catch (error) {
+        console.error('Error recording fixed price bid:', error);
+      }
     }
 
     const initialRextimate = currentRextimate.amount;
+    console.log('Setting up rextimate monitoring for submission:', initialRextimate);
     
-    const checkForRextimateUpdate = () => {
-      return new Promise<void>((resolve) => {
-        let hasUpdated = false;
-        let checkCount = 0;
-        const checkInterval = setInterval(() => {
-          checkCount++;
-          if (currentRextimate.amount !== initialRextimate && !hasUpdated) {
-            hasUpdated = true;
-            clearInterval(checkInterval);
-            setRextimateUpdatedAfterSubmission(true);
-            setIsProcessingSubmission(false);
-            // Wait 2.5 seconds AFTER the message displays so users can read it
-            setTimeout(() => {
-              goToNextCard?.();
-              resolve();
-            }, 2500); 
-          }
-        }, 50); // Check frequently (every 50ms) for faster response
+    // Set the initial rextimate for monitoring
+    setSubmissionInitialRextimate(initialRextimate);
+    
+    // Fallback timeout in case the useEffect doesn't catch the change
+    setTimeout(() => {
+      if (isProcessingSubmission) {
+        console.log('Rextimate update timeout - no change detected after 3 seconds');
+        setRextimateUpdatedAfterSubmission(true);
+        setIsProcessingSubmission(false);
+        setSubmissionInitialRextimate(null);
         
-        // Fallback: if no update after 5 seconds, show message and wait before navigating
+        // Navigate after showing the update message
         setTimeout(() => {
-          if (!hasUpdated) {
-            clearInterval(checkInterval);
-            setRextimateUpdatedAfterSubmission(true);
-            setIsProcessingSubmission(false);
-            // Still wait 2.5 seconds before navigating
-            setTimeout(() => {
-              goToNextCard?.();
-              resolve();
-            }, 1000);
-          }
+          goToNextCard?.();
         }, 1000);
-      });
-    };
-
-    await checkForRextimateUpdate();
+      }
+    }, 3000);
   };
 
   const onPress = (position: any) => {
@@ -326,34 +464,42 @@ const PropertyView: React.FC<PropertyProps> = ({
   };
   const navigateHome = () => {
     if (isOpenHouse) {
-      navigation.navigate("open-house-home");
+      (navigation as any).navigate("open-house-home");
     } else {
-      navigation.navigate("home");
+      (navigation as any).navigate("home");
     }
   };
 
   const handleImageIndex = (event: any) => {
     const offset = event.nativeEvent.contentOffset.x;
-    const fullWidth = WINDOW_WIDTH * property.images.length;
-    const currentPos = Math.round(
-      (offset / fullWidth) * property.images.length + 1
-    );
-    setImageIndex(currentPos);
+    const currentPos = Math.floor(offset / WINDOW_WIDTH) + 1;
+    const clampedPos = Math.min(Math.max(currentPos, 1), property.images.length);
+    setImageIndex(clampedPos);
   };
 
   const isLarge = WINDOW_WIDTH > 600;
   const listPriceText = isLarge ? "text-lg" : "text-xs";
   const circleButtonSize = "w-12 h-12";
   const circleButtonImageSize = "w-5 h-5";
-  const homeButtonPosition = "top-20 right-8";
-  const fullScreenButtonPosition = "top-36";
-  const graphButtonPosition = "top-54";
+  const homeButtonPosition = Platform.OS === 'android' ? "top-16 right-6" : "top-20 right-6";
+  const fullScreenButtonPosition = Platform.OS === 'android' ? "top-32 right-6" : "top-36 right-6";
+  const graphButtonPosition = Platform.OS === 'android' ? "top-48 right-6" : "top-54 right-6";
   const imageIndexText = isLarge ? "text-lg" : "text-xs";
   const termsConditionIcon = isLarge ? "w-8 h-8" : "w-3 h-3";
   const termsConditionInfo = isLarge ? "text-2xl" : "text-base";
   const chartMargin = isLarge ? "-mx-12 -top-16" : "-mx-5 -mt-32";
   const chartTitle = isLarge ? "text-2xl" : "text-base";
   const imageCount = "bottom-4 right-6";
+  
+  // Don't render if property is not loaded yet
+  if (!property) {
+    return (
+      <View style={tw`bg-white flex-1 items-center justify-center`}>
+        <Text style={tw`text-lg text-gray-500`}>....</Text>
+      </View>
+    );
+  }
+  
   return (
     <View style={[tw`bg-white`]}>
       <KeyboardAvoidingView behavior="position">
@@ -372,10 +518,10 @@ const PropertyView: React.FC<PropertyProps> = ({
             style={tw`absolute px-2 py-1 bg-white rounded-md bottom-4 left-4`}
           >
             <Text style={tw`${listPriceText} text-green font-overpass600`}>
-              List Price: {formatMoney(property.listPrice)}
+              List Price: {safeFormatMoney(property.listPrice, 'List price not available')}
             </Text>
           </View>
-          <View style={tw`absolute ${homeButtonPosition}`}>
+          <View style={tw`absolute ${homeButtonPosition} right-6`}>
             <CircleButton
               style={tw`${circleButtonSize} bg-purple`}
               imageStyle={tw`${circleButtonImageSize}`}
@@ -383,7 +529,7 @@ const PropertyView: React.FC<PropertyProps> = ({
               onPress={navigateHome}
             />
           </View>
-          <View style={tw`absolute ${fullScreenButtonPosition} right-8`}>
+          <View style={tw`absolute ${fullScreenButtonPosition} right-6`}>
             <CircleButton
               style={tw`${circleButtonSize} bg-black`}
               imageStyle={tw`${circleButtonImageSize}`}
@@ -391,7 +537,7 @@ const PropertyView: React.FC<PropertyProps> = ({
               onPress={() => handleImagePress(imageIndex - 1)}
             />
           </View>
-          <View style={tw`absolute ${graphButtonPosition} right-8`}>
+          <View style={tw`absolute ${graphButtonPosition} right-6`}>
             <CircleButton
               style={tw`${circleButtonSize} bg-yellow`}
               imageStyle={tw`${circleButtonImageSize} flex-1`}
@@ -403,7 +549,7 @@ const PropertyView: React.FC<PropertyProps> = ({
             style={tw`absolute px-2 py-1 rounded-md bg-purple ${imageCount}`}
           >
             <Text style={tw`text-white ${imageIndexText}`}>
-              {imageIndex} of {property.images.length}
+              {Math.min(Math.max(imageIndex, 1), property.images.length)} of {property.images.length}
             </Text>
           </View>
         </View>
@@ -670,7 +816,7 @@ const PropertyView: React.FC<PropertyProps> = ({
       >
         <View
           style={[
-            tw`flex justify-end flex-1 pb-12 mb-32 ${chartMargin} bg-white rounded-md`,
+            tw`flex justify-end flex-1 pb-2 mb-32 ${chartMargin} bg-white rounded-md`,
             { width: WINDOW_WIDTH, height: TALL_SHEET },
           ]}
         >
@@ -679,6 +825,15 @@ const PropertyView: React.FC<PropertyProps> = ({
           >
             Rextimate Price History
           </Text>
+          {/* <Pressable
+            style={tw`absolute -top-8 right-4 w-8 h-8 items-center justify-center`}
+            onPress={() => setState({ ...state, chartIsOpen: false })}
+          >
+            <Image
+              style={tw`w-3 h-3`}
+              source={require("../../assets/times_gray.png")}
+            />
+          </Pressable> */}
           <HorizontalLine />
           <View style={tw`mt-4`}>
             {state.chartIsOpen && (
@@ -690,7 +845,7 @@ const PropertyView: React.FC<PropertyProps> = ({
             )}
           </View>
           <Text style={tw`px-4 font-overpass500 ${listPriceText}`}>
-            Listed at: {formatMoney(property.listPrice)} on{" "}
+            Listed at: {safeFormatMoney(property.listPrice, 'List price not available')} on{" "}
             {getDateFromTimestamp(property.dateCreated)}
           </Text>
           <Text style={tw`px-4 font-overpass500 ${listPriceText}`}>
@@ -701,6 +856,12 @@ const PropertyView: React.FC<PropertyProps> = ({
             resizeMode="contain"
             source={require("../../assets/gsrein_logo.png")}
           ></Image>
+        <Text
+        style={tw`pt-4 px-4  ${listPriceText} text-center    `}
+        >Swipe up to close rextimate price history
+        </Text>
+<View style={tw`h-10 bg-gray-400 h-1 w-10 self-center mt-2 rounded-full ` } />
+
         </View>
       </Modal>
       {/* IMAGE SLIDER */}

@@ -5,7 +5,7 @@ import {
   sendPasswordResetEmail,
 } from 'firebase/auth';
 import { useState } from 'react';
-import { View, Image, Text, Pressable, TouchableOpacity, Keyboard } from 'react-native';
+import { View, Image, Text, Pressable, TouchableOpacity, Keyboard, StatusBar } from 'react-native';
 import { FloatingLabelInput } from 'react-native-floating-label-input';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Alert from '../../components/Alert';
@@ -69,6 +69,11 @@ const ForgotPasswordScreen: React.FC<SignUpProps> = () => {
   };
   return (
     <View style={tw`flex w-full h-full`}>
+      <StatusBar 
+        barStyle="light-content" 
+        backgroundColor="transparent" 
+        translucent={true} 
+      />
       <Gradient />
       <SafeAreaView style={tw`p-8 max-w-[600px] mx-auto w-full`}>
         <View style={tw`flex flex-row items-center`}>

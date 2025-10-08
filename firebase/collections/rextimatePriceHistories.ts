@@ -45,9 +45,11 @@ export const getCurrentRextimateSnapshot = async (
       limit(1),
     );
 
-    return onSnapshot(q, onNext);
+    return onSnapshot(q, (snapshot) => {
+      onNext(snapshot);
+    });
   } catch (error) {
-    console.log(JSON.stringify(error));
+    console.error('Error in getCurrentRextimateSnapshot:', error);
   }
 };
 
@@ -63,7 +65,7 @@ export const getRextimatePriceHistoriesSnapshot = async (
 
     return onSnapshot(q, onNext);
   } catch (error) {
-    console.log(JSON.stringify(error));
+    console.error('Error in getRextimatePriceHistoriesSnapshot:', error);
   }
 };
 

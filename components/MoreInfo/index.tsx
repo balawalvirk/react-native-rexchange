@@ -1,4 +1,5 @@
-import { Text, ScrollView, View, Image, Pressable } from 'react-native';
+import { Text, ScrollView, View, Image, Pressable, BackHandler } from 'react-native';
+import { useEffect } from 'react';
 import { getPricePerSquareFoot } from '../../lib/helpers/calculations';
 import { WINDOW_WIDTH } from '../../lib/helpers/dimensions';
 import { formatMoney } from '../../lib/helpers/money';
@@ -20,6 +21,25 @@ const MoreInfo: React.FC<MoreInfoProps> = ({
 }) => {
   const isLarge = WINDOW_WIDTH > 600;
   const moreInfoTextSize = isLarge ? 'text-lg' : 'text-sm'
+
+  // Handle Android back button to close modal
+  useEffect(() => {
+    const backAction = () => {
+      if (close) {
+        close();
+        return true; // Prevent default back action
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, [close]);
+
   return (
     <>
       {/* Swipe indicator */}
@@ -30,7 +50,7 @@ const MoreInfo: React.FC<MoreInfoProps> = ({
         {property.fullListingAddress}
       </Text>
       {close && (
-        <Pressable onPress={close}>
+        <Pressable>
           <Pressable onPress={close}  style={tw`absolute w-8 h-8 -top-16 right-4`}>
             <Image
               style={tw`w-3 h-3`}

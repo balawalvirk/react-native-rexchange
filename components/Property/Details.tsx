@@ -65,7 +65,7 @@ const Details: React.FC<DetailsProps> = ({
       </Pressable>
       <View style={tw`flex flex-row items-center justify-between`}>
         <Text style={tw`${rextimateTextSize} text-purple font-rajdhani700`}>
-          {safeFormatMoney(currentRextimate?.amount, '0')}
+          {safeFormatMoney(currentRextimate?.amount, 'Loading...')}
         </Text>
         <View style={tw`flex flex-row items-center`}>
           <Image source={require("../../assets/crown_gold.png")}></Image>

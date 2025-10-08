@@ -70,7 +70,13 @@ const ProfileTab: React.FC<ProfileTabProps> = () => {
     isRefreshing,
   } = usePortfolio();
   const data = usePortfolio();
-  console.log('portfolioLineItems', data);
+  
+  // console.log('Portfolio Screen: Full portfolio data:', data);
+  // console.log('Portfolio Screen: Portfolio line items:', portfolioLineItems);
+  // console.log('Portfolio Screen: Total gains/losses:', totalGainsLosses);
+  // console.log('Portfolio Screen: Open gains/losses:', openGainsLosses);
+  // console.log('Portfolio Screen: Closed gains/losses:', closedGainsLosses);
+  // console.log('Portfolio Screen: Is refreshing:', isRefreshing);
 
   useEffect(() => {
     refresh();
@@ -211,32 +217,44 @@ const ProfileTab: React.FC<ProfileTabProps> = () => {
           <Text style={tw`text-lg font-rajdhani700 mb-2`}>
             All Portfolio Records
           </Text>
-          <FlatList
-            data={portfolioLineItems}
-            keyExtractor={(item, index) => `pli-${item.mlsId}-${index}`}
-            renderItem={({ item, index }) => {
-              // console.log('ProfileTab - Rendering item:', index, item);
-              return (
-                <View
-                  style={tw`flex flex-row justify-between items-center border-b border-borderGray py-2`}
-                >
-                  <View>
-                    <Text style={tw`font-overpass500`}>{item.address}</Text>
-                    <Text style={tw`text-sm text-darkGray italic`}>
-                      Status: {item.status}
+          {isRefreshing ? (
+            <View style={tw`flex items-center justify-center py-8`}>
+              <Text style={tw`text-gray-500`}>Loading portfolio data...</Text>
+            </View>
+          ) : portfolioLineItems.length === 0 ? (
+            <View style={tw`flex items-center justify-center py-8`}>
+              <Text style={tw`text-gray-500`}>No portfolio records found</Text>
+              <Text style={tw`text-sm text-gray-400 mt-2`}>
+                Place some bids to see your portfolio
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              data={portfolioLineItems}
+              keyExtractor={(item, index) => `pli-${item.mlsId}-${index}`}
+              renderItem={({ item, index }) => {
+                return (
+                  <View
+                    style={tw`flex flex-row justify-between items-center border-b border-borderGray py-2`}
+                  >
+                    <View>
+                      <Text style={tw`font-overpass500`}>{item.address}</Text>
+                      <Text style={tw`text-sm text-darkGray italic`}>
+                        Status: {item.status}
+                      </Text>
+                    </View>
+                    <Text
+                      style={tw`font-rajdhani600 ${
+                        item.equity > 0 ? "text-green" : "text-red"
+                      }`}
+                    >
+                      {formatMoney(item.equity)}
                     </Text>
                   </View>
-                  <Text
-                    style={tw`font-rajdhani600 ${
-                      item.equity > 0 ? "text-green" : "text-red"
-                    }`}
-                  >
-                    {formatMoney(item.equity)}
-                  </Text>
-                </View>
-              );
-            }}
-          />
+                );
+              }}
+            />
+          )}
         </View>
       </View>
       </ScrollView>

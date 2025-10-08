@@ -45,14 +45,16 @@ export function PortfolioProvider({ children }: any) {
   );
   const [subscriptions, setSubscriptions] = useState([] as Unsubscribe[]);
   const [_ref, setRefresh] = useState(0);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(true); // Start with loading state
 
   const refresh = () => {
+    setIsRefreshing(true);
     setRefresh((prev) => prev + 1);
   };
   useEffect(() => {
-    console.log('user', user);
-    if (!user?.id) return; // Don't access Firestore icated
+    if (!user?.id) {
+      return; // Don't access Firestore if user is not authenticated
+    }
     
     const unsubsribe = getAllPositionsForUserSnapshot(
       user?.id,
@@ -88,6 +90,9 @@ export function PortfolioProvider({ children }: any) {
     positions: Position[],
   ): Promise<number> => {
     const property = await getProperty(mlsId);
+    if (!property) {
+      return 0;
+    }
     let currentRextimateOrSalePrice = property.salePrice;
     if (!currentRextimateOrSalePrice) {
       currentRextimateOrSalePrice = (await getCurrentRextimate(mlsId)).amount;
@@ -108,23 +113,51 @@ export function PortfolioProvider({ children }: any) {
     return positionEquity + fixedPriceBidEquity;
   };
   const getEquityByPosition = async () => {
-    setIsRefreshing(true);
     const mlsIds = Object.keys(positionsByMlsId);
+    
+    // If no positions, set loading to false immediately
+    if (mlsIds.length === 0) {
+      setPortfolioLineItems([]);
+      setIsRefreshing(false);
+      return;
+    }
+    
+    // Only show loading if we don't have any data yet
+    if (portfolioLineItems.length === 0) {
+      setIsRefreshing(true);
+    }
+    
     const plis = [] as PortfolioLineItem[];
     for (const id of mlsIds) {
-      const property = await getProperty(id);
-      const equity = await getPropertyGainsLosses(
-        id,
-        user?.id,
-        positionsByMlsId[id],
-      );
-      plis.push({
-        equity,
-        address: property.address.deliveryLine,
-        status: property.status,
-        mlsId: id,
-        property,
-      });
+      try {
+        const property = await getProperty(id);
+        
+        if (!property) {
+          // Property doesn't exist - skip this position
+          continue;
+        }
+        
+        // Only include properties that are still active
+        if (property.status !== 'Active') {
+          continue;
+        }
+        
+        const equity = await getPropertyGainsLosses(
+          id,
+          user?.id,
+          positionsByMlsId[id],
+        );
+        
+        plis.push({
+          equity,
+          address: property.address?.deliveryLine || 'Address not available',
+          status: property.status || 'Unknown',
+          mlsId: id,
+          property,
+        });
+      } catch (error) {
+        // Silently handle errors for individual properties
+      }
     }
     setPortfolioLineItems(plis);
     setIsRefreshing(false);

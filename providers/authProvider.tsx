@@ -21,89 +21,87 @@ export function AuthProvider({ children }: any) {
   const [isLoading, setIsLoading] = useState(true);
   const navigation = useNavigation();
   
-  // Clear auth on first launch to prevent auto-login with previous user
-  const clearAuthOnFirstLaunch = async () => {
-    try {
-      const hasLaunchedBefore = await AsyncStorage.getItem('hasLaunchedBefore');
-      
-      if (hasLaunchedBefore === null) {
-        await AsyncStorage.setItem('hasLaunchedBefore', 'true');
-        
-        // Wait for Firebase Auth to initialize and load any persisted user
-        return new Promise((resolve) => {
-          const auth = getAuth(app);
-          
-          // Listen for auth state to initialize
-          const unsubscribe = auth.onAuthStateChanged(async (user) => {
-            
-            if (user) {
-              await signOut(auth);
-            } else {
-            }
-            
-            unsubscribe(); // Stop listening
-            resolve(undefined);
-          });
-        });
-      } else {
-        // Return immediately for subsequent launches
-        return Promise.resolve();
-      }
-      } catch (error) {
-        // Handle error silently
-      }
-  };
   
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        // Clear auth on first launch BEFORE setting up listener
-        await clearAuthOnFirstLaunch();
-        
-        // Now set up the auth state listener
-        return getAuth(app).onAuthStateChanged(async (user) => {
-        
-        // Keep loading state until we determine where to navigate
-        if (!user) {
-          setUser(null);
-          setIsLoading(false);
-          // Reset navigation stack to promo-code
-          (navigation as any).reset({
-            index: 0,
-            routes: [{ name: 'promo-code' }],
-          });
-          return;
+        // For development: Only clear auth data on fresh builds, not on app restarts
+        if (__DEV__) {
+          const buildTimestamp = await AsyncStorage.getItem('buildTimestamp');
+          const currentBuildTimestamp = Date.now().toString();
+          
+          // Only clear auth if this is a fresh build (no buildTimestamp stored)
+          if (buildTimestamp === null) {
+            console.log('🔄 Fresh build detected - clearing any existing auth data');
+            await AsyncStorage.setItem('buildTimestamp', currentBuildTimestamp);
+            
+            // Clear any existing auth data
+            const auth = getAuth(app);
+            if (auth.currentUser) {
+              await signOut(auth);
+              console.log('🔄 Cleared existing user on fresh build');
+            }
+            
+            // Clear AsyncStorage auth data
+            try {
+              await AsyncStorage.removeItem('firebase:authUser:' + '[DEFAULT]');
+              await AsyncStorage.removeItem('firebase:authUser:');
+              console.log('🔄 Cleared AsyncStorage auth data on fresh build');
+            } catch (error) {
+              console.log('🔄 AsyncStorage clear failed (this is normal)');
+            }
+          } else {
+            console.log('🔄 Existing build - preserving auth state');
+          }
         }
         
-        const { uid } = user;
-        try {
-          const rxcUser = await getUser(uid);
-          // Ensure Firebase user email is available
-          setUser({ ...rxcUser, email: user.email || rxcUser.emailAddress });
+        // Set up the auth state listener - this is the normal flow
+        return getAuth(app).onAuthStateChanged(async (user) => {
+          console.log('🔄 Auth state changed:', user ? `User: ${user.uid}` : 'No user');
           
-          // Navigate directly to the appropriate screen based on user type
-          if (rxcUser.isOpenHouse) {
+          // Keep loading state until we determine where to navigate
+          if (!user) {
+            console.log('🔄 No user - navigating to promo-code');
+            setUser(null);
+            setIsLoading(false);
+            // Reset navigation stack to promo-code
             (navigation as any).reset({
               index: 0,
-              routes: [{ name: 'open-house-home' }],
+              routes: [{ name: 'promo-code' }],
             });
-          } else {
+            return;
+          }
+          
+          const { uid } = user;
+          try {
+            const rxcUser = await getUser(uid);
+            // Ensure Firebase user email is available
+            setUser({ ...rxcUser, email: user.email || rxcUser.emailAddress });
+            
+            // Navigate directly to the appropriate screen based on user type
+            if (rxcUser.isOpenHouse) {
+              (navigation as any).reset({
+                index: 0,
+                routes: [{ name: 'open-house-home' }],
+              });
+            } else {
+              (navigation as any).reset({
+                index: 0,
+                routes: [{ name: 'game' }],
+              });
+            }
+            setIsLoading(false);
+          } catch (error: any) {
+            setIsLoading(false);
+            // Reset navigation stack to user-data
             (navigation as any).reset({
               index: 0,
-              routes: [{ name: 'game' }],
+              routes: [{ name: 'user-data' }],
             });
           }
-          setIsLoading(false);
-        } catch (error: any) {
-          setIsLoading(false);
-          // Reset navigation stack to user-data
-          (navigation as any).reset({
-            index: 0,
-            routes: [{ name: 'user-data' }],
-          });
-        }
-      });
+        });
       } catch (error) {
+        console.error('Auth initialization error:', error);
         setIsLoading(false);
         setUser(null);
         // Navigate to promo-code on error
@@ -118,6 +116,7 @@ export function AuthProvider({ children }: any) {
     initializeAuth().then((unsub) => {
       unsubscribe = unsub;
     }).catch(error => {
+      console.error('Auth initialization failed:', error);
       setIsLoading(false);
       setUser(null);
     });
@@ -154,5 +153,18 @@ export function AuthProvider({ children }: any) {
 }
 
 export const useAuth = () => {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+  
+  // Add helper function for development to reset build timestamp
+  const resetBuildTimestamp = async () => {
+    if (__DEV__) {
+      await AsyncStorage.removeItem('buildTimestamp');
+      console.log('🔄 Build timestamp reset - will clear auth data on next launch');
+    }
+  };
+  
+  return {
+    ...context,
+    resetBuildTimestamp,
+  };
 };
