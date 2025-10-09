@@ -2,7 +2,6 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { RXCUser } from '../lib/models/rxcUser';
 import { getAuth, signOut } from 'firebase/auth';
 import { getUser } from '../firebase/collections/users';
-import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import app from '../firebase/config';
 
@@ -19,8 +18,6 @@ const AuthContext = createContext<{
 export function AuthProvider({ children }: any) {
   const [user, setUser] = useState<RXCUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const navigation = useNavigation();
-  
   
   useEffect(() => {
     const initializeAuth = async () => {
@@ -59,16 +56,11 @@ export function AuthProvider({ children }: any) {
         return getAuth(app).onAuthStateChanged(async (user) => {
           console.log('🔄 Auth state changed:', user ? `User: ${user.uid}` : 'No user');
           
-          // Keep loading state until we determine where to navigate
+          // If no user, just set loading to false
           if (!user) {
-            console.log('🔄 No user - navigating to promo-code');
+            console.log('🔄 No user - showing auth screens');
             setUser(null);
             setIsLoading(false);
-            // Reset navigation stack to promo-code
-            (navigation as any).reset({
-              index: 0,
-              routes: [{ name: 'promo-code' }],
-            });
             return;
           }
           
@@ -77,38 +69,17 @@ export function AuthProvider({ children }: any) {
             const rxcUser = await getUser(uid);
             // Ensure Firebase user email is available
             setUser({ ...rxcUser, email: user.email || rxcUser.emailAddress });
-            
-            // Navigate directly to the appropriate screen based on user type
-            if (rxcUser.isOpenHouse) {
-              (navigation as any).reset({
-                index: 0,
-                routes: [{ name: 'open-house-home' }],
-              });
-            } else {
-              (navigation as any).reset({
-                index: 0,
-                routes: [{ name: 'game' }],
-              });
-            }
             setIsLoading(false);
           } catch (error: any) {
+            console.error('Error getting user:', error);
+            setUser(null);
             setIsLoading(false);
-            // Reset navigation stack to user-data
-            (navigation as any).reset({
-              index: 0,
-              routes: [{ name: 'user-data' }],
-            });
           }
         });
       } catch (error) {
         console.error('Auth initialization error:', error);
         setIsLoading(false);
         setUser(null);
-        // Navigate to promo-code on error
-        (navigation as any).reset({
-          index: 0,
-          routes: [{ name: 'promo-code' }],
-        });
       }
     };
     

@@ -53,12 +53,26 @@ const OpenAPosition: React.FC<OpenAPositionProps> = ({
     );
   }
 
-  // Show "already bid" message after Rextimate has been updated
-  if (positionSinceMidnight && !isOpenHouse && rextimateUpdatedAfterSubmission) {
+  // Show "Thank You" message after successful submission
+  if (positionSinceMidnight && rextimateUpdatedAfterSubmission && !isOpenHouse) {
+    return (
+      <View style={tw`flex items-center justify-center`}>
+        <Text style={tw`p-10 text-xl text-center text-green font-rajdhani700`}>
+          Thank you for your submission!
+        </Text>
+        <Text style={tw`text-sm text-center text-darkGray font-overpass400`}>
+          Your valuation has been recorded.
+        </Text>
+      </View>
+    );
+  }
+
+
+  if (positionSinceMidnight && !isOpenHouse) {
     return (
       <View style={tw`flex items-center justify-center`}>
         <Text style={tw`p-10 text-xl text-center text-purple font-rajdhani700`}>
-          You have already bid on this house today.
+          already bid.
         </Text>
         <Text style={tw`text-sm text-center text-darkGray font-overpass400`}>
           You can bid again tomorrow.

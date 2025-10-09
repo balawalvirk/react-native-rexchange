@@ -1,15 +1,17 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useNavigation } from '@react-navigation/native';
 import { Image, View } from 'react-native';
-import { isLarge } from '../../../lib/helpers/dimensions';
+import { isLarge, WINDOW_WIDTH } from '../../../lib/helpers/dimensions';
 import tw from '../../../lib/tailwind/tailwind';
 import ProfileTab from '../../Home/ProfileTab';
 import OpenHouseHome from '../../OpenHouseHome';
+import CircleButton from '../../../components/CircleButton';
 
 interface OpenHouseHomeTabsProps {}
 
 const OpenHouseHomeTabs: React.FC<OpenHouseHomeTabsProps> = () => {
   const Tab = createBottomTabNavigator();
-
+  const navigation = useNavigation();
 
   return (
     <>
@@ -59,6 +61,22 @@ const OpenHouseHomeTabs: React.FC<OpenHouseHomeTabsProps> = () => {
         <Tab.Screen name="Home" component={OpenHouseHome} />
         <Tab.Screen name="Profile" component={ProfileTab} />
       </Tab.Navigator>
+
+      <CircleButton
+        style={[
+          tw`absolute w-20 h-20 bg-green bottom-10`,
+          { left: WINDOW_WIDTH / 2 - 40 },
+        ]}
+        imageStyle={tw`w-10 h-10`}
+        imageURL={require('../../../assets/rxc_logo_white.png')}
+        onPress={() => {
+          console.log('Green RXC button pressed (Open House) - navigating to open-house-home game');
+          (navigation as any).reset({
+            index: 0,
+            routes: [{ name: 'open-house-home' }],
+          });
+        }}
+      />
     </>
   );
 };

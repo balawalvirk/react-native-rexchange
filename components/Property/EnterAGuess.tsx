@@ -24,6 +24,8 @@ interface EnterAGuessProps {
   setSelectedPosition: (args: any) => void;
   setPositionWasSet: (args: any) => void;
   fixedPriceBid: number;
+  selectedPosition: 0 | 1 | 2 | null;
+  listPrice: number;
 }
 
 const EnterAGuess: React.FC<EnterAGuessProps> = ({
@@ -34,16 +36,29 @@ const EnterAGuess: React.FC<EnterAGuessProps> = ({
   setPositionWasSet,
   existingFixedPriceBid,
   fixedPriceBid,
+  selectedPosition,
+  listPrice,
 }) => {
   const textSize = isLarge ? 'text-5xl h-16' : 'text-2xl my-2';
   const [value, setValue] = useState('');
+  
+  // Calculate max overpriced amount (25% of list price) for "Too High"
+  const maxOverpricedAmount = Math.floor(listPrice * 0.25);
+  
   const handleChange = (text: string) => {
     if (text.length < 15) {
       const value = text;
       const stripped = value.toString()?.replace(/\D/g, '');
-      const money = stripped ? formatMoney(parseInt(stripped)) : '';
+      let amount = parseInt(stripped) || 0;
+      
+      // For "Too High" (position 1), cap at 25% of list price
+      if (selectedPosition === 1 && amount > maxOverpricedAmount) {
+        amount = maxOverpricedAmount;
+      }
+      
+      const money = stripped ? formatMoney(amount) : '';
       setValue(money.toString());
-      setFixedPriceBid(parseInt(stripped) || 0);
+      setFixedPriceBid(amount);
     }
   };
   const handleCancelPress = () => {
@@ -86,15 +101,38 @@ const EnterAGuess: React.FC<EnterAGuessProps> = ({
           >
             <Image source={require('../../assets/info_circle_purple.png')} />
           </Pressable>
-          <Text style={tw`${guessText} font-rajdhani600 text-center`}>
-            What do you think this house will sell for?
-          </Text>
-          <TextInput
-            keyboardType="numeric"
-            style={tw` mt-auto ${textSize} text-center border-b-1 border-borderGray text-purple font-rajdhani700`}
-            onChangeText={handleChange}
-            value={value}
-          ></TextInput>
+          {selectedPosition === 1 ? (
+            <>
+              <Text style={tw`${guessText} font-rajdhani600 text-center`}>
+                How much is this house overpriced?
+              </Text>
+              <Text style={tw`text-xs text-center text-darkGray font-overpass400 mt-1`}>
+                Max: {formatMoney(maxOverpricedAmount)} (25% of list price)
+              </Text>
+              <TextInput
+                keyboardType="numeric"
+                placeholder="Enter amount"
+                placeholderTextColor="#9CA3AF"
+                style={tw`mt-auto ${textSize} text-center border-2 border-orange rounded-lg px-4 py-2 text-orange font-rajdhani700`}
+                onChangeText={handleChange}
+                value={value}
+              />
+            </>
+          ) : (
+            <>
+              <Text style={tw`${guessText} font-rajdhani600 text-center`}>
+                What do you think this house will sell for?
+              </Text>
+              <TextInput
+                keyboardType="numeric"
+                placeholder="Enter sale price"
+                placeholderTextColor="#9CA3AF"
+                style={tw`mt-auto ${textSize} text-center border-b-1 border-borderGray text-purple font-rajdhani700`}
+                onChangeText={handleChange}
+                value={value}
+              />
+            </>
+          )}
         </View>
       )}
       {existingFixedPriceBid && (

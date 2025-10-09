@@ -210,6 +210,9 @@ const PropertyView: React.FC<PropertyProps> = ({
     setRextimateUpdatedAfterSubmission(false);
     setIsProcessingSubmission(false);
     setSubmissionInitialRextimate(null);
+    setSelectedPosition(null);
+    setStep(1);
+    setFixedPriceBid(0);
   }, [property.id]);
 
   // Listen for rextimate changes after submission
@@ -224,10 +227,8 @@ const PropertyView: React.FC<PropertyProps> = ({
         setIsProcessingSubmission(false);
         setSubmissionInitialRextimate(null);
         
-        // Navigate after showing the update message
-        setTimeout(() => {
-          goToNextCard?.();
-        }, 2500);
+        // User should manually swipe to next property
+        // Auto-navigation removed per client request
       }
     }
   }, [currentRextimate.amount, submissionInitialRextimate, isProcessingSubmission]);
@@ -448,10 +449,8 @@ const PropertyView: React.FC<PropertyProps> = ({
         setIsProcessingSubmission(false);
         setSubmissionInitialRextimate(null);
         
-        // Navigate after showing the update message
-        setTimeout(() => {
-          goToNextCard?.();
-        }, 1000);
+        // User should manually swipe to next property
+        // Auto-navigation removed per client request
       }
     }, 3000);
   };
@@ -491,7 +490,6 @@ const PropertyView: React.FC<PropertyProps> = ({
   const chartTitle = isLarge ? "text-2xl" : "text-base";
   const imageCount = "bottom-4 right-6";
   
-  // Don't render if property is not loaded yet
   if (!property) {
     return (
       <View style={tw`bg-white flex-1 items-center justify-center`}>
@@ -554,6 +552,7 @@ const PropertyView: React.FC<PropertyProps> = ({
           </View>
         </View>
         <Details
+          key={`details-${property.id}-${property.fullListingAddress}`}
           onListingAgentPress={handleShowListingAgentInfoPress}
           property={property}
           onAddressPress={handleAddressPress}
@@ -609,6 +608,8 @@ const PropertyView: React.FC<PropertyProps> = ({
               setPositionWasSet ? setPositionWasSet(positionWasSet) : null
             }
             fixedPriceBid={fixedPriceBid}
+            selectedPosition={selectedPosition}
+            listPrice={property.listPrice}
           />
         )}
       </KeyboardAvoidingView>

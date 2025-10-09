@@ -33,7 +33,7 @@ const HelpSupport: React.FC<HelpSupportProps> = ({ onBackPress }) => {
             Rexchange, LLC
           </Text>
           <Text style={tw`text-darkGray font-overpass500 text-center py-0.5`}>
-            504-226-5575
+            505 376 3789
           </Text>
           <Text style={tw`text-darkGray font-overpass500 text-center py-0.5`}>
             info@rexchange.app

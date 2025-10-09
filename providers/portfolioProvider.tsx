@@ -85,20 +85,21 @@ export function PortfolioProvider({ children }: any) {
   }, [portfolioLineItems, user]);
 
   const getPropertyGainsLosses = async (
+    property: Property,
     mlsId: string,
     userId: string = '',
     positions: Position[],
   ): Promise<number> => {
-    const property = await getProperty(mlsId);
-    if (!property) {
-      return 0;
-    }
-    let currentRextimateOrSalePrice = property.salePrice;
-    if (!currentRextimateOrSalePrice) {
-      currentRextimateOrSalePrice = (await getCurrentRextimate(mlsId)).amount;
-    }
-    const numJustRight = await getNumJustRight(mlsId);
-    const fixedPriceBid = await getFixedPriceBid(userId, mlsId);
+    // Parallelize all Firebase calls for this property
+    const [currentRextimate, numJustRight, fixedPriceBid] = await Promise.all([
+      // Only fetch rextimate if property hasn't sold
+      property.salePrice ? Promise.resolve({ amount: property.salePrice }) : getCurrentRextimate(mlsId),
+      getNumJustRight(mlsId),
+      getFixedPriceBid(userId, mlsId),
+    ]);
+    
+    const currentRextimateOrSalePrice = property.salePrice || currentRextimate.amount;
+    
     const positionEquity = getPositionEquity(
       positions,
       currentRextimateOrSalePrice,
@@ -127,38 +128,42 @@ export function PortfolioProvider({ children }: any) {
       setIsRefreshing(true);
     }
     
-    const plis = [] as PortfolioLineItem[];
-    for (const id of mlsIds) {
+    // Parallel loading - fetch all properties at once
+    const propertyPromises = mlsIds.map(async (id) => {
       try {
         const property = await getProperty(id);
         
         if (!property) {
-          // Property doesn't exist - skip this position
-          continue;
+          return null;
         }
         
-        // Only include properties that are still active
-        if (property.status !== 'Active') {
-          continue;
-        }
-        
+        // Calculate equity for this property (includes 3 more calls)
         const equity = await getPropertyGainsLosses(
+          property,
           id,
           user?.id,
           positionsByMlsId[id],
         );
         
-        plis.push({
+        return {
           equity,
-          address: property.address?.deliveryLine || 'Address not available',
+          address: property.address?.deliveryLine || property.fullListingAddress || 'Address not available',
           status: property.status || 'Unknown',
           mlsId: id,
           property,
-        });
+        } as PortfolioLineItem;
       } catch (error) {
-        // Silently handle errors for individual properties
+        console.log(`Error loading property ${id}:`, error);
+        return null;
       }
-    }
+    });
+    
+    // Wait for all properties to load in parallel
+    const results = await Promise.all(propertyPromises);
+    
+    // Filter out null results (failed/missing properties)
+    const plis = results.filter((item): item is PortfolioLineItem => item !== null);
+    
     setPortfolioLineItems(plis);
     setIsRefreshing(false);
   };

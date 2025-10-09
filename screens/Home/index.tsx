@@ -66,7 +66,13 @@ const HomeScreen: React.FC<HomeScreenProps> = () => {
         ]}
         imageStyle={tw`w-10 h-10`}
         imageURL={require('../../assets/rxc_logo_white.png')}
-        onPress={() => (navigation as any).navigate('game')}
+        onPress={() => {
+          console.log('Green RXC button pressed - returning to game');
+          (navigation as any).reset({
+            index: 0,
+            routes: [{ name: 'game' }],
+          });
+        }}
       />
     </>
   );

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Pressable, View, Text, Animated, FlatList, Image } from "react-native";
+import { Pressable, View, Text, Animated, FlatList, Image, ActivityIndicator } from "react-native";
 import { getProperties } from "../../../firebase/collections/properties";
 import {
   getUniqMLSIdsForClosedPositions,
@@ -12,7 +12,7 @@ import PropertyView from "./PropertyView";
 import { SafeAreaView } from "react-native-safe-area-context";
 import _ from "lodash";
 
-const NUMBER_TO_PULL = 2;
+const NUMBER_TO_PULL = 20;
 
 interface HomeTabProps {}
 
@@ -28,12 +28,17 @@ const HomeTab: React.FC<HomeTabProps> = () => {
     string[] | null
   >(null);
   const [isOpen, setIsOpen] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
   const left = useRef(new Animated.Value(4)).current;
 
   useEffect(() => {
-    loadOpenProperties();
-    loadClosedProperties();
+    const loadInitialData = async () => {
+      setIsLoading(true);
+      await Promise.all([loadOpenProperties(), loadClosedProperties()]);
+      setIsLoading(false);
+    };
+    loadInitialData();
   }, []);
 
   useEffect(() => {
@@ -170,6 +175,11 @@ const HomeTab: React.FC<HomeTabProps> = () => {
         <View
           style={tw`flex flex-row items-center px-4 py-3 mx-6 mx-auto bg-white rounded-full w-62`}
         >
+          {isLoading && (
+            <View style={tw`absolute right-2 flex items-center justify-center`}>
+              <ActivityIndicator size="small" color="#8B5CF6" />
+            </View>
+          )}
           <Animated.View
             style={[
               tw`absolute w-1/2 h-full px-8 py-4 rounded-full bg-purple`,
@@ -210,40 +220,55 @@ const HomeTab: React.FC<HomeTabProps> = () => {
           </Pressable>
         </View>
       </View>
-      {isOpen && (
-        <View style={tw`p-4`}>
-          <FlatList
-            data={openProperties}
-            renderItem={renderOpenItem as any}
-            keyExtractor={(item) => `${item.id}-openPropertyHome`}
-            onEndReached={loadNextOpenPropertiesDebounced}
-          ></FlatList>
+      {isLoading ? (
+        <View style={tw`flex items-center justify-center flex-1 mt-20`}>
+          <ActivityIndicator size="large" color="#8B5CF6" />
+          <Text style={tw`mt-4 text-lg text-purple font-rajdhani700`}>
+            Loading valuations...
+          </Text>
         </View>
-      )}
+      ) : (
+        <>
+          {isOpen && (
+            <View style={tw`p-4`}>
+              <FlatList
+                data={openProperties}
+                renderItem={renderOpenItem as any}
+                keyExtractor={(item) => `${item.id}-openPropertyHome`}
+                onEndReached={loadNextOpenPropertiesDebounced}
+                onEndReachedThreshold={0.5}
+                showsVerticalScrollIndicator={true}
+              ></FlatList>
+            </View>
+          )}
 
-      {!isOpen && (
-        <View style={tw`p-4`}>
-          <FlatList
-            data={closedProperties}
-            renderItem={renderClosedItem as any}
-            keyExtractor={(item) => `${item.id}-closedPropertyHome`}
-            onEndReached={loadNextClosedPropertiesDebounced}
-          ></FlatList>
-        </View>
-      )}
-      {Boolean(isOpen && !openProperties?.length) && (
-        <View style={tw`flex items-center justify-start w-full h-full`}>
-          <Text style={tw`font-overpass500 text-darkGray`}>
-            You have not bid on any open properties.
-          </Text>
-        </View>
-      )}
-      {Boolean(!isOpen && !closedProperties?.length) && (
-        <View style={tw`flex items-center justify-start w-full h-full`}>
-          <Text style={tw`font-overpass500 text-darkGray`}>
-            You have not bid on any closed properties.
-          </Text>
-        </View>
+          {!isOpen && (
+            <View style={tw`p-4`}>
+              <FlatList
+                data={closedProperties}
+                renderItem={renderClosedItem as any}
+                keyExtractor={(item) => `${item.id}-closedPropertyHome`}
+                onEndReached={loadNextClosedPropertiesDebounced}
+                onEndReachedThreshold={0.5}
+                showsVerticalScrollIndicator={true}
+              ></FlatList>
+            </View>
+          )}
+          {Boolean(isOpen && !openProperties?.length) && (
+            <View style={tw`flex items-center justify-start w-full h-full`}>
+              <Text style={tw`font-overpass500 text-darkGray`}>
+                You have not bid on any open properties.
+              </Text>
+            </View>
+          )}
+          {Boolean(!isOpen && !closedProperties?.length) && (
+            <View style={tw`flex items-center justify-start w-full h-full`}>
+              <Text style={tw`font-overpass500 text-darkGray`}>
+                You have not bid on any closed properties.
+              </Text>
+            </View>
+          )}
+        </>
       )}
     </SafeAreaView>
   );

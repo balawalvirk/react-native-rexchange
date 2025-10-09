@@ -3,7 +3,7 @@ import { auth } from "./firebase/config";
 import { Settings } from "react-native-fbsdk-next";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { BackHandler, Keyboard, Platform } from "react-native";
+import { BackHandler, Keyboard, Platform, ActivityIndicator } from "react-native";
 import PromoCodeScreen from "./screens/PromoCode";
 import {
   useFonts,
@@ -21,7 +21,7 @@ import LoginScreen from "./screens/Login";
 import app from "./firebase/config";
 import SocialAuthScreen from "./screens/SocialAuth";
 import GameScreen from "./screens/Game";
-import { AuthProvider } from "./providers/authProvider";
+import { AuthProvider, useAuth } from "./providers/authProvider";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { ScrollEnabledProvider } from "./providers/scrollEnabledProvider";
 import HomeScreen from "./screens/Home";
@@ -50,11 +50,106 @@ Sentry.init({
 
 const Stack = createNativeStackNavigator();
 
-const DefaultScreen = () => {
+const LoadingScreen = () => {
   return (
-    <View style={tw`flex w-full h-full`}>
-      <Gradient />
+    <View style={tw`flex w-full h-full items-center justify-center bg-white`}>
+      <ActivityIndicator size="large" color="#8B5CF6" />
+      <Text style={tw`mt-4 text-lg text-purple font-rajdhani700`}>Loading...</Text>
     </View>
+  );
+};
+
+// Navigation content that uses auth state
+const NavigationContent = () => {
+  const { isLoading, user } = useAuth();
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  // If user is logged in, show main app screens
+  if (user) {
+    return (
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+        }}
+        initialRouteName={user.isOpenHouse ? 'open-house-home' : 'game'}
+      >
+        {/* Main app screens */}
+        <Stack.Screen
+          name="game"
+          component={GameScreen}
+          options={{
+            animation: "slide_from_bottom",
+          }}
+        />
+        <Stack.Screen
+          name="open-house-home"
+          component={OpenHouseHomeTabs}
+          options={{
+            animation: "slide_from_bottom",
+          }}
+        />
+        <Stack.Screen
+          name="home"
+          component={HomeScreen}
+          options={{
+            animation: "slide_from_bottom",
+          }}
+        />
+        <Stack.Screen
+          name="for-sale-property"
+          component={PropertyView as any}
+          options={{
+            animation: "slide_from_bottom",
+          }}
+        />
+        <Stack.Screen
+          name="off-market-property"
+          component={OffMarketProperty as any}
+          options={{
+            animation: "slide_from_bottom",
+          }}
+        />
+        <Stack.Screen
+          name="profile"
+          component={ProfileTab}
+          options={{
+            animation: "slide_from_bottom",
+          }}
+        />
+        <Stack.Screen
+          name="open-house-form"
+          component={OpenHouseForm}
+          options={{
+            animation: "slide_from_bottom",
+          }}
+        />
+      </Stack.Navigator>
+    );
+  }
+
+  // If no user, show auth screens
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+      initialRouteName="promo-code"
+    >
+      {/* Auth screens */}
+      <Stack.Screen name="promo-code" component={PromoCodeScreen} />
+      <Stack.Screen name="login" component={LoginScreen} />
+      <Stack.Screen name="register" component={RegisterScreen} />
+      <Stack.Screen name="sign-up" component={SignUpScreen} />
+      <Stack.Screen
+        name="forgot-password"
+        component={ForgotPasswordScreen}
+      />
+      <Stack.Screen name="user-data" component={UserDataScreen} />
+      <Stack.Screen name="social" component={SocialAuthScreen} />
+    </Stack.Navigator>
   );
 };
 
@@ -101,74 +196,7 @@ const AppNavigator = () => {
         <PortfolioProvider>
           <ScrollEnabledProvider>
             <BottomSheetModalProvider>
-              <Stack.Navigator
-                screenOptions={{
-                  headerShown: false,
-                }}
-              >
-                {/* Auth screens - these should not be in the back stack when logged in */}
-                <Stack.Screen name="promo-code" component={PromoCodeScreen} />
-                <Stack.Screen name="login" component={LoginScreen} />
-                <Stack.Screen name="register" component={RegisterScreen} />
-                <Stack.Screen name="sign-up" component={SignUpScreen} />
-                <Stack.Screen
-                  name="forgot-password"
-                  component={ForgotPasswordScreen}
-                />
-                <Stack.Screen name="user-data" component={UserDataScreen} />
-                <Stack.Screen name="social" component={SocialAuthScreen} />
-
-                {/* Main app screens - these are the main navigation */}
-                <Stack.Screen
-                  name="home"
-                  component={HomeScreen}
-                  options={{
-                    animation: "slide_from_bottom",
-                  }}
-                />
-                <Stack.Screen
-                  name="game"
-                  component={GameScreen}
-                  options={{
-                    animation: "slide_from_bottom",
-                  }}
-                />
-                <Stack.Screen
-                  name="open-house-home"
-                  component={OpenHouseHomeTabs}
-                  options={{
-                    animation: "slide_from_bottom",
-                  }}
-                />
-                <Stack.Screen
-                  name="for-sale-property"
-                  component={PropertyView as any}
-                  options={{
-                    animation: "slide_from_bottom",
-                  }}
-                />
-                <Stack.Screen
-                  name="off-market-property"
-                  component={OffMarketProperty as any}
-                  options={{
-                    animation: "slide_from_bottom",
-                  }}
-                />
-                <Stack.Screen
-                  name="profile"
-                  component={ProfileTab}
-                  options={{
-                    animation: "slide_from_bottom",
-                  }}
-                />
-                <Stack.Screen
-                  name="open-house-form"
-                  component={OpenHouseForm}
-                  options={{
-                    animation: "slide_from_bottom",
-                  }}
-                />
-              </Stack.Navigator>
+              <NavigationContent />
             </BottomSheetModalProvider>
           </ScrollEnabledProvider>
         </PortfolioProvider>

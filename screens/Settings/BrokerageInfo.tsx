@@ -8,10 +8,13 @@ const BrokerageInfo: React.FC<BrokerageInfoProps> = () => {
     <View style={tw`p-8`}>
       <View style={tw`p-10`}>
         <Text style={tw`text-darkGray font-overpass500 text-center py-0.5`}>
-          Kenneth C Bordes
+          Kenneth C Borders
         </Text>
         <Text style={tw`text-darkGray font-overpass500 text-center py-0.5`}>
           Louisiana Licensed Broker{' '}
+        </Text>
+        <Text style={tw`text-darkGray font-overpass400 text-center py-0.5 text-xs`}>
+          Supplied under license
         </Text>
         <Text style={tw`text-darkGray font-overpass500 text-center py-0.5`}>
           kcb@rexchange.app
