@@ -111,9 +111,9 @@ const EnterAGuess: React.FC<EnterAGuessProps> = ({
               </Text>
               <TextInput
                 keyboardType="numeric"
-                placeholder="Enter amount"
+                placeholder="Enter an amount"
                 placeholderTextColor="#9CA3AF"
-                style={tw`mt-auto ${textSize} text-center border-2 border-orange rounded-lg px-4 py-2 text-orange font-rajdhani700`}
+                style={tw`mt-auto ${textSize} text-center border-2 border-orange rounded-lg px-4 py-2 text-orange font-rajdhani500`}
                 onChangeText={handleChange}
                 value={value}
               />
@@ -125,9 +125,9 @@ const EnterAGuess: React.FC<EnterAGuessProps> = ({
               </Text>
               <TextInput
                 keyboardType="numeric"
-                placeholder="Enter sale price"
-                placeholderTextColor="#9CA3AF"
-                style={tw`mt-auto ${textSize} text-center border-b-1 border-borderGray text-purple font-rajdhani700`}
+                placeholder="Enter an amount"
+                placeholderTextColor="#B8B8B8"
+                style={tw`mt-auto ${textSize} text-center border-2 border-purple rounded-lg px-4 py-2 text-purple font-rajdhani500`}
                 onChangeText={handleChange}
                 value={value}
               />

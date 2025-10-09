@@ -219,7 +219,8 @@ const ProfileTab: React.FC<ProfileTabProps> = () => {
           </Text>
           {isRefreshing ? (
             <View style={tw`flex items-center justify-center py-8`}>
-              <Text style={tw`text-gray-500`}>Loading portfolio data...</Text>
+              <Text style={tw`text-purple font-rajdhani700 text-lg`}>Loading portfolio data...</Text>
+              <Text style={tw`text-darkGray font-overpass400 text-sm mt-2`}>Loading portfolio... This can take up to 10 seconds</Text>
             </View>
           ) : portfolioLineItems.length === 0 ? (
             <View style={tw`flex items-center justify-center py-8`}>

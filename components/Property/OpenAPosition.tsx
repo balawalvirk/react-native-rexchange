@@ -16,6 +16,7 @@ interface OpenAPositionProps {
   isOpenHouse?: boolean;
   rextimateUpdatedAfterSubmission?: boolean;
   isProcessingSubmission?: boolean;
+  fixedPriceBid?: number;
 }
 
 const OpenAPosition: React.FC<OpenAPositionProps> = ({
@@ -28,6 +29,7 @@ const OpenAPosition: React.FC<OpenAPositionProps> = ({
   isOpenHouse,
   rextimateUpdatedAfterSubmission = false,
   isProcessingSubmission = false,
+  fixedPriceBid = 0,
 }) => {
   const hasJustRight = Boolean(_.some(positions, (pos) => pos.type == 2));
   const toggleSelectedPosition = (position: 0 | 1 | 2) => {
@@ -55,13 +57,14 @@ const OpenAPosition: React.FC<OpenAPositionProps> = ({
 
   // Show "Thank You" message after successful submission
   if (positionSinceMidnight && rextimateUpdatedAfterSubmission && !isOpenHouse) {
+    const bidAmount = fixedPriceBid || positionSinceMidnight.rextimate;
     return (
       <View style={tw`flex items-center justify-center`}>
         <Text style={tw`p-10 text-xl text-center text-green font-rajdhani700`}>
-          Thank you for your submission!
+          You bid {formatMoney(bidAmount)}.
         </Text>
         <Text style={tw`text-sm text-center text-darkGray font-overpass400`}>
-          Your valuation has been recorded.
+          Come back tomorrow to bid again.
         </Text>
       </View>
     );

@@ -580,6 +580,7 @@ const PropertyView: React.FC<PropertyProps> = ({
               isOpenHouse={isOpenHouse}
               rextimateUpdatedAfterSubmission={rextimateUpdatedAfterSubmission}
               isProcessingSubmission={isProcessingSubmission}
+              fixedPriceBid={fixedPriceBid}
             />
             <Pressable onPress={handleDisclaimerPress}>
               <View style={tw`flex flex-row p-4`}>
