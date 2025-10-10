@@ -67,10 +67,10 @@ const PromoCodeScreen: React.FC<PromoCodeScreenProps> = ({ navigation }) => {
   };
   return (
     <View style={tw`flex items-center justify-center h-full`}>
-      <StatusBar 
-        barStyle="light-content" 
-        backgroundColor="transparent" 
-        translucent={true} 
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor="transparent"
+        translucent={true}
       />
       <Gradient />
 

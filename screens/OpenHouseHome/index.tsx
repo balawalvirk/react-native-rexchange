@@ -1,16 +1,16 @@
-import { useEffect, useState } from 'react';
-import { FlatList, SafeAreaView, Text, View } from 'react-native';
-import { getOpenHouseProperties } from '../../firebase/collections/properties';
-import { WINDOW_WIDTH } from '../../lib/helpers/dimensions';
-import { Property } from '../../lib/models/property';
-import tw from '../../lib/tailwind/tailwind';
-import PropertyView from '../Home/HomeTab/PropertyView';
+import { useEffect, useState } from "react";
+import { FlatList, SafeAreaView, Text, View } from "react-native";
+import { getOpenHouseProperties } from "../../firebase/collections/properties";
+import { WINDOW_WIDTH } from "../../lib/helpers/dimensions";
+import { Property } from "../../lib/models/property";
+import tw from "../../lib/tailwind/tailwind";
+import PropertyView from "../Home/HomeTab/PropertyView";
 
 interface OpenHouseHomeProps {}
 
 const OpenHouseHome: React.FC<OpenHouseHomeProps> = () => {
   const isLarge = WINDOW_WIDTH >= 600;
-  const columnClass = isLarge ? 'w-1/2 p-4' : '';
+  const columnClass = isLarge ? "w-1/2 p-4" : "";
 
   const [properties, setProperties] = useState([] as Property[]);
   useEffect(() => {
@@ -28,11 +28,11 @@ const OpenHouseHome: React.FC<OpenHouseHomeProps> = () => {
   }) => {
     return (
       <View style={tw`${columnClass}`}>
-        <PropertyView
+        {/* <PropertyView
           isEnd={index == (properties?.length || 0) - 1}
           property={item}
           isOpenHouse={true}
-        />
+        /> */}
       </View>
     );
   };

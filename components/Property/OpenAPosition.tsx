@@ -1,10 +1,10 @@
-import _ from 'lodash';
-import { View, Text, Pressable, Image, ActivityIndicator } from 'react-native';
-import { WINDOW_WIDTH } from '../../lib/helpers/dimensions';
-import { formatMoney } from '../../lib/helpers/money';
-import { Position } from '../../lib/models/positions';
-import { RextimatePriceHistory } from '../../lib/models/rextimatePriceHistory';
-import tw from '../../lib/tailwind/tailwind';
+import _ from "lodash";
+import { View, Text, Pressable, Image, ActivityIndicator } from "react-native";
+import { WINDOW_WIDTH } from "../../lib/helpers/dimensions";
+import { formatMoney } from "../../lib/helpers/money";
+import { Position } from "../../lib/models/positions";
+import { RextimatePriceHistory } from "../../lib/models/rextimatePriceHistory";
+import tw from "../../lib/tailwind/tailwind";
 
 interface OpenAPositionProps {
   positionSinceMidnight: Position | null;
@@ -56,7 +56,11 @@ const OpenAPosition: React.FC<OpenAPositionProps> = ({
   }
 
   // Show "Thank You" message after successful submission
-  if (positionSinceMidnight && rextimateUpdatedAfterSubmission && !isOpenHouse) {
+  if (
+    positionSinceMidnight &&
+    rextimateUpdatedAfterSubmission &&
+    !isOpenHouse
+  ) {
     const bidAmount = fixedPriceBid || positionSinceMidnight.rextimate;
     return (
       <View style={tw`flex items-center justify-center`}>
@@ -69,7 +73,6 @@ const OpenAPosition: React.FC<OpenAPositionProps> = ({
       </View>
     );
   }
-
 
   if (positionSinceMidnight && !isOpenHouse) {
     return (
@@ -85,17 +88,17 @@ const OpenAPosition: React.FC<OpenAPositionProps> = ({
   }
   const isLarge = WINDOW_WIDTH > 600;
   const valuationTextSize =
-    isLarge && isOpenHouse ? 'text-3xl pt-8' : isLarge ? 'text-2xl' : 'text-lg';
+    isLarge && isOpenHouse ? "text-3xl pt-8" : isLarge ? "text-2xl" : "text-lg";
   const valuationButtonTextSize =
-    isLarge && isOpenHouse ? 'text-2xl' : isLarge ? 'text-xl' : 'text-base';
+    isLarge && isOpenHouse ? "text-2xl" : isLarge ? "text-xl" : "text-base";
   const valuationButton =
     isLarge && isOpenHouse
-      ? 'py-1 px-2 m-3'
+      ? "py-1 px-2 m-3"
       : isLarge
-      ? 'py-1 px-2 m-1'
-      : 'px-4 py-0.5';
+      ? "py-1 px-2 m-1"
+      : "px-4 py-0.5";
   const valuationInfo =
-    isLarge && isOpenHouse ? 'h-[250px]' : isLarge ? 'h-[175px]' : '';
+    isLarge && isOpenHouse ? "h-[250px]" : isLarge ? "h-[175px]" : "";
   return (
     <>
       <View
@@ -177,12 +180,12 @@ const OpenAPosition: React.FC<OpenAPositionProps> = ({
             </View>
           </Pressable>
         </View>
-    
+
         <Pressable
           onPress={onOpenAPositionInfoPress}
           style={tw`absolute top-2 right-2`}
         >
-          <Image source={require('../../assets/info_circle_purple.png')} />
+          <Image source={require("../../assets/info_circle_purple.png")} />
         </Pressable>
       </View>
     </>

@@ -337,10 +337,10 @@ const GameScreen: React.FC<GameScreenProps> = () => {
         ListFooterComponent={renderFooter}
         // 👇 important for "one card at a time"
         pagingEnabled // makes swipe snap to each item
-        decelerationRate={Platform.OS === 'android' ? 'normal' : 'fast'} // normal on Android, fast on iOS
+        decelerationRate={Platform.OS === "android" ? "normal" : "fast"} // normal on Android, fast on iOS
         snapToInterval={WINDOW_HEIGHT} // snap distance
         snapToAlignment="start"
-        disableIntervalMomentum={Platform.OS === 'android'} // disable momentum on Android only
+        disableIntervalMomentum={Platform.OS === "android"} // disable momentum on Android only
       />
       {isSkipping && (
         <View
