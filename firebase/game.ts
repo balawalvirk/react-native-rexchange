@@ -81,7 +81,7 @@ export const getPropertiesForGame = async (): Promise<Property[]> => {
     let q;
     q = query(
       collection(getFirestore(), 'properties'),
-      where('status', '==', 'Active'),
+      where('status', 'in', ['Active', 'active']),
       where('isGameHouse', '==', true),
       orderBy('dateCreated', 'desc'),
     );

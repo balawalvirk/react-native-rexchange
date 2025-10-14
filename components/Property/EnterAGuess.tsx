@@ -1,5 +1,5 @@
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -7,14 +7,14 @@ import {
   Pressable,
   Image,
   ScrollView,
-} from "react-native";
-import { isLarge } from "../../lib/helpers/dimensions";
-import { formatMoney } from "../../lib/helpers/money";
-import { FixedPriceBid } from "../../lib/models/fixedPriceBids";
-import tw from "../../lib/tailwind/tailwind";
-import { useScrollEnabled } from "../../providers/scrollEnabledProvider";
-import CircleButton from "../CircleButton";
-import HorizontalLine from "../HorizontalLine";
+} from 'react-native';
+import { isLarge } from '../../lib/helpers/dimensions';
+import { formatMoney } from '../../lib/helpers/money';
+import { FixedPriceBid } from '../../lib/models/fixedPriceBids';
+import tw from '../../lib/tailwind/tailwind';
+import { useScrollEnabled } from '../../providers/scrollEnabledProvider';
+import CircleButton from '../CircleButton';
+import HorizontalLine from '../HorizontalLine';
 
 interface EnterAGuessProps {
   setStep: (args: 1 | 2) => void;
@@ -39,26 +39,22 @@ const EnterAGuess: React.FC<EnterAGuessProps> = ({
   selectedPosition,
   listPrice,
 }) => {
-  const textSize = isLarge ? "text-5xl h-16" : "text-2xl my-2";
-  const [value, setValue] = useState("");
-
-  // Calculate max overpriced amount (25% of list price) for "Too High"
-  const maxOverpricedAmount = Math.floor(listPrice * 0.25);
-
+  const textSize = isLarge ? 'text-5xl h-16' : 'text-2xl my-2';
+  const [value, setValue] = useState('');
+  const [showError, setShowError] = useState(false);
+  
   const handleChange = (text: string) => {
     if (text.length < 15) {
       const value = text;
-      const stripped = value.toString()?.replace(/\D/g, "");
-      let amount = parseInt(stripped) || 0;
-
-      // Apply max amount validation for both "Too High" and regular price guess
-      if (amount > maxOverpricedAmount) {
-        amount = maxOverpricedAmount;
-      }
-
-      const money = stripped ? formatMoney(amount) : "";
+      const stripped = value.toString()?.replace(/\D/g, '');
+      const amount = parseInt(stripped) || 0;
+      
+      const money = stripped ? formatMoney(amount) : '';
       setValue(money.toString());
       setFixedPriceBid(amount);
+      if (amount > 0) {
+        setShowError(false);
+      }
     }
   };
   const handleCancelPress = () => {
@@ -66,10 +62,11 @@ const EnterAGuess: React.FC<EnterAGuessProps> = ({
     setSelectedPosition(null);
     setPositionWasSet(false);
     setFixedPriceBid(null);
+    setShowError(false);
   };
   const { setScrollEnabled } = useScrollEnabled();
   const enterAGuessBottomModalRef = useRef<BottomSheetModal>(null);
-  const myTotalsSnapPoints = useMemo(() => ["1%", "90%"], []);
+  const myTotalsSnapPoints = useMemo(() => ['1%', '90%'], []);
   const handleModalChange = (index: number) => {
     if (index == -1) {
     } else {
@@ -83,13 +80,12 @@ const EnterAGuess: React.FC<EnterAGuessProps> = ({
     }
   }, [fixedPriceBid]);
 
-  const guessInfo = isLarge ? "text-2xl" : "text-base";
-  const guessText = isLarge ? "text-2xl" : "text-lg";
-  const guessedBidAmount = isLarge ? "text-5xl" : "text-2xl";
-  const circleButtonText = isLarge ? "text-xl font-bold" : "text-base";
-  const circleButtonPosition = isLarge ? "mt-16" : "";
-  const guessWhatText = isLarge ? "py-8 h-[200px]" : "py-4";
-  console.log({ selectedPosition });
+  const guessInfo = isLarge ? 'text-2xl' : 'text-base';
+  const guessText = isLarge ? 'text-2xl' : 'text-lg';
+  const guessedBidAmount = isLarge ? 'text-5xl' : 'text-2xl';
+  const circleButtonText = isLarge ? 'text-xl font-bold' : 'text-base';
+  const circleButtonPosition = isLarge ? 'mt-16' : '';
+  const guessWhatText = isLarge  ? 'py-8 h-[200px]' : 'py-4';
   return (
     <View style={tw`mx-4 my-1`}>
       {!existingFixedPriceBid && (
@@ -100,23 +96,19 @@ const EnterAGuess: React.FC<EnterAGuessProps> = ({
             style={tw`absolute right-2 top-2`}
             onPress={() => enterAGuessBottomModalRef.current?.present()}
           >
-            <Image source={require("../../assets/info_circle_purple.png")} />
+            <Image source={require('../../assets/info_circle_purple.png')} />
           </Pressable>
           {selectedPosition === 1 ? (
             <>
               <Text style={tw`${guessText} font-rajdhani600 text-center`}>
-                How much is this house overpriced?
-              </Text>
-              <Text
-                style={tw`text-xs text-center text-darkGray font-overpass400 mt-1`}
-              >
-                Max: {formatMoney(maxOverpricedAmount)} (25% of list price)
+                What do you think this house will sell for?
               </Text>
               <TextInput
                 keyboardType="numeric"
-                placeholder="Enter an amount"
-                placeholderTextColor="#9CA3AF"
-                style={tw`mt-auto ${textSize} text-center border-2 border-orange rounded-lg px-4 py-2 text-orange font-rajdhani500`}
+                placeholder={showError ? "Please enter an amount" : "Enter an amount"}
+
+                placeholderTextColor={showError ? "#EF4444" : "#9CA3AF"}
+                style={tw`mt-auto ${textSize} text-center border-2 ${showError ? 'border-red' : 'border-orange'} rounded-lg px-4 py-2 ${showError ? 'text-red' : 'text-orange'} font-rajdhani500`}
                 onChangeText={handleChange}
                 value={value}
               />
@@ -126,19 +118,11 @@ const EnterAGuess: React.FC<EnterAGuessProps> = ({
               <Text style={tw`${guessText} font-rajdhani600 text-center`}>
                 What do you think this house will sell for?
               </Text>
-              {selectedPosition !== 2 && (
-                <Text
-                  style={tw`text-xs text-center text-darkGray font-overpass400 mt-1`}
-                >
-                  Max: {formatMoney(maxOverpricedAmount)} (25% of list price)
-                </Text>
-              )}
               <TextInput
-                editable={selectedPosition !== 2}
                 keyboardType="numeric"
-                placeholder="Enter an amount"
-                placeholderTextColor="#B8B8B8"
-                style={tw`mt-auto ${textSize} text-center border-2 border-purple rounded-lg px-4 py-2 text-purple font-rajdhani500`}
+                placeholder={showError ? "Please enter an amount" : "Enter an amount"}
+                placeholderTextColor={showError ? "#EF4444" : "#B8B8B8"}
+                style={tw`mt-auto ${textSize} text-center border-2 ${showError ? 'border-red' : 'border-purple'} rounded-lg px-4 py-2 ${showError ? 'text-red' : 'text-purple'} font-rajdhani500`}
                 onChangeText={handleChange}
                 value={value}
               />
@@ -166,7 +150,7 @@ const EnterAGuess: React.FC<EnterAGuessProps> = ({
         <View>
           <CircleButton
             style={tw`w-20 h-20 border-2 border-solid border-red`}
-            imageURL={require("../../assets/times_red.png")}
+            imageURL={require('../../assets/times_red.png')}
             imageStyle={tw`w-6 h-6`}
             onPress={handleCancelPress}
           />
@@ -180,8 +164,15 @@ const EnterAGuess: React.FC<EnterAGuessProps> = ({
           <CircleButton
             style={tw`w-20 h-20 border-2 border-solid border-green bg-green`}
             imageStyle={tw`w-6 h-6`}
-            imageURL={require("../../assets/check_white.png")}
-            onPress={onSubmit}
+            imageURL={require('../../assets/check_white.png')}
+            onPress={() => {
+              if (fixedPriceBid && fixedPriceBid > 0) {
+                setShowError(false);
+                onSubmit({});
+              } else {
+                setShowError(true);
+              }
+            }}
           />
           <Text
             style={tw`my-2 text-center uppercase text-green ${circleButtonText}`}
@@ -196,10 +187,10 @@ const EnterAGuess: React.FC<EnterAGuessProps> = ({
         snapPoints={myTotalsSnapPoints}
         onChange={handleModalChange}
       >
-        <View style={[{ height: "100%", marginBottom: 100 }]}>
+        <View style={[{ height: '100%', marginBottom: 100 }]}>
           <ScrollView style={tw`px-4 pb-8`}>
             <View style={tw`flex flex-row items-center justify-center w-full`}>
-              <Image source={require("../../assets/info_circle_purple.png")} />
+              <Image source={require('../../assets/info_circle_purple.png')} />
               <Text
                 style={tw`p-4 ${guessInfo} capitalize font-overpass600 text-purple`}
               >
@@ -211,7 +202,7 @@ const EnterAGuess: React.FC<EnterAGuessProps> = ({
             >
               <Image
                 style={tw`absolute w-3 h-3 -top-8 right-4`}
-                source={require("../../assets/times_gray.png")}
+                source={require('../../assets/times_gray.png')}
               ></Image>
             </Pressable>
             <HorizontalLine />

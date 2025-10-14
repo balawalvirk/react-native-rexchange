@@ -14,12 +14,13 @@ import * as _ from 'lodash';
 
 export const getProperties = async (mlsIds?: string[]): Promise<Property[]> => {
   query(collection(getFirestore(), 'properties'));
-  let q = query(collection(getFirestore(), 'properties'));
+  let q = query(collection(getFirestore(), 'properties'), where('status', 'in', ['Active', 'active']));
 
   if (mlsIds) {
     q = query(
       collection(getFirestore(), 'properties'),
       where('id', 'in', mlsIds),
+      where('status', 'in', ['Active', 'active']),
     );
   }
   const querySnapshot = await getDocs(q);
@@ -40,7 +41,14 @@ export const getProperty = async (mlsId: string): Promise<Property | null> => {
       return null;
     }
     
-    return _doc.data() as Property;
+    const property = _doc.data() as Property;
+    
+    // Only return if status is Active or active
+    if (property.status !== 'Active' && property.status !== 'active') {
+      return null;
+    }
+    
+    return property;
   } catch (error) {
     console.error(`Error fetching property ${mlsId}:`, error);
     return null;
@@ -51,7 +59,7 @@ export const getOpenHouseProperties = async (): Promise<Property[]> => {
   let q = query(
     collection(getFirestore(), 'properties'),
     where('isOpenHouse', '==', true),
-    where('status', '==', 'Active'),
+    where('status', 'in', ['Active', 'active']),
     limit(100),
   );
   const querySnapshot = await getDocs(q);
@@ -59,5 +67,6 @@ export const getOpenHouseProperties = async (): Promise<Property[]> => {
     querySnapshot.docs,
     (doc: DocumentSnapshot) => doc.data() as Property,
   );
+  
   return properties;
 };

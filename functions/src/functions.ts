@@ -12,7 +12,7 @@ import { yesterday } from './yesterday';
 export const pullNewProperties = async (): Promise<any[]> => {
   const properties = await homeJunctionClient
     .get(
-      `listings/search?market=GSREIN&listingType=residential&status=active&propertyType=detached&listingDate=>=${yesterday}&listPrice=250000:700000&address.zip=70119,70118,70122,70124,70115&images=true&pageSize=1000&extended=true&details=true&features=true`,
+      `listings/search?market=GSREIN&listingType=residential&status=active&propertyType=detached&listingDate=>=${yesterday}&listPrice=250000:700000&address.zip=70119,70118,70122,70124,70115&images=true&pageSize=20&extended=true&details=true&features=true`,
     )
     .then((res: AxiosResponse) => res.data.result.listings);
   return properties;
@@ -20,7 +20,7 @@ export const pullNewProperties = async (): Promise<any[]> => {
 export const pullModifiedProperties = async (): Promise<any[]> => {
   const properties = await homeJunctionClient
     .get(
-      `listings/search?market=GSREIN&listingType=residential&status=active&propertyType=detached&modifiedDate=>=${yesterday}&listPrice=250000:700000&address.zip=70119,70118,70122,70124,70115&images=true&pageSize=1000&extended=true&details=true&features=true`,
+      `listings/search?market=GSREIN&listingType=residential&status=active&propertyType=detached&modifiedDate=>=${yesterday}&listPrice=250000:700000&address.zip=70119,70118,70122,70124,70115&images=true&pageSize=20&extended=true&details=true&features=true`,
     )
     .then((res: AxiosResponse) => res.data.result.listings);
   return properties;
@@ -42,20 +42,22 @@ export const getFinalizedForSaleProperties = async (
 };
 
 export const pullPendingProperties = async (): Promise<any[]> => {
+  // Pull 20 curated listings from MLS (curated by Ben) - Only Active status
   const properties = await homeJunctionClient
     .get(
-      `listings/search?market=GSREIN&listingType=residential&status=Pending&propertyType=detached&pageSize=1000&listPrice=250000:700000&address.zip=70119,70118,70122,70124,70115`,
+      `listings/search?market=GSREIN&listingType=residential&status=active&propertyType=detached&pageSize=20&listPrice=250000:700000&address.zip=70119,70118,70122,70124,70115`,
     )
     .then((res: AxiosResponse) => res.data.result.listings);
   return properties;
 };
 
 export const pullSoldProperties = async (): Promise<any[]> => {
+  // Pull 20 curated listings from MLS (curated by Ben) - Only Active status (not sold)
   const properties = await homeJunctionClient
     .get(
-      `sales/search?market=GSREIN&saleDate=>=${yesterday}&zip=70119,70118,70122,70124,70115&propertyType=single&pageSize=1000`,
+      `listings/search?market=GSREIN&listingType=residential&status=active&propertyType=detached&pageSize=20&listPrice=250000:700000&address.zip=70119,70118,70122,70124,70115&images=true`,
     )
-    .then((res: AxiosResponse) => res.data.result.sales);
+    .then((res: AxiosResponse) => res.data.result.listings);
   return properties;
 };
 

@@ -22,15 +22,12 @@ import { recordAPosition } from "../../firebase/collections/positions";
 import { Skip } from "../../firebase/game";
 import { getDateFromTimestamp } from "../../lib/helpers/calculations";
 import { formatMoney } from "../../lib/helpers/money";
-import {
-  safeFormatMoney,
-  validatePropertyBidData,
-} from "../../lib/helpers/display";
+import { safeFormatMoney, validatePropertyBidData } from "../../lib/helpers/display";
 import { Property } from "../../lib/models/property";
 import tw from "../../lib/tailwind/tailwind";
 import { useAuth } from "../../providers/authProvider";
 import { useScrollEnabled } from "../../providers/scrollEnabledProvider";
-import { CameraRoll } from "@react-native-camera-roll/camera-roll";
+import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 import CircleButton from "../CircleButton";
 import HorizontalLine from "../HorizontalLine";
 import ListingAgentInfo from "../ListingAgentInfo";
@@ -68,7 +65,7 @@ const PropertyView: React.FC<PropertyProps> = ({
   setPositionWasSet,
 }) => {
   const route = useRoute();
-
+  
   // Validate property bid data on component mount
   useEffect(() => {
     if (property) {
@@ -80,50 +77,32 @@ const PropertyView: React.FC<PropertyProps> = ({
   useEffect(() => {
     const requestPhotoPermissions = async () => {
       try {
-        console.log(
-          "📸 Property screen: Requesting photo library permissions..."
-        );
-
-        if (Platform.OS === "ios") {
+        console.log('📸 Property screen: Requesting photo library permissions...');
+        
+        if (Platform.OS === 'ios') {
           // iOS permission request
           const permission = await CameraRoll.getPhotos({ first: 1 });
-          console.log(
-            "✅ iOS photo library permission granted on property screen"
-          );
+          console.log('✅ iOS photo library permission granted on property screen');
         } else {
           // Android explicit permission request
-          console.log(
-            "📱 Requesting Android storage permissions on property screen..."
-          );
-
+          console.log('📱 Requesting Android storage permissions on property screen...');
+          
           const granted = await PermissionsAndroid.requestMultiple([
             PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
             PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
           ]);
-
-          const readGranted =
-            granted[PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE] ===
-            PermissionsAndroid.RESULTS.GRANTED;
-          const writeGranted =
-            granted[PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE] ===
-            PermissionsAndroid.RESULTS.GRANTED;
-
+          
+          const readGranted = granted[PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE] === PermissionsAndroid.RESULTS.GRANTED;
+          const writeGranted = granted[PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE] === PermissionsAndroid.RESULTS.GRANTED;
+          
           if (readGranted && writeGranted) {
-            console.log(
-              "✅ Android storage permissions granted on property screen"
-            );
+            console.log('✅ Android storage permissions granted on property screen');
           } else {
-            console.log(
-              "⚠️ Android storage permissions not fully granted on property screen:",
-              { readGranted, writeGranted }
-            );
+            console.log('⚠️ Android storage permissions not fully granted on property screen:', { readGranted, writeGranted });
           }
         }
       } catch (error) {
-        console.log(
-          "⚠️ Photo library permission not granted on property screen:",
-          error
-        );
+        console.log('⚠️ Photo library permission not granted on property screen:', error);
         // This is normal - user can grant permission later when saving images
       }
     };
@@ -145,6 +124,7 @@ const PropertyView: React.FC<PropertyProps> = ({
     isOpenHouse = paramIsOpenHouse || false;
   }
 
+
   const [state, setState] = useState({
     show: false,
     index: 0,
@@ -159,12 +139,9 @@ const PropertyView: React.FC<PropertyProps> = ({
   const { user } = useAuth();
   const [step, setStep] = useState<1 | 2>(1);
   const [fixedPriceBid, setFixedPriceBid] = useState(0);
-  const [rextimateUpdatedAfterSubmission, setRextimateUpdatedAfterSubmission] =
-    useState(false);
+  const [rextimateUpdatedAfterSubmission, setRextimateUpdatedAfterSubmission] = useState(false);
   const [isProcessingSubmission, setIsProcessingSubmission] = useState(false);
-  const [submissionInitialRextimate, setSubmissionInitialRextimate] = useState<
-    number | null
-  >(null);
+  const [submissionInitialRextimate, setSubmissionInitialRextimate] = useState<number | null>(null);
 
   const { setScrollEnabled } = useScrollEnabled();
   const {
@@ -174,9 +151,9 @@ const PropertyView: React.FC<PropertyProps> = ({
     positionSinceMidnight,
     fixedPriceBid: existingFixedPriceBid,
   } = useEquity(
-    property?.id || "",
-    property?.listPrice || 0,
-    undefined,
+    property?.id || '', 
+    property?.listPrice || 0, 
+    undefined, 
     isOpenHouse
   );
 
@@ -191,15 +168,15 @@ const PropertyView: React.FC<PropertyProps> = ({
       const quality = index < 3 ? 90 : 75; // Higher quality for first 3 images
       const width = index < 3 ? 1200 : 800; // Larger size for first 3 images
       const height = index < 3 ? 800 : 600;
-
+      
       return {
         url: `https://images.weserv.nl/?url=${encodeURIComponent(
           image
         )}&w=${width}&h=${height}&fit=cover&q=${quality}`,
         // Add cache headers for better caching
         headers: {
-          "Cache-Control": "public, max-age=31536000", // 1 year cache
-        },
+          'Cache-Control': 'public, max-age=31536000', // 1 year cache
+        }
       };
     });
   }, [property.images]);
@@ -214,12 +191,7 @@ const PropertyView: React.FC<PropertyProps> = ({
         setFixedPriceBid(currentRextimate.amount);
       }
     }
-  }, [
-    selectedPosition,
-    setPositionWasSet,
-    fixedPriceBid,
-    currentRextimate.amount,
-  ]);
+  }, [selectedPosition, setPositionWasSet, fixedPriceBid, currentRextimate.amount]);
 
   // Ensure scrolling is re-enabled when component unmounts
   useEffect(() => {
@@ -247,34 +219,30 @@ const PropertyView: React.FC<PropertyProps> = ({
   useEffect(() => {
     if (submissionInitialRextimate !== null && isProcessingSubmission) {
       if (currentRextimate.amount !== submissionInitialRextimate) {
-        console.log("Rextimate change detected via useEffect:", {
+        console.log('Rextimate change detected via useEffect:', {
           initial: submissionInitialRextimate,
-          current: currentRextimate.amount,
+          current: currentRextimate.amount
         });
         setRextimateUpdatedAfterSubmission(true);
         setIsProcessingSubmission(false);
         setSubmissionInitialRextimate(null);
-
+        
         // User should manually swipe to next property
         // Auto-navigation removed per client request
       }
     }
-  }, [
-    currentRextimate.amount,
-    submissionInitialRextimate,
-    isProcessingSubmission,
-  ]);
+  }, [currentRextimate.amount, submissionInitialRextimate, isProcessingSubmission]);
 
   // Enhanced preloading strategy for better performance
   useEffect(() => {
     const preloadImages = async () => {
       try {
         if (!property?.images || property.images.length === 0) return;
-
+        
         // Preload images in batches for better performance
         const batchSize = 2;
         const totalImages = property.images.length;
-
+        
         // Preload first batch immediately (higher priority)
         const firstBatch = property.images.slice(0, batchSize);
         await Promise.all(
@@ -284,11 +252,11 @@ const PropertyView: React.FC<PropertyProps> = ({
               img.onload = () => resolve(true);
               img.onerror = () => resolve(false);
               // Use optimized URL from imageUrls
-              img.src = imageUrls[index]?.url || "";
+              img.src = imageUrls[index]?.url || '';
             });
           })
         );
-
+        
         // Preload remaining images in background with delay
         setTimeout(async () => {
           const remainingImages = property.images.slice(batchSize, totalImages);
@@ -296,27 +264,27 @@ const PropertyView: React.FC<PropertyProps> = ({
           for (let i = 0; i < remainingImages.length; i += batchSize) {
             chunks.push(remainingImages.slice(i, i + batchSize));
           }
-
+          
           for (const chunk of chunks) {
             await Promise.all(
               chunk.map((image, chunkIndex) => {
-                const actualIndex =
-                  batchSize + chunks.indexOf(chunk) * batchSize + chunkIndex;
+                const actualIndex = batchSize + chunks.indexOf(chunk) * batchSize + chunkIndex;
                 return new Promise((resolve) => {
                   const img = new (global as any).Image();
                   img.onload = () => resolve(true);
                   img.onerror = () => resolve(false);
-                  img.src = imageUrls[actualIndex]?.url || "";
+                  img.src = imageUrls[actualIndex]?.url || '';
                 });
               })
             );
             // Small delay between batches to not overwhelm the network
-            await new Promise((resolve) => setTimeout(resolve, 100));
+            await new Promise(resolve => setTimeout(resolve, 100));
           }
         }, 500);
+        
       } catch (error) {
         // Silently fail - preloading is optional
-        console.log("Preloading failed:", error);
+        console.log('Preloading failed:', error);
       }
     };
 
@@ -356,16 +324,13 @@ const PropertyView: React.FC<PropertyProps> = ({
   const handleAddressPress = () => {
     // Use fullListingAddress as primary source since address object may be corrupted
     let addressToUse;
-
-    if (
-      property.fullListingAddress &&
-      property.fullListingAddress !== "No address available"
-    ) {
+    
+    if (property.fullListingAddress && property.fullListingAddress !== 'No address available') {
       addressToUse = property.fullListingAddress;
     } else {
       addressToUse = `${property.address.deliveryLine} ${property.address.city} ${property.address.state} ${property.zipCode}`;
     }
-
+    
     const encodedAddress = encodeURI(addressToUse);
     Linking.openURL(`https://maps.apple.com/?address=${encodedAddress}`);
   };
@@ -406,12 +371,12 @@ const PropertyView: React.FC<PropertyProps> = ({
   const handleChange = (index: number) => {
     if (index == -1) {
       // Modal is closed/dismissed
-      console.log("Modal closed - enabling scroll");
+      console.log('Modal closed - enabling scroll');
       setScrollEnabled(true);
     }
     if (index == 0) {
       // Modal is open/presented
-      console.log("Modal opened - disabling scroll");
+      console.log('Modal opened - disabling scroll');
       setScrollEnabled(false);
     }
   };
@@ -423,15 +388,15 @@ const PropertyView: React.FC<PropertyProps> = ({
     }
     setStep(1);
     setIsProcessingSubmission(true);
-
-    console.log("Bid submission started:", {
+    
+    console.log('Bid submission started:', {
       selectedPosition,
       currentRextimate: currentRextimate.amount,
       propertyId: property.id,
       isOpenHouse,
-      fixedPriceBid,
+      fixedPriceBid
     });
-
+    
     if (isOpenHouse) {
       // @ts-expect-error
       navigation.navigate("open-house-form", {
@@ -456,44 +421,34 @@ const PropertyView: React.FC<PropertyProps> = ({
         property.id,
         isOpenHouse
       );
-      console.log("Position recorded successfully");
+      console.log('Position recorded successfully');
     } catch (error) {
-      console.error("Error recording position:", error);
+      console.error('Error recording position:', error);
     }
-
+    
     if (fixedPriceBid) {
       try {
-        await recordFixedPriceBid(
-          fixedPriceBid,
-          user,
-          property.id,
-          isOpenHouse
-        );
-        console.log("Fixed price bid recorded successfully");
+        await recordFixedPriceBid(fixedPriceBid, user, property.id, isOpenHouse);
+        console.log('Fixed price bid recorded successfully');
       } catch (error) {
-        console.error("Error recording fixed price bid:", error);
+        console.error('Error recording fixed price bid:', error);
       }
     }
 
     const initialRextimate = currentRextimate.amount;
-    console.log(
-      "Setting up rextimate monitoring for submission:",
-      initialRextimate
-    );
-
+    console.log('Setting up rextimate monitoring for submission:', initialRextimate);
+    
     // Set the initial rextimate for monitoring
     setSubmissionInitialRextimate(initialRextimate);
-
+    
     // Fallback timeout in case the useEffect doesn't catch the change
     setTimeout(() => {
       if (isProcessingSubmission) {
-        console.log(
-          "Rextimate update timeout - no change detected after 3 seconds"
-        );
+        console.log('Rextimate update timeout - no change detected after 3 seconds');
         setRextimateUpdatedAfterSubmission(true);
         setIsProcessingSubmission(false);
         setSubmissionInitialRextimate(null);
-
+        
         // User should manually swipe to next property
         // Auto-navigation removed per client request
       }
@@ -517,10 +472,7 @@ const PropertyView: React.FC<PropertyProps> = ({
   const handleImageIndex = (event: any) => {
     const offset = event.nativeEvent.contentOffset.x;
     const currentPos = Math.floor(offset / WINDOW_WIDTH) + 1;
-    const clampedPos = Math.min(
-      Math.max(currentPos, 1),
-      property.images.length
-    );
+    const clampedPos = Math.min(Math.max(currentPos, 1), property.images.length);
     setImageIndex(clampedPos);
   };
 
@@ -528,19 +480,16 @@ const PropertyView: React.FC<PropertyProps> = ({
   const listPriceText = isLarge ? "text-lg" : "text-xs";
   const circleButtonSize = "w-12 h-12";
   const circleButtonImageSize = "w-5 h-5";
-  const homeButtonPosition =
-    Platform.OS === "android" ? "top-16 right-6" : "top-20 right-6";
-  const fullScreenButtonPosition =
-    Platform.OS === "android" ? "top-32 right-6" : "top-36 right-6";
-  const graphButtonPosition =
-    Platform.OS === "android" ? "top-48 right-6" : "top-54 right-6";
+  const homeButtonPosition = Platform.OS === 'android' ? "top-16 right-6" : "top-20 right-6";
+  const fullScreenButtonPosition = Platform.OS === 'android' ? "top-32 right-6" : "top-36 right-6";
+  const graphButtonPosition = Platform.OS === 'android' ? "top-48 right-6" : "top-54 right-6";
   const imageIndexText = isLarge ? "text-lg" : "text-xs";
   const termsConditionIcon = isLarge ? "w-8 h-8" : "w-3 h-3";
   const termsConditionInfo = isLarge ? "text-2xl" : "text-base";
   const chartMargin = isLarge ? "-mx-12 -top-16" : "-mx-5 -mt-32";
   const chartTitle = isLarge ? "text-2xl" : "text-base";
   const imageCount = "bottom-4 right-6";
-
+  
   if (!property) {
     return (
       <View style={tw`bg-white flex-1 items-center justify-center`}>
@@ -548,7 +497,7 @@ const PropertyView: React.FC<PropertyProps> = ({
       </View>
     );
   }
-
+  
   return (
     <View style={[tw`bg-white`]}>
       <KeyboardAvoidingView behavior="position">
@@ -567,8 +516,7 @@ const PropertyView: React.FC<PropertyProps> = ({
             style={tw`absolute px-2 py-1 bg-white rounded-md bottom-4 left-4`}
           >
             <Text style={tw`${listPriceText} text-green font-overpass600`}>
-              List Price:{" "}
-              {safeFormatMoney(property.listPrice, "List price not available")}
+              List Price: {safeFormatMoney(property.listPrice, 'List price not available')}
             </Text>
           </View>
           <View style={tw`absolute ${homeButtonPosition} right-6`}>
@@ -599,8 +547,7 @@ const PropertyView: React.FC<PropertyProps> = ({
             style={tw`absolute px-2 py-1 rounded-md bg-purple ${imageCount}`}
           >
             <Text style={tw`text-white ${imageIndexText}`}>
-              {Math.min(Math.max(imageIndex, 1), property.images.length)} of{" "}
-              {property.images.length}
+              {Math.min(Math.max(imageIndex, 1), property.images.length)} of {property.images.length}
             </Text>
           </View>
         </View>
@@ -900,8 +847,7 @@ const PropertyView: React.FC<PropertyProps> = ({
             )}
           </View>
           <Text style={tw`px-4 font-overpass500 ${listPriceText}`}>
-            Listed at:{" "}
-            {safeFormatMoney(property.listPrice, "List price not available")} on{" "}
+            Listed at: {safeFormatMoney(property.listPrice, 'List price not available')} on{" "}
             {getDateFromTimestamp(property.dateCreated)}
           </Text>
           <Text style={tw`px-4 font-overpass500 ${listPriceText}`}>
@@ -912,12 +858,12 @@ const PropertyView: React.FC<PropertyProps> = ({
             resizeMode="contain"
             source={require("../../assets/gsrein_logo.png")}
           ></Image>
-          <Text style={tw`pt-4 px-4  ${listPriceText} text-center    `}>
-            Swipe up to close rextimate price history
-          </Text>
-          <View
-            style={tw`h-10 bg-gray-400 h-1 w-10 self-center mt-2 rounded-full `}
-          />
+        <Text
+        style={tw`pt-4 px-4  ${listPriceText} text-center    `}
+        >Swipe up to close rextimate price history
+        </Text>
+<View style={tw`h-10 bg-gray-400 h-1 w-10 self-center mt-2 rounded-full ` } />
+
         </View>
       </Modal>
       {/* IMAGE SLIDER */}

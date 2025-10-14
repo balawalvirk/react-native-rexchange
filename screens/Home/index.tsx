@@ -1,51 +1,52 @@
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { useNavigation } from "@react-navigation/native";
-import HomeScreenTab from "./HomeTab";
-import ProfileTab from "./ProfileTab";
-import { Image, View } from "react-native";
-import tw from "../../lib/tailwind/tailwind";
-import CircleButton from "../../components/CircleButton";
-import { WINDOW_WIDTH } from "../../lib/helpers/dimensions";
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useNavigation } from '@react-navigation/native';
+import HomeScreenTab from './HomeTab';
+import ProfileTab from './ProfileTab';
+import { Image, View } from 'react-native';
+import tw from '../../lib/tailwind/tailwind';
+import CircleButton from '../../components/CircleButton';
+import { WINDOW_WIDTH } from '../../lib/helpers/dimensions';
 interface HomeScreenProps {}
 
 const HomeScreen: React.FC<HomeScreenProps> = () => {
   const Tab = createBottomTabNavigator();
   const navigation = useNavigation();
 
+
   return (
     <>
       <Tab.Navigator
         screenOptions={({ route }) => ({
           tabBarIcon: ({ focused }) => {
-            if (route.name == "Home") {
+            if (route.name == 'Home') {
               return focused ? (
                 <Image
                   style={tw`mt-4`}
-                  source={require("../../assets/house_yellow.png")}
+                  source={require('../../assets/house_yellow.png')}
                 ></Image>
               ) : (
                 <Image
                   style={tw`mt-4`}
-                  source={require("../../assets/home_logo_white.png")}
+                  source={require('../../assets/home_logo_white.png')}
                 ></Image>
               );
             }
-            if (route.name == "Profile") {
+            if (route.name == 'Profile') {
               return focused ? (
                 <Image
                   style={tw`mt-4`}
-                  source={require("../../assets/profile_yellow.png")}
+                  source={require('../../assets/profile_yellow.png')}
                 ></Image>
               ) : (
                 <Image
                   style={tw`mt-4`}
-                  source={require("../../assets/profile_white.png")}
+                  source={require('../../assets/profile_white.png')}
                 ></Image>
               );
             }
             return <></>;
           },
-          tabBarStyle: { position: "absolute", bottom: 20 },
+          tabBarStyle: { position: 'absolute', bottom: 20 },
 
           tabBarShowLabel: false,
           tabBarBackground: () => (
@@ -64,10 +65,13 @@ const HomeScreen: React.FC<HomeScreenProps> = () => {
           { left: WINDOW_WIDTH / 2 - 40 },
         ]}
         imageStyle={tw`w-10 h-10`}
-        imageURL={require("../../assets/rxc_logo_white.png")}
+        imageURL={require('../../assets/rxc_logo_white.png')}
         onPress={() => {
-          console.log("Green RXC button pressed - navigating to game");
-          (navigation as any).navigate("game");
+          console.log('Green RXC button pressed - returning to game');
+          (navigation as any).reset({
+            index: 0,
+            routes: [{ name: 'game' }],
+          });
         }}
       />
     </>

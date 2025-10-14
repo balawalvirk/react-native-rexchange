@@ -22,28 +22,28 @@ const config =
 import * as cors from 'cors';
 const corsHandler = cors({ origin: true });
 
-// export const pullNewPropertiesSinceYesterday = functions.pubsub
-//   .schedule('0 0 * * *')
-//   .timeZone('America/Costa_Rica')
-//   .onRun(async () => {
-//     try {
-//       const propertiesResponse = await pullNewProperties();
-//       const finalizedProperties = await getFinalizedForSaleProperties(
-//         propertiesResponse,
-//       );
-//       for (const property of finalizedProperties) {
-//         await setPropertyInFirebase(property);
-//       }
-//       sendPropertiesEmail(finalizedProperties, 'For Sale properties added');
-//     } catch (error: any) {
-//       sendErrorEmail(
-//         'Error pulling For Sale properties since yesterday',
-//         error,
-//       );
-//     } finally {
-//       return Promise.resolve();
-//     }
-//   });
+export const pullNewPropertiesSinceYesterday = functions.pubsub
+  .schedule('0 0 * * *')
+  .timeZone('America/Costa_Rica')
+  .onRun(async () => {
+    try {
+      const propertiesResponse = await pullNewProperties();
+      const finalizedProperties = await getFinalizedForSaleProperties(
+        propertiesResponse,
+      );
+      for (const property of finalizedProperties) {
+        await setPropertyInFirebase(property);
+      }
+      sendPropertiesEmail(finalizedProperties, 'Active properties added');
+    } catch (error: any) {
+      sendErrorEmail(
+        'Error pulling Active properties since yesterday',
+        error,
+      );
+    } finally {
+      return Promise.resolve();
+    }
+  });
 
 export const updatePendingPropertiesSinceYesterday = functions.pubsub
   .schedule('0 0 * * *')
