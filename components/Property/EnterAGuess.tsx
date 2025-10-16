@@ -26,6 +26,7 @@ interface EnterAGuessProps {
   fixedPriceBid: number;
   selectedPosition: 0 | 1 | 2 | null;
   listPrice: number;
+  currentRextimate: { amount: number };
 }
 
 const EnterAGuess: React.FC<EnterAGuessProps> = ({
@@ -38,23 +39,28 @@ const EnterAGuess: React.FC<EnterAGuessProps> = ({
   fixedPriceBid,
   selectedPosition,
   listPrice,
+  currentRextimate,
 }) => {
   const textSize = isLarge ? 'text-5xl h-16' : 'text-2xl my-2';
   const [value, setValue] = useState('');
-  const [showError, setShowError] = useState(false);
+  
+  // Set initial value to rextimate price when "Just Right" is selected
+  useEffect(() => {
+    if (selectedPosition === 2 && !value) {
+      setValue(formatMoney(currentRextimate.amount).replace(/[,$]/g, ''));
+    }
+  }, [selectedPosition, currentRextimate.amount, value]);
   
   const handleChange = (text: string) => {
-    if (text.length < 15) {
-      const value = text;
-      const stripped = value.toString()?.replace(/\D/g, '');
+    const stripped = text.toString()?.replace(/\D/g, '');
+    
+    // Limit to 7 digits maximum
+    if (stripped.length <= 7) {
       const amount = parseInt(stripped) || 0;
       
       const money = stripped ? formatMoney(amount) : '';
       setValue(money.toString());
       setFixedPriceBid(amount);
-      if (amount > 0) {
-        setShowError(false);
-      }
     }
   };
   const handleCancelPress = () => {
@@ -62,7 +68,6 @@ const EnterAGuess: React.FC<EnterAGuessProps> = ({
     setSelectedPosition(null);
     setPositionWasSet(false);
     setFixedPriceBid(null);
-    setShowError(false);
   };
   const { setScrollEnabled } = useScrollEnabled();
   const enterAGuessBottomModalRef = useRef<BottomSheetModal>(null);
@@ -80,6 +85,23 @@ const EnterAGuess: React.FC<EnterAGuessProps> = ({
     }
   }, [fixedPriceBid]);
 
+  // Clear input field when position changes to start fresh
+  useEffect(() => {
+    setValue('');
+    setFixedPriceBid(null);
+  }, [selectedPosition]);
+
+  // Populate input field with existing fixed price bid if available (only on initial load)
+  useEffect(() => {
+    if (existingFixedPriceBid && existingFixedPriceBid.amount > 0) {
+      // Only populate if no position is selected yet (initial state)
+      if (selectedPosition === null) {
+        setValue(formatMoney(existingFixedPriceBid.amount));
+        setFixedPriceBid(existingFixedPriceBid.amount);
+      }
+    }
+  }, [existingFixedPriceBid, selectedPosition]);
+
   const guessInfo = isLarge ? 'text-2xl' : 'text-base';
   const guessText = isLarge ? 'text-2xl' : 'text-lg';
   const guessedBidAmount = isLarge ? 'text-5xl' : 'text-2xl';
@@ -88,12 +110,12 @@ const EnterAGuess: React.FC<EnterAGuessProps> = ({
   const guessWhatText = isLarge  ? 'py-8 h-[200px]' : 'py-4';
   return (
     <View style={tw`mx-4 my-1`}>
-      {!existingFixedPriceBid && (
+      {(
         <View
-          style={tw`px-8 ${guessWhatText} shadow-md border-1 border-borderGray`}
+          style={tw`px-8 ${guessWhatText}  border-borderGray`}
         >
           <Pressable
-            style={tw`absolute right-2 top-2`}
+            style={tw`absolute right-2 top-0`}
             onPress={() => enterAGuessBottomModalRef.current?.present()}
           >
             <Image source={require('../../assets/info_circle_purple.png')} />
@@ -101,47 +123,46 @@ const EnterAGuess: React.FC<EnterAGuessProps> = ({
           {selectedPosition === 1 ? (
             <>
               <Text style={tw`${guessText} font-rajdhani600 text-center`}>
-                What do you think this house will sell for?
+              Enter your predicted sales price or simply hit Submit
               </Text>
               <TextInput
                 keyboardType="numeric"
-                placeholder={showError ? "Please enter an amount" : "Enter an amount"}
-
-                placeholderTextColor={showError ? "#EF4444" : "#9CA3AF"}
-                style={tw`mt-auto ${textSize} text-center border-2 ${showError ? 'border-red' : 'border-orange'} rounded-lg px-4 py-2 ${showError ? 'text-red' : 'text-orange'} font-rajdhani500`}
+                placeholder="Enter an amount"
+                placeholderTextColor="#9CA3AF"
+                style={tw`mt-auto ${textSize} text-center border-2 border-orange rounded-lg px-4 py-2 text-orange font-rajdhani500`}
                 onChangeText={handleChange}
                 value={value}
               />
             </>
-          ) : (
+          ) : selectedPosition === 0 ? (
             <>
               <Text style={tw`${guessText} font-rajdhani600 text-center`}>
-                What do you think this house will sell for?
+              Enter your predicted sales price or simply hit Submit
               </Text>
               <TextInput
                 keyboardType="numeric"
-                placeholder={showError ? "Please enter an amount" : "Enter an amount"}
-                placeholderTextColor={showError ? "#EF4444" : "#B8B8B8"}
-                style={tw`mt-auto ${textSize} text-center border-2 ${showError ? 'border-red' : 'border-purple'} rounded-lg px-4 py-2 ${showError ? 'text-red' : 'text-purple'} font-rajdhani500`}
+                placeholder="Enter an amount"
+                placeholderTextColor="#B8B8B8"
+                style={tw`mt-auto ${textSize} text-center border-2 border-purple rounded-lg px-4 py-2 text-purple font-rajdhani500`}
                 onChangeText={handleChange}
                 value={value}
               />
             </>
-          )}
-        </View>
-      )}
-      {existingFixedPriceBid && (
-        <View style={tw`flex items-center justify-center p-10`}>
-          <Text
-            style={tw`${guessText} text-center text-darkGray font-overpass500`}
-          >
-            You guessed that this house would sell for:
-          </Text>
-          <Text
-            style={tw`mt-4 ${guessedBidAmount} text-center text-purple font-rajdhani700`}
-          >
-            {formatMoney(existingFixedPriceBid.amount)}
-          </Text>
+          ) : selectedPosition === 2 ? (
+            <>
+              <Text style={tw`${guessText} font-rajdhani600 text-center`}>
+              Your guess should match the current price
+              </Text>
+              <TextInput
+                keyboardType="numeric"
+                placeholder={formatMoney(currentRextimate.amount)}
+                placeholderTextColor="#9CA3AF"
+                style={tw`mt-auto ${textSize} text-center border-2 border-green rounded-lg px-4 py-2 text-green font-rajdhani500`}
+                onChangeText={handleChange}
+                value={value}
+              />
+            </>
+          ) : null}
         </View>
       )}
       <View
@@ -166,12 +187,9 @@ const EnterAGuess: React.FC<EnterAGuessProps> = ({
             imageStyle={tw`w-6 h-6`}
             imageURL={require('../../assets/check_white.png')}
             onPress={() => {
-              if (fixedPriceBid && fixedPriceBid > 0) {
-                setShowError(false);
-                onSubmit({});
-              } else {
-                setShowError(true);
-              }
+              // Remove validation - always allow submission
+              // If no price entered, use current rextimate as default
+              onSubmit({});
             }}
           />
           <Text

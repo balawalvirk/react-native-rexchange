@@ -57,7 +57,8 @@ const OpenAPosition: React.FC<OpenAPositionProps> = ({
 
   // Show "Thank You" message after successful submission
   if (positionSinceMidnight && rextimateUpdatedAfterSubmission && !isOpenHouse) {
-    const bidAmount = fixedPriceBid || positionSinceMidnight.rextimate;
+    // Use fixedPriceBid (the amount user entered) if available, otherwise fall back to position's rextimate
+    const bidAmount = fixedPriceBid > 0 ? fixedPriceBid : positionSinceMidnight.rextimate;
     return (
       <View style={tw`flex items-center justify-center`}>
         <Text style={tw`p-10 text-xl text-center text-green font-rajdhani700`}>

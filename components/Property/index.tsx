@@ -414,10 +414,13 @@ const PropertyView: React.FC<PropertyProps> = ({
     setFixedPriceBid(0);
 
     try {
+      // Use user's entered amount if available, otherwise use current rextimate
+      const bidAmount = fixedPriceBid && fixedPriceBid > 0 ? fixedPriceBid : currentRextimate.amount;
+      
       await recordAPosition(
         selectedPosition,
         user,
-        currentRextimate.amount,
+        bidAmount,
         property.id,
         isOpenHouse
       );
@@ -426,7 +429,7 @@ const PropertyView: React.FC<PropertyProps> = ({
       console.error('Error recording position:', error);
     }
     
-    if (fixedPriceBid) {
+    if (fixedPriceBid && fixedPriceBid > 0) {
       try {
         await recordFixedPriceBid(fixedPriceBid, user, property.id, isOpenHouse);
         console.log('Fixed price bid recorded successfully');
@@ -435,24 +438,33 @@ const PropertyView: React.FC<PropertyProps> = ({
       }
     }
 
-    const initialRextimate = currentRextimate.amount;
-    console.log('Setting up rextimate monitoring for submission:', initialRextimate);
-    
-    // Set the initial rextimate for monitoring
-    setSubmissionInitialRextimate(initialRextimate);
-    
-    // Fallback timeout in case the useEffect doesn't catch the change
-    setTimeout(() => {
-      if (isProcessingSubmission) {
-        console.log('Rextimate update timeout - no change detected after 3 seconds');
-        setRextimateUpdatedAfterSubmission(true);
-        setIsProcessingSubmission(false);
-        setSubmissionInitialRextimate(null);
-        
-        // User should manually swipe to next property
-        // Auto-navigation removed per client request
-      }
-    }, 3000);
+    // For "Just Right" positions, rextimate doesn't change, so clear loading immediately
+    if (selectedPosition === 2) {
+      console.log('Just Right position - rextimate will not change, clearing loading immediately');
+      setRextimateUpdatedAfterSubmission(true);
+      setIsProcessingSubmission(false);
+      setSubmissionInitialRextimate(null);
+    } else {
+      // For "Too High" and "Too Low", monitor rextimate changes
+      const initialRextimate = currentRextimate.amount;
+      console.log('Setting up rextimate monitoring for submission:', initialRextimate);
+      
+      // Set the initial rextimate for monitoring
+      setSubmissionInitialRextimate(initialRextimate);
+      
+      // Fallback timeout in case the useEffect doesn't catch the change
+      setTimeout(() => {
+        if (isProcessingSubmission) {
+          console.log('Rextimate update timeout - no change detected after 3 seconds');
+          setRextimateUpdatedAfterSubmission(true);
+          setIsProcessingSubmission(false);
+          setSubmissionInitialRextimate(null);
+          
+          // User should manually swipe to next property
+          // Auto-navigation removed per client request
+        }
+      }, 3000);
+    }
   };
 
   const onPress = (position: any) => {
@@ -611,6 +623,7 @@ const PropertyView: React.FC<PropertyProps> = ({
             fixedPriceBid={fixedPriceBid}
             selectedPosition={selectedPosition}
             listPrice={property.listPrice}
+            currentRextimate={currentRextimate}
           />
         )}
       </KeyboardAvoidingView>

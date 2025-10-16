@@ -22,34 +22,30 @@ export function AuthProvider({ children }: any) {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        // For development: Only clear auth data on fresh builds, not on app restarts
-        if (__DEV__) {
-          const buildTimestamp = await AsyncStorage.getItem('buildTimestamp');
-          const currentBuildTimestamp = Date.now().toString();
+        // Always clear Firebase auth on first build only
+        const firstBuildFlag = await AsyncStorage.getItem('firstBuildCompleted');
+        
+        if (!firstBuildFlag) {
+          console.log('🔄 First build detected - clearing Firebase auth');
+          await AsyncStorage.setItem('firstBuildCompleted', 'true');
           
-          // Only clear auth if this is a fresh build (no buildTimestamp stored)
-          if (buildTimestamp === null) {
-            console.log('🔄 Fresh build detected - clearing any existing auth data');
-            await AsyncStorage.setItem('buildTimestamp', currentBuildTimestamp);
-            
-            // Clear any existing auth data
-            const auth = getAuth(app);
-            if (auth.currentUser) {
-              await signOut(auth);
-              console.log('🔄 Cleared existing user on fresh build');
-            }
-            
-            // Clear AsyncStorage auth data
-            try {
-              await AsyncStorage.removeItem('firebase:authUser:' + '[DEFAULT]');
-              await AsyncStorage.removeItem('firebase:authUser:');
-              console.log('🔄 Cleared AsyncStorage auth data on fresh build');
-            } catch (error) {
-              console.log('🔄 AsyncStorage clear failed (this is normal)');
-            }
-          } else {
-            console.log('🔄 Existing build - preserving auth state');
+          // Clear Firebase auth data
+          const auth = getAuth(app);
+          if (auth.currentUser) {
+            await signOut(auth);
+            console.log('🔄 Cleared Firebase auth on first build');
           }
+          
+          // Clear Firebase AsyncStorage auth data
+          try {
+            await AsyncStorage.removeItem('firebase:authUser:' + '[DEFAULT]');
+            await AsyncStorage.removeItem('firebase:authUser:');
+            console.log('🔄 Cleared Firebase AsyncStorage auth data on first build');
+          } catch (error) {
+            console.log('🔄 AsyncStorage clear failed (this is normal)');
+          }
+        } else {
+          console.log('🔄 Not first build - preserving Firebase auth state');
         }
         
         // Set up the auth state listener - this is the normal flow

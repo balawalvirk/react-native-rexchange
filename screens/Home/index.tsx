@@ -46,7 +46,13 @@ const HomeScreen: React.FC<HomeScreenProps> = () => {
             }
             return <></>;
           },
-          tabBarStyle: { position: 'absolute', bottom: 20 },
+          tabBarStyle: { 
+            position: 'absolute', 
+            bottom: 20,
+            // Lower elevation than the button
+            elevation: 1,
+            zIndex: 1,
+          },
 
           tabBarShowLabel: false,
           tabBarBackground: () => (
@@ -62,7 +68,12 @@ const HomeScreen: React.FC<HomeScreenProps> = () => {
       <CircleButton
         style={[
           tw`absolute w-20 h-20 bg-green bottom-10`,
-          { left: WINDOW_WIDTH / 2 - 40 },
+          { 
+            left: WINDOW_WIDTH / 2 - 40,
+            // Android layering fix
+            elevation: 1000,
+            zIndex: 9999,
+          },
         ]}
         imageStyle={tw`w-10 h-10`}
         imageURL={require('../../assets/rxc_logo_white.png')}

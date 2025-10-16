@@ -1,4 +1,4 @@
-import { View, Image, Pressable } from 'react-native';
+  import { View, Image, TouchableOpacity } from 'react-native';
 import tw from '../../lib/tailwind/tailwind';
 
 interface CircleButtonProps {
@@ -15,17 +15,16 @@ const CircleButton: React.FC<CircleButtonProps> = ({
   imageStyle,
 }) => {
   return (
-    <Pressable onPress={onPress}>
-      <View
-        style={[tw`flex items-center justify-center p-4 rounded-full`, style]}
-      >
-        <Image
-          style={imageStyle}
-          resizeMode="contain"
-          source={imageURL}
-        ></Image>
-      </View>
-    </Pressable>
+    <TouchableOpacity 
+      style={[tw`flex items-center justify-center p-4 rounded-full`, style]} 
+      onPress={onPress}
+    >
+      <Image
+        style={imageStyle}
+        resizeMode="contain"
+        source={imageURL}
+      />
+    </TouchableOpacity>
   );
 };
 
