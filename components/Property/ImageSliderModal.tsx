@@ -14,8 +14,8 @@ import {
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 import ImageViewer from "react-native-image-zoom-viewer";
 import { WINDOW_HEIGHT, WINDOW_WIDTH } from "../../lib/helpers/dimensions";
-import tw from "../../lib/tailwind/tailwind";
 import { saveImageToAlbumFromUrl } from "../../utils/imageSaver";
+import { createImageSliderModalStyles } from "./imageSliderModalStyles";
 interface ImageSliderModalProps {
   state: {
     show: boolean;
@@ -32,6 +32,7 @@ const ImageSliderModal: React.FC<ImageSliderModalProps> = ({
   setState,
   onClose,
 }) => {
+  const styles = createImageSliderModalStyles();
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
   const [showSavingMessage, setShowSavingMessage] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(state.index);
@@ -202,16 +203,9 @@ const ImageSliderModal: React.FC<ImageSliderModalProps> = ({
       statusBarTranslucent={true}
       onRequestClose={handleCloseClick}
     >
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: "black",
-        }}
-      >
+      <View style={styles.modalContainer}>
         <ImageViewer
-          style={{
-            flex: 1,
-          }}
+          style={styles.imageViewerContainer}
           show={true}
           imageUrls={optimizedImageUrls}
           index={state.index}
@@ -243,48 +237,37 @@ const ImageSliderModal: React.FC<ImageSliderModalProps> = ({
           renderHeader={() => <></>}
           renderFooter={() => <></>}
           loadingRender={() => (
-            <View
-              style={{
-                flex: 1,
-                justifyContent: "center",
-                alignItems: "center",
-                backgroundColor: "black",
-              }}
-            >
+            <View style={styles.loadingOverlay}>
               <ActivityIndicator size="large" color="white" />
-              <Text style={tw`text-white text-sm mt-2 font-overpass400`}>
+              <Text style={styles.loadingText}>
                 Loading...
               </Text>
             </View>
           )}
         />
         {/* Custom Image Counter */}
-        <View
-          style={tw`absolute top-16 right-40 px-3 py-1 rounded-lg bg-black/70 z-10`}
-        >
-          <Text style={tw`text-white text-sm font-overpass500`}>
+        <View style={styles.imageCounter}>
+          <Text style={styles.imageCounterText}>
             {currentImageIndex + 1} of {optimizedImageUrls.length}
           </Text>
         </View>
         
         <Pressable
-          style={tw`absolute top-16 right-6 z-10`}
+          style={styles.closeButton}
           onPress={handleCloseClick}
         >
           <Image
-            style={tw`w-6 h-6 border-1 border-white rounded-full`}
+            style={styles.closeButtonImage}
             source={require("../../assets/times_white.png")}
           />
         </Pressable>
         
         {/* Save Messages Overlay */}
         {showSavingMessage && (
-          <Pressable
-            style={[tw`absolute bottom-10 px-6 py-3 rounded-lg z-20 bg-purple`, { left: '45%', transform: [{ translateX: -75 }] }]}
-          >
-            <View style={tw`flex-row items-center`}>
-              <ActivityIndicator size="small" color="white" style={tw`mr-2`} />
-              <Text style={tw`text-white text-sm font-overpass300 text-center`}>
+          <Pressable style={styles.saveButton}>
+            <View style={styles.saveButtonContent}>
+              <ActivityIndicator size="small" color="white" style={{ marginRight: 8 }} />
+              <Text style={styles.saveButtonText}>
                 Saving to album...
               </Text>
             </View>
@@ -292,10 +275,8 @@ const ImageSliderModal: React.FC<ImageSliderModalProps> = ({
         )}
         
         {/* {showSaveSuccess && (
-          <Pressable
-            style={[tw`absolute bottom-20 px-6 py-3 rounded-lg z-20 bg-green-500`, { left: '50%', transform: [{ translateX: -75 }] }]}
-          >
-            <Text style={tw`text-white text-lg font-overpass600 text-center`}>
+          <Pressable style={styles.saveSuccessButton}>
+            <Text style={styles.saveSuccessText}>
               ✓ Image saved to album!
             </Text>
           </Pressable>

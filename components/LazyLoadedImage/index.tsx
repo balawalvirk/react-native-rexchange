@@ -68,6 +68,7 @@ const LazyLoadedImage: React.FC<LazyLoadedImageProps> = ({
   });
 
   const [retryKey, setRetryKey] = useState(0); // bust cache when retrying
+  const [retryCount, setRetryCount] = useState(0); // track retry attempts
   const opacity = useRef(new Animated.Value(0)).current;
 
   // Initialize opacity based on cached state
@@ -80,6 +81,7 @@ const LazyLoadedImage: React.FC<LazyLoadedImageProps> = ({
 
   const handleThumbnailLoad = () => {
     setThumbnailLoading(false);
+    setRetryCount(0); // Reset retry count on successful load
     // Cache the successful load
     const cached = getCachedState();
     imageLoadingCache.set(cacheKey, {
@@ -99,10 +101,19 @@ const LazyLoadedImage: React.FC<LazyLoadedImageProps> = ({
       thumbnailLoaded: false,
       thumbnailError: true,
     });
+    
+    // Automatically retry after a short delay (max 3 attempts)
+    if (retryCount < 3) {
+      setTimeout(() => {
+        setRetryCount(prev => prev + 1);
+        retryThumbnail();
+      }, 1000);
+    }
   };
 
   const handleImageLoad = () => {
     setImageLoading(false);
+    setRetryCount(0); // Reset retry count on successful load
     // Cache the successful load
     const cached = getCachedState();
     imageLoadingCache.set(cacheKey, {
@@ -118,6 +129,7 @@ const LazyLoadedImage: React.FC<LazyLoadedImageProps> = ({
   };
 
   const handleImageError = () => {
+
     setImageLoading(false);
     setImageError(true);
     // Cache the error state
@@ -127,6 +139,14 @@ const LazyLoadedImage: React.FC<LazyLoadedImageProps> = ({
       imageLoaded: false,
       imageError: true,
     });
+    
+    // Automatically retry after a short delay (max 3 attempts)
+    if (retryCount < 3) {
+      setTimeout(() => {
+        setRetryCount(prev => prev + 1);
+        retryImage();
+      }, 1000);
+    }
   };
 
   const retryThumbnail = () => {
@@ -198,22 +218,13 @@ const LazyLoadedImage: React.FC<LazyLoadedImageProps> = ({
         />
       )}
 
-      {/* Thumbnail Error with Retry */}
+      {/* Thumbnail Error - Show loading while retrying in background */}
       {showThumbnail && thumbnailError && (
-        <Pressable
+        <View
           style={[imageStyle, tw`flex items-center justify-center bg-gray-200`]}
-          onPress={retryThumbnail}
         >
-          <View style={tw`items-center`}>
-            <Image
-              style={tw`w-8 h-8 mb-2`}
-              source={require("../../assets/times_gray.png")}
-            />
-            <Text style={tw`text-xs text-gray-600 text-center`}>
-              Tap to retry
-            </Text>
-          </View>
-        </Pressable>
+          <ActivityIndicator size="small" color="#6B7280" />
+        </View>
       )}
 
       {/* Main Image */}
@@ -244,22 +255,13 @@ const LazyLoadedImage: React.FC<LazyLoadedImageProps> = ({
         </>
       )}
 
-      {/* Main Image Error with Retry */}
+      {/* Main Image Error - Show loading while retrying in background */}
       {show && imageError && (
-        <Pressable
+        <View
           style={[imageStyle, tw`flex items-center justify-center bg-gray-200`]}
-          onPress={retryImage}
         >
-          <View style={tw`items-center`}>
-            <Image
-              style={tw`w-12 h-12 mb-2 opacity-50`}
-              source={require("../../assets/times_gray.png")}
-            />
-            <Text style={tw`text-sm text-gray-600 text-center`}>
-              Tap to retry
-            </Text>
-          </View>
-        </Pressable>
+          <ActivityIndicator size="large" color="#6B7280" />
+        </View>
       )}
     </View>
   );

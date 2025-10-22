@@ -116,20 +116,20 @@ export function PortfolioProvider({ children }: any) {
   const getEquityByPosition = async () => {
     const mlsIds = Object.keys(positionsByMlsId);
     
-    // If no positions, set loading to false immediately
+  
     if (mlsIds.length === 0) {
       setPortfolioLineItems([]);
       setIsRefreshing(false);
       return;
     }
     
-    // Only show loading if we don't have any data yet
     if (portfolioLineItems.length === 0) {
       setIsRefreshing(true);
     }
     
-    // Parallel loading - fetch all properties at once
-    const propertyPromises = mlsIds.map(async (id) => {
+    const uniqueMlsIds = [...new Set(mlsIds)];
+    
+    const propertyPromises = uniqueMlsIds.map(async (id) => {
       try {
         const property = await getProperty(id);
         
@@ -137,7 +137,6 @@ export function PortfolioProvider({ children }: any) {
           return null;
         }
         
-        // Calculate equity for this property (includes 3 more calls)
         const equity = await getPropertyGainsLosses(
           property,
           id,
@@ -152,16 +151,13 @@ export function PortfolioProvider({ children }: any) {
           mlsId: id,
           property,
         } as PortfolioLineItem;
-      } catch (error) {
-        console.log(`Error loading property ${id}:`, error);
+      } catch (error) { 
         return null;
       }
     });
     
-    // Wait for all properties to load in parallel
     const results = await Promise.all(propertyPromises);
     
-    // Filter out null results (failed/missing properties)
     const plis = results.filter((item): item is PortfolioLineItem => item !== null);
     
     setPortfolioLineItems(plis);

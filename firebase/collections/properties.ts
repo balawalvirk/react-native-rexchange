@@ -13,23 +13,49 @@ import { Property } from '../../lib/models/property';
 import * as _ from 'lodash';
 
 export const getProperties = async (mlsIds?: string[]): Promise<Property[]> => {
-  query(collection(getFirestore(), 'properties'));
-  let q = query(collection(getFirestore(), 'properties'), where('status', 'in', ['Active', 'active']));
-
-  if (mlsIds) {
-    q = query(
-      collection(getFirestore(), 'properties'),
-      where('id', 'in', mlsIds),
-      where('status', 'in', ['Active', 'active']),
-    );
-  }
-  const querySnapshot = await getDocs(q);
-  const properties = _.map(
-    querySnapshot.docs,
-    (doc: DocumentSnapshot) => doc.data() as Property,
-  );
   
-  return properties;
+  if (!mlsIds || mlsIds.length === 0) {
+    let q = query(collection(getFirestore(), 'properties'), where('status', 'in', ['Active', 'active']));
+    const querySnapshot = await getDocs(q);
+    const properties = _.map(
+      querySnapshot.docs,
+      (doc: DocumentSnapshot) => doc.data() as Property,
+    );
+    return properties;
+  }
+
+  // Firebase has a limit of 30 items in 'in' queries, so we need to batch them
+  const BATCH_SIZE = 20; // Keep well under 30 to be safe
+  const allProperties: Property[] = [];
+  
+  for (let i = 0; i < mlsIds.length; i += BATCH_SIZE) {
+    const batch = mlsIds.slice(i, i + BATCH_SIZE);
+    
+    try {
+      // Use a single status filter to avoid disjunction issues
+      const q = query(
+        collection(getFirestore(), 'properties'),
+        where('id', 'in', batch),
+        where('status', '==', 'Active'), // Use single status instead of 'in'
+      );
+      const querySnapshot = await getDocs(q);
+      const batchProperties = _.map(
+        querySnapshot.docs,
+        (doc: DocumentSnapshot) => doc.data() as Property,
+      );
+      
+      // Also check for lowercase 'active' in memory as fallback
+      const activeProperties = batchProperties.filter(
+        property => property.status === 'Active' || property.status === 'active'
+      );
+      
+      allProperties.push(...activeProperties);
+    } catch (error) {
+      // Continue with next batch instead of failing completely
+    }
+  }
+  
+  return allProperties;
 };
 
 export const getProperty = async (mlsId: string): Promise<Property | null> => {
@@ -50,7 +76,6 @@ export const getProperty = async (mlsId: string): Promise<Property | null> => {
     
     return property;
   } catch (error) {
-    console.error(`Error fetching property ${mlsId}:`, error);
     return null;
   }
 };

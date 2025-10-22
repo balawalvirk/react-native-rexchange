@@ -66,15 +66,12 @@ const OffMarketProperty: React.FC<OffMarketPropertyProps> = ({
   useEffect(() => {
     const requestPhotoPermissions = async () => {
       try {
-        console.log('📸 Off-market property screen: Requesting photo library permissions...');
         
         if (Platform.OS === 'ios') {
           // iOS permission request
           const permission = await CameraRoll.getPhotos({ first: 1 });
-          console.log('✅ iOS photo library permission granted on off-market property screen');
         } else {
           // Android explicit permission request
-          console.log('📱 Requesting Android storage permissions on off-market property screen...');
           
           const granted = await PermissionsAndroid.requestMultiple([
             PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
@@ -85,13 +82,10 @@ const OffMarketProperty: React.FC<OffMarketPropertyProps> = ({
           const writeGranted = granted[PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE] === PermissionsAndroid.RESULTS.GRANTED;
           
           if (readGranted && writeGranted) {
-            console.log('✅ Android storage permissions granted on off-market property screen');
           } else {
-            console.log('⚠️ Android storage permissions not fully granted on off-market property screen:', { readGranted, writeGranted });
           }
         }
       } catch (error) {
-        console.log('⚠️ Photo library permission not granted on off-market property screen:', error);
         // This is normal - user can grant permission later when saving images
       }
     };

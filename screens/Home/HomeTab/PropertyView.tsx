@@ -34,6 +34,16 @@ const PropertyView: React.FC<PropertyViewProps> = ({
     property.salePrice,
     isOpenHouse
   );
+  
+  // Debug logging for PropertyView in valuations list (commented out to reduce log noise)
+  // console.log(`🏘️ PropertyView in valuations list: ${property.fullListingAddress}`);
+  // console.log(`   Property ID: ${property.id}`);
+  // console.log(`   Positions count: ${positions.length}`);
+  // console.log(`   Fixed Price Bid: ${fixedPriceBid ? `$${fixedPriceBid.amount}` : 'None'}`);
+  // console.log(`   Equity: $${equity || 0}`);
+  // console.log(`   Position since midnight: ${positionSinceMidnight ? 'Yes' : 'No'}`);
+  // console.log(`   Status: ${property.status}`);
+  // console.log(`   Current Rextimate: $${currentRextimate?.amount || 'N/A'}`);
 
   const myTotalsBottomSheetModalRef = useRef<BottomSheetModal>(null);
   const myTotalsSnapPoints = useMemo(() => ["1%", "90%"], []);

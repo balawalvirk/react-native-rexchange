@@ -5,9 +5,9 @@ import { formatMoney } from "../../lib/helpers/money";
 import { safeFormatMoney, safeFormatSqft, safeFormatBedBath } from "../../lib/helpers/display";
 import { Property } from "../../lib/models/property";
 import { RextimatePriceHistory } from "../../lib/models/rextimatePriceHistory";
-import tw from "../../lib/tailwind/tailwind";
 import CircleButton from "../CircleButton";
 import HorizontalLine from "../HorizontalLine";
+import { createDetailsStyles } from "./detailsStyles";
 
 interface DetailsProps {
   property: Property;
@@ -28,106 +28,82 @@ const Details: React.FC<DetailsProps> = ({
   final,
   isOpenHouse,
 }) => {
+  const styles = createDetailsStyles(isOpenHouse || false);
   const isLarge = WINDOW_WIDTH > 600;
-  const textSize =
-    isLarge && isOpenHouse
-      ? "text-lg -mt-2"
-      : isLarge
-      ? "text-xl -mt-2"
-      : "text-xs -mt-2 mb-0.5";
-  const addressTextSize = isLarge ? "text-2xl" : "text-sm";
-  const rextimateTextSize =
-    isLarge && isOpenHouse
-      ? "text-4xl py-2"
-      : isLarge
-      ? "text-5xl py-4"
-      : "text-3xl";
-  const currentTextSize = isLarge ? "text-2xl" : "text-lg";
-  const circleButtonSize = isLarge ? "w-16 h-16" : "w-6 h-6";
-  const circleButtonText = isLarge ? "ml-4 text-lg" : "ml-1 text-xs";
-  const moreInfoText = isLarge ? "text-lg" : "text-xs";
-  const detailsMargin =
-    isLarge && isOpenHouse ? "-mt-2 mb-1" : isLarge ? "-mt-4" : "";
 
   return (
-    <View style={tw`p-4`}>
+    <View style={styles.mainContainer}>
       <Pressable onPress={onListingAgentPress}>
-        <Text style={tw`text-black font-overpass400 underline ${textSize}`}>
+        <Text style={styles.courtesyText}>
           Courtesy of {property.listingOffice?.name || 'Unknown Office'}
         </Text>
       </Pressable>
       <Pressable onPress={onAddressPress}>
-        <Text
-          style={tw`underline capitalize font-overpass400 ${addressTextSize}`}
-        >
+        <Text style={styles.addressText}>
           {property.fullListingAddress || 'Address not available'}
         </Text>
       </Pressable>
-      <View style={tw`flex flex-row items-center justify-between`}>
-        <Text style={tw`${rextimateTextSize} text-purple font-rajdhani700`}>
+      <View style={styles.rextimateContainer}>
+        <Text style={styles.rextimateText}>
           {safeFormatMoney(currentRextimate?.amount, 'Loading...')}
         </Text>
-        <View style={tw`flex flex-row items-center`}>
-          <Image source={require("../../assets/crown_gold.png")}></Image>
-          <Text
-            style={tw`ml-1 ${currentTextSize} uppercase text-purple font-rajdhani700`}
-          >
+        <View style={styles.crownContainer}>
+          <Image 
+            style={styles.crownImage}
+            source={require("../../assets/crown_gold.png")}
+          />
+          <Text style={styles.currentText}>
             {final ? "Final" : "Current"} Rextimate
           </Text>
         </View>
       </View>
       {final && (
-        <Text style={tw`text-darkGray font-overpass600 `}>
+        <Text style={styles.salePriceText}>
           Sale Price:{" "}
           {safeFormatMoney(property.salePrice, "PENDING")}
         </Text>
       )}
-      <View
-        style={tw`flex flex-row items-center justify-between ${detailsMargin}`}
-      >
-        <View style={tw`flex flex-row items-center`}>
+      <View style={styles.detailsContainer}>
+        <View style={styles.featureContainer}>
           <CircleButton
-            style={tw`${circleButtonSize} border-1 border-borderGray bg-light`}
+            style={styles.circleButton}
             imageURL={require("../../assets/bed_purple.png")}
           />
-          <Text style={tw`${circleButtonText} font-overpass500 text-darkGray`}>
+          <Text style={styles.featureText}>
             {safeFormatBedBath(property.beds, 'bed')}
           </Text>
         </View>
-        <View style={tw`flex flex-row items-center`}>
+        <View style={styles.featureContainer}>
           <CircleButton
-            style={tw`${circleButtonSize} ml-1 shadow-sm border-1 border-borderGray bg-light`}
+            style={styles.circleButtonWithMargin}
             imageURL={require("../../assets/bath_purple.png")}
           />
-          <Text style={tw`${circleButtonText} font-overpass500 text-darkGray`}>
+          <Text style={styles.featureText}>
             {safeFormatBedBath(property.baths?.total, 'bath')}
           </Text>
         </View>
-        <View style={tw`flex flex-row items-center`}>
+        <View style={styles.featureContainer}>
           <CircleButton
-            style={tw`${circleButtonSize} ml-1 shadow-sm border-1 border-borderGray bg-light`}
+            style={styles.circleButtonWithMargin}
             imageURL={require("../../assets/ruler_triangle_purple.png")}
           />
-          <Text style={tw`${circleButtonText} font-overpass500 text-darkGray`}>
+          <Text style={styles.featureText}>
             {safeFormatSqft(property.size)}
           </Text>
         </View>
         <Pressable onPress={onMoreInfoPress}>
-          <View
-            style={tw`flex flex-row items-center p-1 mx- rounded-md border-1 border-purple`}
-          >
+          <View style={styles.moreInfoButton}>
             <Image
-              style={tw`mr-1`}
+              style={styles.moreInfoIcon}
               source={require("../../assets/info_outline_purple.png")}
-            ></Image>
-
-            <Text style={tw`${moreInfoText} text-purple font-overpass600`}>
+            />
+            <Text style={styles.moreInfoText}>
               more info
             </Text>
           </View>
         </Pressable>
       </View>
-      <View style={tw`my-1`}>
+      <View style={styles.horizontalLineContainer}>
         <HorizontalLine />
       </View>
     </View>

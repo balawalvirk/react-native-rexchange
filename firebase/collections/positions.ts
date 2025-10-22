@@ -92,7 +92,6 @@ export const getNumJustRightSnapshot = async (
     );
     return onSnapshot(q, onNext);
   } catch (error) {
-    console.log(JSON.stringify(error));
   }
 };
 
@@ -115,9 +114,14 @@ export const recordAPosition = async (
   isOpenHouse = false,
 ) => {
   try {
+    // Ensure we have a valid user ID
+    if (!user?.id) {
+      throw new Error('User ID is required to record position');
+    }
+    
     await addDoc(collection(getFirestore(), 'thtls'), {
       type,
-      userId: user?.id,
+      userId: user.id,
       rextimate: currentRextimateAmount,
       mlsId,
       dateCreated: new Date(),
@@ -129,8 +133,7 @@ export const recordAPosition = async (
     Sentry.captureException(err, {
       tags: { userId: user?.id, function: 'recordAPosition' },
     });
-    console.log('record a postion', user);
-    console.log(JSON.stringify(err));
+    throw err; // Re-throw to be caught by caller
   }
 };
 

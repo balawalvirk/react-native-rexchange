@@ -17,10 +17,10 @@ import Gradient from '../../lib/svg/Gradient';
 import tw from '../../lib/tailwind/tailwind';
 import RNDateTimePicker from '@react-native-community/datetimepicker';
 import { addUser } from '../../firebase/collections/users';
-import { getAuth } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { RXCUser } from '../../lib/models/rxcUser';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../../providers/authProvider';
 import { Keyboard } from 'react-native';
 
@@ -28,7 +28,13 @@ interface UserDataScreenProps {}
 
 const UserDataScreen: React.FC<UserDataScreenProps> = () => {
   const navigation = useNavigation();
+  const route = useRoute();
   const { setUser } = useAuth();
+  
+  // Get email and password from route params
+  const { email, password } = route.params as { email: string; password: string } || {};
+  
+  console.log('🔍 UserData - Route params:', { email, password });
   const [zip, setZip] = useState(['', '', '', '', '']);
   const [birthday, setBirthday] = useState<Date | undefined>();
   const [realEstate, setRealEstate] = useState<boolean | null>(null);
@@ -96,12 +102,38 @@ const UserDataScreen: React.FC<UserDataScreenProps> = () => {
     }
   };
 
-  const createUser = () => {
+  const createUser = async () => {
     // Dismiss keyboard before navigation
     Keyboard.dismiss();
     
-    const fbUser = getAuth().currentUser;
-    if (!fbUser) return;
+    
+    let fbUser = getAuth().currentUser;
+    // console.log('🔍 UserData - Current fbUser:', fbUser);
+    
+    // If no Firebase user exists, create one with the provided email/password
+    if (!fbUser && email && password) {
+      try {
+        const userCredential = await createUserWithEmailAndPassword(getAuth(), email, password);
+        fbUser = userCredential.user;
+
+        
+        // Send email verification
+        if (fbUser) {
+          await sendEmailVerification(fbUser);
+        }
+      } catch (error: any) {
+        console.log('❌ UserData - Error creating Firebase user:', error);
+        Alert.alert('Error', error.message);
+        return;
+      }
+    }
+    
+    if (!fbUser) {
+      console.log('❌ UserData - No Firebase user found!');
+      Alert.alert('Error', 'No user found. Please try signing up again.');
+      return;
+    }
+    
     const [fn, ln] = fbUser.displayName?.split(' ') || ['', ''];
     const user = {
       emailAddress: fbUser?.email || '',
@@ -111,19 +143,31 @@ const UserDataScreen: React.FC<UserDataScreenProps> = () => {
       zipCode: zip.join(''),
       ...(birthday ? { birthday } : {}),
       isRealtor: realEstate,
+      isSetUp: true,
       tutorialFinished: false,
+      zipCodeOrder: [zip.join('')],
+      totalEarnings: 0,
+      totalEquity: 0,
+      openPositions: 0,
+      token: '',
       id: fbUser.uid,
     };
-    addUser(user)
-      .then(() => {
-        setUser(user);
-        // Small delay to ensure keyboard is dismissed before navigation
-        setTimeout(() => {
-          // @ts-expect-error
-          navigation.navigate('game');
-        }, 100);
-      })
-      .catch((err: any) => Alert.alert(err.message));
+    
+    console.log('🔍 UserData - Creating user object:', user);
+    
+    try {
+      await addUser(user);
+      console.log('✅ UserData - User created successfully:', user);
+      setUser(user);
+      // Small delay to ensure keyboard is dismissed before navigation
+      setTimeout(() => {
+        // @ts-expect-error
+        navigation.navigate('game');
+      }, 100);
+    } catch (err: any) {
+      console.log('❌ UserData - Error creating user:', err);
+      Alert.alert('Error', err.message);
+    }
   };
 
   const handleKeyPress = (

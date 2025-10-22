@@ -46,19 +46,18 @@ export const getEquityForOnePosition = (
   const positionRextimate = position.rextimate;
   const difference = rextimateOrSalePrice - positionRextimate;
   const type = position.type;
-  if (type == 2 && !isSold) {
-    if (isWithin2000(difference)) {
-      amount += 400 * (101 - numJustRight);
-    }
+  
+
+  if (type == 2) {
+    return 0;
   }
 
-  if (type != 2) {
-    if (isPositiveEquity(difference, type)) {
-      amount += Math.abs(difference);
-    } else {
-      amount -= Math.abs(difference);
-    }
+  if (isPositiveEquity(difference, type)) {
+    amount += Math.abs(difference);
+  } else {
+    amount -= Math.abs(difference);
   }
+  
   return amount;
 };
 export const getPositionEquity = (

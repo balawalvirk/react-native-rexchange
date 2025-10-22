@@ -70,7 +70,6 @@ const PriceHistoryChart: React.FC<PriceHistoryChartProps> = ({
   };
 
   const decorate = (args: any) => {
-    // console.log(args);
   };
 
   const isLarge = WINDOW_WIDTH > 600;

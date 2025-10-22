@@ -22,15 +22,16 @@ import { positionsSinceMidnightSnapshot } from "../../firebase/collections/posit
 import { WINDOW_HEIGHT } from "../../lib/helpers/dimensions";
 import { Position } from "../../lib/models/positions";
 import { Property } from "../../lib/models/property";
-import tw from "../../lib/tailwind/tailwind";
 import { useAuth } from "../../providers/authProvider";
 import { useScrollEnabled } from "../../providers/scrollEnabledProvider";
 import { Skip, getQueuedProperties } from "../../firebase/game";
+import { createGameStyles } from "./gameStyles";
 
 interface GameScreenProps {}
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const GameScreen: React.FC<GameScreenProps> = () => {
+  const styles = createGameStyles();
   const [properties, setProperties] = useState<Property[] | null>(null);
   const { scrollEnabled, setScrollEnabled } = useScrollEnabled();
   const { user, setUser } = useAuth();
@@ -229,7 +230,7 @@ const GameScreen: React.FC<GameScreenProps> = () => {
     index: number;
   }) => {
     return (
-      <View style={{ height: WINDOW_HEIGHT }}>
+      <View style={styles.propertyItemContainer}>
         {/* 👈 full screen height */}
         <PropertyView
           key={item.id}
@@ -249,32 +250,25 @@ const GameScreen: React.FC<GameScreenProps> = () => {
   // Footer component for "Way to go!" section
   const renderFooter = () => {
     return (
-      <View
-        style={[
-          tw`flex items-center justify-center p-4`,
-          { height: WINDOW_HEIGHT },
-        ]}
-      >
-        <Text style={tw`text-xl text-darkGray font-rajdhani700`}>
+      <View style={styles.footerContainer}>
+        <Text style={styles.footerTitle}>
           Way to go!
         </Text>
-        <Text
-          style={tw`px-10 my-4 leading-6 text-center text-darkGray font-overpass500`}
-        >
+        <Text style={styles.footerDescription}>
           You've seen all available properties today. Would you like to refresh
           and see the ones you skipped?
         </Text>
         <Pressable
           onPress={refresh}
-          style={tw`flex items-center justify-center w-full p-4 m-4 border-solid rounded-lg border-1 border-green bg-green`}
+          style={styles.footerButton}
         >
-          <Text style={tw`text-base text-white font-overpass500`}>Refresh</Text>
+          <Text style={styles.footerButtonText}>Refresh</Text>
         </Pressable>
         <Pressable
           onPress={navigateHome}
-          style={tw`flex items-center justify-center w-full p-4 mx-4 border-solid rounded-lg border-1 border-green bg-green`}
+          style={styles.footerButtonWithMargin}
         >
-          <Text style={tw`text-base text-white font-overpass500`}>Home</Text>
+          <Text style={styles.footerButtonText}>Home</Text>
         </Pressable>
       </View>
     );
@@ -282,39 +276,37 @@ const GameScreen: React.FC<GameScreenProps> = () => {
 
   if (!queueIsLoaded || !properties) {
     return (
-      <View style={tw`flex items-center justify-center h-full`}>
-        <Text style={tw`my-4 text-lg font-rajdhani700 text-purple`}>
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>
           Loading properties...
         </Text>
         <Image
-          style={tw`-my-4 h-1/3`}
+          style={styles.loadingImage}
           resizeMode="contain"
           source={require("../../assets/dino-logo.png")}
-        ></Image>
+        />
         <ActivityIndicator />
       </View>
     );
   }
   if (queueIsLoaded && properties && !properties?.length) {
     return (
-      <View style={tw`flex items-center justify-center h-full p-4`}>
-        <Text
-          style={tw`mx-4 text-lg text-center font-overpass500 text-darkGray`}
-        >
+      <View style={styles.emptyStateContainer}>
+        <Text style={styles.emptyStateText}>
           You've bid on all properties for today. Please come back tomorrow and
           bid again.
         </Text>
         <Pressable
           onPress={navigateHome}
-          style={tw`flex items-center justify-center w-full p-4 my-4 border-solid rounded-lg border-1 border-green bg-green`}
+          style={styles.emptyStateButton}
         >
-          <Text style={tw`text-base text-white font-overpass500`}>Home</Text>
+          <Text style={styles.emptyStateButtonText}>Home</Text>
         </Pressable>
       </View>
     );
   }
   return (
-    <View style={tw`flex-1`}>
+    <View style={styles.mainContainer}>
       <FlatList
         ref={flatListRef}
         data={properties || []}
@@ -343,9 +335,7 @@ const GameScreen: React.FC<GameScreenProps> = () => {
         disableIntervalMomentum={Platform.OS === "android"} // disable momentum on Android only
       />
       {isSkipping && (
-        <View
-          style={tw`absolute inset-0 flex items-center justify-center w-full h-full bg-overlay z-100`}
-        >
+        <View style={styles.skippingOverlay}>
           <ActivityIndicator />
         </View>
       )}
@@ -359,56 +349,48 @@ const GameScreen: React.FC<GameScreenProps> = () => {
           setUser({ ...user, tutorialFinished: true });
         }}
       >
-        <View style={[{ height: "100%", marginBottom: 100 }]}>
-          <ScrollView style={tw`px-4 pb-8`}>
-            <Text
-              style={tw`p-4 text-center capitalize font-overpass600 text-purple`}
-            >
+        <View style={styles.bottomSheetContainer}>
+          <ScrollView style={styles.bottomSheetScrollView}>
+            <Text style={styles.bottomSheetTitle}>
               Welcome to Rexchange!
             </Text>
             <Pressable
               onPress={() => tutorialBottomSheetModalRef.current?.dismiss()}
             >
               <Image
-                style={tw`absolute w-3 h-3 -top-8 right-4`}
+                style={styles.bottomSheetCloseButton}
                 source={require("../../assets/times_gray.png")}
-              ></Image>
+              />
             </Pressable>
             <HorizontalLine />
-            <Text style={tw`my-4 text-base font-overpass400`}>
+            <Text style={styles.bottomSheetText}>
               Who knows how much a house is worth? At Rexchange, we believe that
               locals know their neighborhoods better than anyone else. Our{" "}
-              <Text style={tw`italic`}>Rextimate</Text> is set through a
+              <Text style={styles.bottomSheetItalicText}>Rextimate</Text> is set through a
               real-time price guessing game.
             </Text>
-            <Text style={tw`my-4 text-base font-overpass400`}>
+            <Text style={styles.bottomSheetText}>
               In a moment, you will see some homes{" "}
-              <Text style={tw`font-overpass500`}>
+              <Text style={styles.bottomSheetBoldText}>
                 that are actually on the market,
               </Text>{" "}
               and your job is to guess whether our Rextimate is close to the
               price the house will really sell for.
             </Text>
-            <Text style={tw`my-4 text-base font-overpass400`}>
+            <Text style={styles.bottomSheetText}>
               The best part is that your{" "}
-              <Text style={tw`font-overpass500`}>
+              <Text style={styles.bottomSheetBoldText}>
                 guess will actually change our Rextimate in real time.
               </Text>{" "}
               The closer you get to the right price, the more equity you get!
               Get the most equity, win the game!
             </Text>
-            <View
-              style={tw`flex justify-start w-full h-32 p-4 mx-auto mt-auto bg-white `}
-            >
+            <View style={styles.bottomSheetButtonContainer}>
               <Pressable
                 onPress={() => tutorialBottomSheetModalRef.current?.dismiss()}
               >
-                <View
-                  style={tw`flex items-center justify-center rounded-md bg-green h-15 `}
-                >
-                  <Text
-                    style={tw`text-lg text-center text-white font-overpass500`}
-                  >
+                <View style={styles.bottomSheetButton}>
+                  <Text style={styles.bottomSheetButtonText}>
                     Ok
                   </Text>
                 </View>

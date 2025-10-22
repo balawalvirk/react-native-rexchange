@@ -26,35 +26,27 @@ export function AuthProvider({ children }: any) {
         const firstBuildFlag = await AsyncStorage.getItem('firstBuildCompleted');
         
         if (!firstBuildFlag) {
-          console.log('🔄 First build detected - clearing Firebase auth');
           await AsyncStorage.setItem('firstBuildCompleted', 'true');
           
           // Clear Firebase auth data
           const auth = getAuth(app);
           if (auth.currentUser) {
             await signOut(auth);
-            console.log('🔄 Cleared Firebase auth on first build');
           }
           
           // Clear Firebase AsyncStorage auth data
           try {
             await AsyncStorage.removeItem('firebase:authUser:' + '[DEFAULT]');
             await AsyncStorage.removeItem('firebase:authUser:');
-            console.log('🔄 Cleared Firebase AsyncStorage auth data on first build');
           } catch (error) {
-            console.log('🔄 AsyncStorage clear failed (this is normal)');
+            // AsyncStorage clear failed (this is normal)
           }
-        } else {
-          console.log('🔄 Not first build - preserving Firebase auth state');
         }
         
         // Set up the auth state listener - this is the normal flow
         return getAuth(app).onAuthStateChanged(async (user) => {
-          console.log('🔄 Auth state changed:', user ? `User: ${user.uid}` : 'No user');
-          
           // If no user, just set loading to false
           if (!user) {
-            console.log('🔄 No user - showing auth screens');
             setUser(null);
             setIsLoading(false);
             return;
@@ -126,7 +118,6 @@ export const useAuth = () => {
   const resetBuildTimestamp = async () => {
     if (__DEV__) {
       await AsyncStorage.removeItem('buildTimestamp');
-      console.log('🔄 Build timestamp reset - will clear auth data on next launch');
     }
   };
   

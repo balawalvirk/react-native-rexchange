@@ -101,17 +101,13 @@ export const useEquity = (
     getCurrentRextimateSnapshot(
       mlsId,
       (snapshot: any) => {
-        console.log(`Rextimate snapshot for ${mlsId} (isOpenHouse: ${isOpenHouse}):`, {
-          docsLength: snapshot?.docs?.length,
-          data: snapshot?.docs?.[0]?.data(),
-          listPrice
-        });
+        // Rextimate snapshot received
         
         const currentRextimate = snapshot?.docs?.length
           ? snapshot.docs[0].data()
           : { amount: listPrice || 0 };
         
-        console.log(`Setting currentRextimate for ${mlsId}:`, currentRextimate);
+        // Setting current rextimate
         setCurrentRextimate(currentRextimate);
       },
       isOpenHouse,

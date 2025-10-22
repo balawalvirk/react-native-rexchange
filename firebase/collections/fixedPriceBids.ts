@@ -44,13 +44,17 @@ export const recordFixedPriceBid = async (
   mlsId: string,
   isOpenHouse = false,
 ) => {
-  await addDoc(collection(getFirestore(), 'fixedPriceBids'), {
-    amount: amount,
-    userId: user?.id,
-    mlsId,
-    dateCreated: new Date(),
-    isOpenHouse,
-  });
+  try {
+    await addDoc(collection(getFirestore(), 'fixedPriceBids'), {
+      amount: amount,
+      userId: user?.id,
+      mlsId,
+      dateCreated: new Date(),
+      isOpenHouse,
+    });
+  } catch (err) {
+    throw err; // Re-throw to be caught by caller
+  }
 };
 
 export const updateAllFPBs = async () => {

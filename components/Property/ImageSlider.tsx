@@ -1,4 +1,4 @@
-import { Pressable, ScrollView } from "react-native";
+import { Pressable, ScrollView, Platform } from "react-native";
 import { IMAGE_HEIGHT, WINDOW_WIDTH } from "../../lib/helpers/dimensions";
 import { Property } from "../../lib/models/property";
 import LazyLoadedImage from "../LazyLoadedImage";
@@ -18,6 +18,8 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
   show,
   showThumbnail,
 }) => {
+  // ImageSlider component
+  
   return (
     <ScrollView
       horizontal={true}
@@ -29,7 +31,7 @@ const ImageSlider: React.FC<ImageSliderProps> = ({
       showsHorizontalScrollIndicator={false}
       style={{ width: WINDOW_WIDTH, height: IMAGE_HEIGHT }}
       onScroll={handleScrollPosition}
-      scrollEventThrottle={500}
+      scrollEventThrottle={Platform.OS === 'android' ? 16 : 500}
     >
       {property.images.map((image, index) => {
         return (

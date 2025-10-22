@@ -144,7 +144,7 @@ const ProfileTab: React.FC<ProfileTabProps> = () => {
           <FlatList
             data={portfolioLineItems.filter((item) => item.status === "Sold")}
             renderItem={ListViewItem as any}
-            keyExtractor={(item) => `pli-${item.mlsId}`}
+            keyExtractor={(item) => `pli-closed-${item.mlsId}`}
             showsVerticalScrollIndicator={false}
             scrollEnabled={false}
           ></FlatList>
@@ -190,7 +190,7 @@ const ProfileTab: React.FC<ProfileTabProps> = () => {
           <FlatList
             data={portfolioLineItems.filter((item) => item.status !== "Sold")}
             renderItem={ListViewItem as any}
-            keyExtractor={(item) => `pli-${item.mlsId}`}
+            keyExtractor={(item) => `pli-open-${item.mlsId}`}
             showsVerticalScrollIndicator={false}
             scrollEnabled={false}
             refreshing={isRefreshing}
@@ -234,6 +234,7 @@ const ProfileTab: React.FC<ProfileTabProps> = () => {
               data={portfolioLineItems}
               keyExtractor={(item, index) => `pli-${item.mlsId}-${index}`}
               renderItem={({ item, index }) => {
+                console.log('🔍 ProfileTab - Rendering portfolio item:', { mlsId: item.mlsId, address: item.address, index });
                 return (
                   <View
                     style={tw`flex flex-row justify-between items-center border-b border-borderGray py-2`}

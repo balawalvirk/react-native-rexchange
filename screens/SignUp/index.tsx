@@ -1,5 +1,4 @@
 import { useNavigation } from '@react-navigation/native';
-import { createUserWithEmailAndPassword, getAuth } from 'firebase/auth';
 import { useState } from 'react';
 import { View, Image, Text, Pressable, TouchableOpacity, Keyboard, StatusBar } from 'react-native';
 import { FloatingLabelInput } from 'react-native-floating-label-input';
@@ -36,21 +35,23 @@ const SignUpScreen: React.FC<SignUpProps> = () => {
   const [state, setState] = useState(defaultState);
   const navigation = useNavigation();
   const handlePress = async () => {
-    // Dismiss keyboard before authentication
+    // Dismiss keyboard before validation
     Keyboard.dismiss();
     
     const isValid = validateForm();
     if (!isValid) return;
-    try {
-      await createUserWithEmailAndPassword(
-        getAuth(),
-        state.email,
-        state.password,
-      );
-    } catch (err: any) {
-      console.log(err.message);
-      setState({ ...state, error: err.message });
-    }
+    
+    // Navigate to user data collection with email and password
+    console.log('🔍 SignUp - Navigating to user-data with params:', {
+      email: state.email,
+      password: state.password ? '***' : 'undefined'
+    });
+    
+    // @ts-expect-error
+    navigation.navigate('user-data', {
+      email: state.email,
+      password: state.password,
+    });
   };
 
   const validateForm = () => {

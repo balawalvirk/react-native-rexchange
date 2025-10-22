@@ -22,6 +22,13 @@ const MyTotals: React.FC<MyTotalsProps> = ({ property }) => {
   const tooLow = positions.filter((position) => position.type === 0);
   const tooHigh = positions.filter((position) => position.type === 1);
   const justRight = positions.filter((position) => position.type === 2);
+  
+  
+  if (positions.length > 0) {
+    positions.forEach((position, index) => {
+      console.log(`     ${index + 1}. Type: ${position.type}, Rextimate: $${position.rextimate}, Date: ${position.dateCreated}`);
+    });
+  }
   return (
     <ScrollView>
       <View style={tw`px-4 py-8 pb-44`}>

@@ -43,10 +43,29 @@ import tw from "./lib/tailwind/tailwind";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import * as Sentry from "@sentry/react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 Sentry.init({
   dsn: "https://3773fdc070c7f8eb426f2e9fa9b9a92f@o1221440.ingest.us.sentry.io/4506856629075968",
+  profilesSampleRate: 0,     // disable transaction-based profiling
+  platformProfilers: false,  // disable native profilers
 });
+
+// Clear all cache on app version change
+const clearCacheOnVersionChange = async () => {
+  try {
+    const currentVersion = "3.1.18";
+    const storedVersion = await AsyncStorage.getItem('appVersion');
+    
+    if (storedVersion !== currentVersion) {
+      await AsyncStorage.clear(); // Clear ALL stored data
+      await AsyncStorage.setItem('appVersion', currentVersion);
+    }
+  } catch (error) {
+  }
+};
+
+clearCacheOnVersionChange();
 
 const Stack = createNativeStackNavigator();
 
@@ -223,7 +242,6 @@ export default function App() {
       Settings.setAppID("345762047270780");
       Settings.initializeSDK();
     } catch (error) {
-      console.error("❌ Facebook SDK initialization failed:", error);
       // Continue app execution even if Facebook SDK fails
     }
 

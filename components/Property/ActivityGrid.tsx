@@ -9,7 +9,7 @@ import { formatMoney } from '../../lib/helpers/money';
 import { Position } from '../../lib/models/positions';
 import { Property } from '../../lib/models/property';
 import { RextimatePriceHistory } from '../../lib/models/rextimatePriceHistory';
-import tw from '../../lib/tailwind/tailwind';
+import { createActivityGridStyles } from './activityGridStyles';
 
 interface ActivityGridProps {
   property: Property;
@@ -28,105 +28,69 @@ const ActivityGrid: React.FC<ActivityGridProps> = ({
   equity,
   isOpenHouse,
 }) => {
+  const styles = createActivityGridStyles(isOpenHouse);
   const isLarge = WINDOW_WIDTH > 600;
-  const rextimateInfoTextSize = isLarge ? 'text-xl py-2' : 'text-xs';
-  const rextimateValueText =
-    isLarge && isOpenHouse
-      ? 'text-3xl py-2'
-      : isLarge
-      ? 'text-3xl'
-      : 'text-2xl';
 
   return (
-    <View style={tw`flex flex-row flex-wrap mb-2 -mt-2`}>
-      <View style={tw`pb-1 pl-4 pr-1 flex-50`}>
-        <View
-          style={tw`flex items-center justify-center w-full p-2 border-solid rounded-md bg-light border-1 border-borderGray`}
-        >
-          <Text
-            style={tw`${rextimateInfoTextSize} uppercase font-overpass700 text-darkGray`}
-          >
+    <View style={styles.mainContainer}>
+      <View style={styles.gridItemLeft}>
+        <View style={styles.cardContainer}>
+          <Text style={styles.rextimateInfoText}>
             Rextimate Change
           </Text>
           <Text
             style={[
               property.listPrice > currentRextimate.amount
-                ? tw`text-red`
-                : tw`text-green`,
-              tw`${rextimateValueText} font-rajdhani700`,
+                ? styles.textRed
+                : styles.textGreen,
+              styles.rextimateValueText,
             ]}
           >
             {safeFormatRextimateChange(property.listPrice, currentRextimate?.amount)}
           </Text>
         </View>
       </View>
-      <View style={tw`pb-1 pl-1 pr-4 flex-50`}>
-        <View
-          style={tw`flex items-center justify-center w-full p-2 border-solid rounded-md bg-light border-1 border-borderGray`}
-        >
-          <Text
-            style={tw`${rextimateInfoTextSize} uppercase font-overpass700 text-darkGray`}
-          >
+      <View style={styles.gridItemRight}>
+        <View style={styles.cardContainer}>
+          <Text style={styles.rextimateInfoText}>
             Days on Rexchange
           </Text>
-          <Text style={tw`${rextimateValueText} font-rajdhani700`}>
+          <Text style={styles.rextimateValueText}>
             {getDaysOnRexchange(property.dateCreated)}
           </Text>
         </View>
       </View>
       {!isOpenHouse && (
         <>
-          <View style={tw`pt-1 pl-4 pr-1 flex-50`}>
-            <View
-              style={tw`flex items-center justify-center p-2 border-solid rounded-md bg-light border-1 border-borderGray`}
-            >
-              <Text
-                style={tw`${rextimateInfoTextSize} uppercase font-overpass700 text-darkGray`}
-              >
+          <View style={styles.gridItemLeftBottom}>
+            <View style={styles.cardContainer}>
+              <Text style={styles.rextimateInfoText}>
                 Your Valuations
               </Text>
               {positions.length > 0 ? (
                 <Pressable onPress={onMyPositionsPress}>
-                  <View
-                    style={[
-                      tw`flex items-center justify-center w-8 h-8 bg-white rounded-full shadow-md border-1 border-borderGray`,
-                      {
-                        shadowColor: 'black',
-                        shadowRadius: 4,
-                        shadowOffset: {
-                          width: 0,
-                          height: 0,
-                        },
-                        shadowOpacity: 0.1,
-                      },
-                    ]}
-                  >
-                    <Text style={tw`${rextimateValueText} font-rajdhani700`}>
+                  <View style={styles.buttonContainer}>
+                    <Text style={styles.buttonText}>
                       {positions?.length || 0}
                     </Text>
                   </View>
                 </Pressable>
               ) : (
-                <Text style={tw`${rextimateValueText} font-rajdhani700`}>
+                <Text style={styles.rextimateValueText}>
                   0
                 </Text>
               )}
             </View>
           </View>
-          <View style={tw`pt-1 pl-1 pr-4 flex-50`}>
-            <View
-              style={tw`flex items-center justify-center p-2 border-solid rounded-md bg-light border-1 border-borderGray`}
-            >
-              <Text
-                style={tw`${rextimateInfoTextSize} uppercase font-overpass700 text-darkGray`}
-              >
+          <View style={styles.gridItemRightBottom}>
+            <View style={styles.cardContainer}>
+              <Text style={styles.rextimateInfoText}>
                 Your Gains/Losses
               </Text>
-
               <Text
                 style={[
-                  equity < 0 ? tw`text-red` : tw`text-green`,
-                  tw`${rextimateValueText} font-rajdhani700`,
+                  equity < 0 ? styles.textRed : styles.textGreen,
+                  styles.rextimateValueText,
                 ]}
               >
                 {formatMoney(equity)}

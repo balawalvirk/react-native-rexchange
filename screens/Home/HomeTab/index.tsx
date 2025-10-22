@@ -31,6 +31,31 @@ const HomeTab: React.FC<HomeTabProps> = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
   const left = useRef(new Animated.Value(4)).current;
+  
+  // Debug logging for valuations page
+  console.log(`📊 Valuations Page - Open Properties: ${openProperties?.length || 0}`);
+  console.log(`📊 Valuations Page - Closed Properties: ${closedProperties?.length || 0}`);
+  console.log(`📊 Valuations Page - Open MLS IDs: ${openPropertyMLSIds?.length || 0}`);
+  console.log(`📊 Valuations Page - Closed MLS IDs: ${closedPropertyMLSIds?.length || 0}`);
+  
+  // Log property details when they change
+  useEffect(() => {
+    if (openProperties && openProperties.length > 0) {
+      console.log(`📊 Open Properties Details:`);
+      openProperties.forEach((property, index) => {
+        console.log(`  ${index + 1}. ${property.fullListingAddress} (ID: ${property.id})`);
+      });
+    }
+  }, [openProperties]);
+  
+  useEffect(() => {
+    if (closedProperties && closedProperties.length > 0) {
+      console.log(`📊 Closed Properties Details:`);
+      closedProperties.forEach((property, index) => {
+        console.log(`  ${index + 1}. ${property.fullListingAddress} (ID: ${property.id})`);
+      });
+    }
+  }, [closedProperties]);
 
   useEffect(() => {
     const loadInitialData = async () => {
@@ -88,7 +113,12 @@ const HomeTab: React.FC<HomeTabProps> = () => {
       ...nextOrderedFiltered,
     ];
     
-    setClosedProperties(updatedClosed);
+    // Deduplicate by property ID to prevent duplicates
+    const uniqueClosed = updatedClosed.filter((property, index, self) => 
+      index === self.findIndex(p => p.id === property.id)
+    );
+    
+    setClosedProperties(uniqueClosed);
   };
 
   const loadNextClosedPropertiesDebounced = _.debounce(
@@ -119,7 +149,17 @@ const HomeTab: React.FC<HomeTabProps> = () => {
       ...nextOrderedFiltered,
     ];
     
-    setOpenProperties(updatedOpen);
+    // Deduplicate by property ID to prevent duplicates
+    const uniqueOpen = updatedOpen.filter((property, index, self) => 
+      index === self.findIndex(p => p.id === property.id)
+    );
+    
+    console.log('🔍 HomeTab - updatedOpen length:', updatedOpen.length);
+    console.log('🔍 HomeTab - updatedOpen IDs:', updatedOpen.map(p => p.id));
+    console.log('🔍 HomeTab - uniqueOpen length:', uniqueOpen.length);
+    console.log('🔍 HomeTab - uniqueOpen IDs:', uniqueOpen.map(p => p.id));
+    
+    setOpenProperties(uniqueOpen);
   };
   const loadNextOpenPropertiesDebounced = _.debounce(
     loadNextOpenProperties,

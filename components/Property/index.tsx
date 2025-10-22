@@ -14,6 +14,7 @@ import {
 import Modal from "react-native-modal";
 import { useEquity } from "../../firebase/equity";
 import { TALL_SHEET, WINDOW_WIDTH } from "../../lib/helpers/dimensions";
+import { createPropertyStyles } from "./propertyStyles";
 
 import { useNavigation, useRoute } from "@react-navigation/native";
 import * as Sentry from "@sentry/react-native";
@@ -24,7 +25,6 @@ import { getDateFromTimestamp } from "../../lib/helpers/calculations";
 import { formatMoney } from "../../lib/helpers/money";
 import { safeFormatMoney, validatePropertyBidData } from "../../lib/helpers/display";
 import { Property } from "../../lib/models/property";
-import tw from "../../lib/tailwind/tailwind";
 import { useAuth } from "../../providers/authProvider";
 import { useScrollEnabled } from "../../providers/scrollEnabledProvider";
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
@@ -40,6 +40,7 @@ import ImageSlider from "./ImageSlider";
 import ImageSliderModal from "./ImageSliderModal";
 import OpenAPosition from "./OpenAPosition";
 import PriceHistoryChart from "./PriceHistoryChart";
+import { heightRef } from "../../config/screenSizes";
 interface PropertyProps {
   property: Property;
   queueIndex: number;
@@ -50,8 +51,11 @@ interface PropertyProps {
   setPositionWasSet?: (args: any) => void;
   goToNextCard?: () => void;
 }
+
+
 const Backdrop: React.FC<any> = ({ animatedIndex, animatedPosition }) => {
-  return <View style={tw`absolute inset-0 bg-black opacity-50`}></View>;
+  const styles = createPropertyStyles();
+  return <View style={styles.backdrop}></View>;
 };
 
 const PropertyView: React.FC<PropertyProps> = ({
@@ -65,10 +69,23 @@ const PropertyView: React.FC<PropertyProps> = ({
   setPositionWasSet,
 }) => {
   const route = useRoute();
+  const styles = createPropertyStyles();
   
   // Validate property bid data on component mount
   useEffect(() => {
     if (property) {
+      
+      // Log first few image URLs for debugging
+      if (property.images && property.images.length > 0) {
+      } else {
+      }
+      
+      // Check for specific problematic addresses
+      if (property.fullListingAddress?.includes('2633 Dumaine') || 
+          property.fullListingAddress?.includes('2322 Esplanade') ||
+          property.fullListingAddress?.includes('3322 Esplanade')) {
+      }
+      
       validatePropertyBidData(property);
     }
   }, [property]);
@@ -77,15 +94,12 @@ const PropertyView: React.FC<PropertyProps> = ({
   useEffect(() => {
     const requestPhotoPermissions = async () => {
       try {
-        console.log('📸 Property screen: Requesting photo library permissions...');
         
         if (Platform.OS === 'ios') {
           // iOS permission request
           const permission = await CameraRoll.getPhotos({ first: 1 });
-          console.log('✅ iOS photo library permission granted on property screen');
         } else {
           // Android explicit permission request
-          console.log('📱 Requesting Android storage permissions on property screen...');
           
           const granted = await PermissionsAndroid.requestMultiple([
             PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
@@ -96,13 +110,10 @@ const PropertyView: React.FC<PropertyProps> = ({
           const writeGranted = granted[PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE] === PermissionsAndroid.RESULTS.GRANTED;
           
           if (readGranted && writeGranted) {
-            console.log('✅ Android storage permissions granted on property screen');
           } else {
-            console.log('⚠️ Android storage permissions not fully granted on property screen:', { readGranted, writeGranted });
           }
         }
       } catch (error) {
-        console.log('⚠️ Photo library permission not granted on property screen:', error);
         // This is normal - user can grant permission later when saving images
       }
     };
@@ -213,92 +224,20 @@ const PropertyView: React.FC<PropertyProps> = ({
     setSelectedPosition(null);
     setStep(1);
     setFixedPriceBid(0);
+    // Reset image index to 1 when property changes
+    setImageIndex(1);
   }, [property.id]);
 
   // Listen for rextimate changes after submission
   useEffect(() => {
     if (submissionInitialRextimate !== null && isProcessingSubmission) {
       if (currentRextimate.amount !== submissionInitialRextimate) {
-        console.log('Rextimate change detected via useEffect:', {
-          initial: submissionInitialRextimate,
-          current: currentRextimate.amount
-        });
         setRextimateUpdatedAfterSubmission(true);
         setIsProcessingSubmission(false);
         setSubmissionInitialRextimate(null);
-        
-        // User should manually swipe to next property
-        // Auto-navigation removed per client request
       }
     }
   }, [currentRextimate.amount, submissionInitialRextimate, isProcessingSubmission]);
-
-  // Enhanced preloading strategy for better performance
-  useEffect(() => {
-    const preloadImages = async () => {
-      try {
-        if (!property?.images || property.images.length === 0) return;
-        
-        // Preload images in batches for better performance
-        const batchSize = 2;
-        const totalImages = property.images.length;
-        
-        // Preload first batch immediately (higher priority)
-        const firstBatch = property.images.slice(0, batchSize);
-        await Promise.all(
-          firstBatch.map((image, index) => {
-            return new Promise((resolve) => {
-              const img = new (global as any).Image();
-              img.onload = () => resolve(true);
-              img.onerror = () => resolve(false);
-              // Use optimized URL from imageUrls
-              img.src = imageUrls[index]?.url || '';
-            });
-          })
-        );
-        
-        // Preload remaining images in background with delay
-        setTimeout(async () => {
-          const remainingImages = property.images.slice(batchSize, totalImages);
-          const chunks: string[][] = [];
-          for (let i = 0; i < remainingImages.length; i += batchSize) {
-            chunks.push(remainingImages.slice(i, i + batchSize));
-          }
-          
-          for (const chunk of chunks) {
-            await Promise.all(
-              chunk.map((image, chunkIndex) => {
-                const actualIndex = batchSize + chunks.indexOf(chunk) * batchSize + chunkIndex;
-                return new Promise((resolve) => {
-                  const img = new (global as any).Image();
-                  img.onload = () => resolve(true);
-                  img.onerror = () => resolve(false);
-                  img.src = imageUrls[actualIndex]?.url || '';
-                });
-              })
-            );
-            // Small delay between batches to not overwhelm the network
-            await new Promise(resolve => setTimeout(resolve, 100));
-          }
-        }, 500);
-        
-      } catch (error) {
-        // Silently fail - preloading is optional
-        console.log('Preloading failed:', error);
-      }
-    };
-
-    preloadImages();
-  }, [property.images, imageUrls]);
-
-  useEffect(() => {
-    if (step === 2) {
-      setScrollEnabled(false);
-    } else {
-      setScrollEnabled(true);
-    }
-    () => setScrollEnabled(true);
-  }, [step]);
 
   useEffect(() => {
     if (currentIndex === queueIndex + 1) {
@@ -371,12 +310,10 @@ const PropertyView: React.FC<PropertyProps> = ({
   const handleChange = (index: number) => {
     if (index == -1) {
       // Modal is closed/dismissed
-      console.log('Modal closed - enabling scroll');
       setScrollEnabled(true);
     }
     if (index == 0) {
       // Modal is open/presented
-      console.log('Modal opened - disabling scroll');
       setScrollEnabled(false);
     }
   };
@@ -386,16 +323,15 @@ const PropertyView: React.FC<PropertyProps> = ({
       Sentry.captureException("no selectedPosition");
       return;
     }
+    
+    // Ensure we have a valid user
+    if (!user?.id) {
+      return;
+    }
+    
     setStep(1);
     setIsProcessingSubmission(true);
     
-    console.log('Bid submission started:', {
-      selectedPosition,
-      currentRextimate: currentRextimate.amount,
-      propertyId: property.id,
-      isOpenHouse,
-      fixedPriceBid
-    });
     
     if (isOpenHouse) {
       // @ts-expect-error
@@ -410,44 +346,57 @@ const PropertyView: React.FC<PropertyProps> = ({
     if (setPositionWasSet) {
       setPositionWasSet(false);
     }
+    
+    // Store the current values before clearing them
+    const currentSelectedPosition = selectedPosition;
+    const currentFixedPriceBid = fixedPriceBid;
+    
     setSelectedPosition(null);
     setFixedPriceBid(0);
 
     try {
       // Use user's entered amount if available, otherwise use current rextimate
-      const bidAmount = fixedPriceBid && fixedPriceBid > 0 ? fixedPriceBid : currentRextimate.amount;
+      // For "Just Right" positions, always use current rextimate
+      const bidAmount = (currentSelectedPosition === 2 || !currentFixedPriceBid || currentFixedPriceBid <= 0) 
+        ? currentRextimate.amount 
+        : currentFixedPriceBid;
       
       await recordAPosition(
-        selectedPosition,
+        currentSelectedPosition,
         user,
         bidAmount,
         property.id,
         isOpenHouse
       );
-      console.log('Position recorded successfully');
     } catch (error) {
       console.error('Error recording position:', error);
+      Sentry.captureException(error, {
+        tags: { userId: user?.id, function: 'recordAPosition' },
+      });
     }
     
-    if (fixedPriceBid && fixedPriceBid > 0) {
+    // Only record fixed price bid if user entered a custom amount
+    if (currentFixedPriceBid && currentFixedPriceBid > 0) {
       try {
-        await recordFixedPriceBid(fixedPriceBid, user, property.id, isOpenHouse);
-        console.log('Fixed price bid recorded successfully');
+        await recordFixedPriceBid(currentFixedPriceBid, user, property.id, isOpenHouse);
       } catch (error) {
         console.error('Error recording fixed price bid:', error);
+        Sentry.captureException(error, {
+          tags: { userId: user?.id, function: 'recordFixedPriceBid' },
+        });
       }
     }
 
-    // For "Just Right" positions, rextimate doesn't change, so clear loading immediately
-    if (selectedPosition === 2) {
-      console.log('Just Right position - rextimate will not change, clearing loading immediately');
+    // For "Just Right" positions or when no custom amount is entered, rextimate doesn't change
+    const hasCustomAmount = currentFixedPriceBid && currentFixedPriceBid > 0;
+    
+    if (currentSelectedPosition === 2 || !hasCustomAmount) {
       setRextimateUpdatedAfterSubmission(true);
       setIsProcessingSubmission(false);
       setSubmissionInitialRextimate(null);
     } else {
-      // For "Too High" and "Too Low", monitor rextimate changes
+      // For "Too High" and "Too Low" with custom amounts, monitor rextimate changes
       const initialRextimate = currentRextimate.amount;
-      console.log('Setting up rextimate monitoring for submission:', initialRextimate);
       
       // Set the initial rextimate for monitoring
       setSubmissionInitialRextimate(initialRextimate);
@@ -455,7 +404,6 @@ const PropertyView: React.FC<PropertyProps> = ({
       // Fallback timeout in case the useEffect doesn't catch the change
       setTimeout(() => {
         if (isProcessingSubmission) {
-          console.log('Rextimate update timeout - no change detected after 3 seconds');
           setRextimateUpdatedAfterSubmission(true);
           setIsProcessingSubmission(false);
           setSubmissionInitialRextimate(null);
@@ -483,37 +431,40 @@ const PropertyView: React.FC<PropertyProps> = ({
 
   const handleImageIndex = (event: any) => {
     const offset = event.nativeEvent.contentOffset.x;
-    const currentPos = Math.floor(offset / WINDOW_WIDTH) + 1;
+    
+    // Calculate position with better precision for Android
+    let currentPos;
+    if (Platform.OS === 'android') {
+      // On Android, add a small buffer to handle floating point precision issues
+      const buffer = 0.1;
+      currentPos = Math.floor((offset + buffer) / WINDOW_WIDTH) + 1;
+    } else {
+      // On iOS, use Math.floor as before
+      currentPos = Math.floor(offset / WINDOW_WIDTH) + 1;
+    }
+    
     const clampedPos = Math.min(Math.max(currentPos, 1), property.images.length);
-    setImageIndex(clampedPos);
+    
+    // Only update if the position actually changed to prevent unnecessary re-renders
+    if (clampedPos !== imageIndex) {
+      setImageIndex(clampedPos);
+    }
   };
 
-  const isLarge = WINDOW_WIDTH > 600;
-  const listPriceText = isLarge ? "text-lg" : "text-xs";
-  const circleButtonSize = "w-12 h-12";
-  const circleButtonImageSize = "w-5 h-5";
-  const homeButtonPosition = Platform.OS === 'android' ? "top-16 right-6" : "top-20 right-6";
-  const fullScreenButtonPosition = Platform.OS === 'android' ? "top-32 right-6" : "top-36 right-6";
-  const graphButtonPosition = Platform.OS === 'android' ? "top-48 right-6" : "top-54 right-6";
-  const imageIndexText = isLarge ? "text-lg" : "text-xs";
-  const termsConditionIcon = isLarge ? "w-8 h-8" : "w-3 h-3";
-  const termsConditionInfo = isLarge ? "text-2xl" : "text-base";
-  const chartMargin = isLarge ? "-mx-12 -top-16" : "-mx-5 -mt-32";
-  const chartTitle = isLarge ? "text-2xl" : "text-base";
-  const imageCount = "bottom-4 right-6";
+  // Styles are now handled by the createPropertyStyles function from propertyStyles.ts
   
   if (!property) {
     return (
-      <View style={tw`bg-white flex-1 items-center justify-center`}>
-        <Text style={tw`text-lg text-gray-500`}>....</Text>
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>....</Text>
       </View>
     );
   }
   
   return (
-    <View style={[tw`bg-white`]}>
+    <View style={styles.mainContainer}>
       <KeyboardAvoidingView behavior="position">
-        <View style={tw`relative`}>
+        <View style={styles.relativeContainer}>
           {showImage && (
             <ImageSlider
               handleScrollPosition={handleImageIndex}
@@ -524,41 +475,37 @@ const PropertyView: React.FC<PropertyProps> = ({
             />
           )}
 
-          <View
-            style={tw`absolute px-2 py-1 bg-white rounded-md bottom-4 left-4`}
-          >
-            <Text style={tw`${listPriceText} text-green font-overpass600`}>
+          <View style={styles.listPriceContainer}>
+            <Text style={styles.listPriceText}>
               List Price: {safeFormatMoney(property.listPrice, 'List price not available')}
             </Text>
           </View>
-          <View style={tw`absolute ${homeButtonPosition} right-6`}>
+          <View style={styles.homeButtonContainer}>
             <CircleButton
-              style={tw`${circleButtonSize} bg-purple`}
-              imageStyle={tw`${circleButtonImageSize}`}
+              style={styles.circleButtonPurple}
+              imageStyle={styles.circleButtonImageSize}
               imageURL={require("../../assets/home_logo_white.png")}
               onPress={navigateHome}
             />
           </View>
-          <View style={tw`absolute ${fullScreenButtonPosition} right-6`}>
+          <View style={styles.fullScreenButtonContainer}>
             <CircleButton
-              style={tw`${circleButtonSize} bg-black`}
-              imageStyle={tw`${circleButtonImageSize}`}
+              style={styles.circleButtonBlack}
+              imageStyle={styles.circleButtonImageSize}
               imageURL={require("../../assets/fullscreen.png")}
               onPress={() => handleImagePress(imageIndex - 1)}
             />
           </View>
-          <View style={tw`absolute ${graphButtonPosition} right-6`}>
+          <View style={styles.graphButtonContainer}>
             <CircleButton
-              style={tw`${circleButtonSize} bg-yellow`}
-              imageStyle={tw`${circleButtonImageSize} flex-1`}
+              style={styles.circleButtonYellow}
+              imageStyle={styles.circleButtonImageSizeFlex}
               imageURL={require("../../assets/chart_purple.png")}
               onPress={() => setState({ ...state, chartIsOpen: true })}
             />
           </View>
-          <View
-            style={tw`absolute px-2 py-1 rounded-md bg-purple ${imageCount}`}
-          >
-            <Text style={tw`text-white ${imageIndexText}`}>
+          <View style={styles.imageCountContainer}>
+            <Text style={styles.imageIndexText}>
               {Math.min(Math.max(imageIndex, 1), property.images.length)} of {property.images.length}
             </Text>
           </View>
@@ -595,12 +542,12 @@ const PropertyView: React.FC<PropertyProps> = ({
               fixedPriceBid={fixedPriceBid}
             />
             <Pressable onPress={handleDisclaimerPress}>
-              <View style={tw`flex flex-row p-4`}>
+              <View style={styles.disclaimerContainer}>
                 <Image
-                  style={tw`${termsConditionIcon} mr-2`}
+                  style={styles.disclaimerIcon}
                   source={require("../../assets/gsrein_logo.png")}
                 ></Image>
-                <Text numberOfLines={1} style={tw`flex-1 ${imageIndexText}`}>
+                <Text numberOfLines={1} style={styles.disclaimerText}>
                   Information herein is deemed reliable but not guaranteed and
                   is provided exclusively for consumers personal, non-commercial
                   use, and may not be used for any purpose other than to
@@ -630,7 +577,7 @@ const PropertyView: React.FC<PropertyProps> = ({
 
       {/* Bottom Sheets */}
       {/* {showOverlay && (
-        <View style={tw`absolute inset-0 bg-black opacity-50`}></View>
+        <View style={styles.backdrop}></View>
       )} */}
       <BottomSheetModal
         ref={disclaimerBottomSheetRef}
@@ -641,32 +588,20 @@ const PropertyView: React.FC<PropertyProps> = ({
           setScrollEnabled(true);
         }}
         onAnimate={handleChange}
-        style={{
-          shadowColor: "#000",
-          shadowOffset: {
-            width: 0,
-            height: 12,
-          },
-          shadowOpacity: 0.58,
-          shadowRadius: 16.0,
-
-          elevation: 24,
-        }}
+        style={styles.bottomSheetShadow}
       >
-        <Text
-          style={tw`p-4  ${termsConditionInfo} text-center capitalize font-overpass600 text-purple`}
-        >
+        <Text style={styles.termsConditionTitle}>
           Terms and Conditions
         </Text>
         <Pressable onPress={handleCloseDisclaimerSheet}>
           <Image
-            style={tw`absolute w-3 h-3 -top-8 right-4`}
+            style={styles.termsConditionCloseIcon}
             source={require("../../assets/times_gray.png")}
           ></Image>
         </Pressable>
         <HorizontalLine />
-        <View style={tw`px-4 py-2`}>
-          <Text style={tw`my-2  ${termsConditionInfo} font-overpass400`}>
+        <View style={styles.termsConditionContent}>
+          <Text style={styles.termsConditionText}>
             Information herein is deemed reliable but not guaranteed and is
             provided exclusively for consumers personal, non-commercial use, and
             may not be used for any purpose other than to identify prospective
@@ -682,17 +617,7 @@ const PropertyView: React.FC<PropertyProps> = ({
         onDismiss={() => {
           setScrollEnabled(true);
         }}
-        style={{
-          shadowColor: "#000",
-          shadowOffset: {
-            width: 0,
-            height: 12,
-          },
-          shadowOpacity: 0.58,
-          shadowRadius: 16.0,
-
-          elevation: 24,
-        }}
+        style={styles.bottomSheetShadow}
       >
         <MoreInfo
           close={handleCloseModalPress}
@@ -708,46 +633,33 @@ const PropertyView: React.FC<PropertyProps> = ({
         onDismiss={() => {
           setScrollEnabled(true);
         }}
-        style={[
-          {
-            shadowColor: "#000",
-            shadowOffset: {
-              width: 0,
-              height: 12,
-            },
-            shadowOpacity: 0.58,
-            shadowRadius: 16.0,
-
-            elevation: 24,
-          },
-          tw`mt-10`,
-        ]}
+        style={[styles.bottomSheetShadow, styles.bottomSheetMarginTop]}
       >
-        <View style={tw`px-4 py-8`}>
-          <Text style={tw`my-2 font-overpass400 ${termsConditionInfo}`}>
-            <Text style={tw`font-bold font-overpass700 ${termsConditionInfo}`}>
+        <View style={styles.openPositionInfoContainer}>
+          <Text style={styles.termsConditionText}>
+            <Text style={styles.termsConditionBoldText}>
               Important:{" "}
             </Text>
             Your valuations and guesses made on properties are not real offers
             or bids to purchase those properties.
           </Text>
-          <Text style={tw`my-2  ${termsConditionInfo} font-overpass400`}>
+          <Text style={styles.termsConditionText}>
             Submitting a Valuation is how you can earn the most Rexbucks on
             Rexchange.
           </Text>
-          <Text style={tw`my-2  ${termsConditionInfo} font-overpass400`}>
+          <Text style={styles.termsConditionText}>
             Look at the current price and decide whether the Rextimate is 'Too
             High', 'Too Low', or 'Just Right'. For example, if you think the
             house will sell for more than the current Rextimate, you should pick
             'Too Low' because you are saying that the current price is TOO LOW.
           </Text>
-          <Text style={tw`my-2  ${termsConditionInfo} font-overpass400`}>
+          <Text style={styles.termsConditionText}>
             If the position is in line with the majority of players, then you
             will gain Rexbucks. If it goes against the majority of players, then
             you'll lose Rexbucks. Your gains/losses are determined by the change
             in the Rextimate.
           </Text>
-          <Text style={tw`my-2  ${termsConditionInfo} font-overpass400`}>
+          <Text style={styles.termsConditionText}>
             Once the house goes under contract, you will not be able to submit
             new valuations, and total gains and losses will be calculated based
             on the actual sale price once the house officially sells.
@@ -762,32 +674,14 @@ const PropertyView: React.FC<PropertyProps> = ({
         onDismiss={() => {
           setScrollEnabled(true);
         }}
-        style={[
-          {
-            shadowColor: "#000",
-            shadowOffset: {
-              width: 0,
-              height: 12,
-            },
-            shadowOpacity: 0.58,
-            shadowRadius: 16.0,
-
-            elevation: 24,
-          },
-        ]}
+        style={styles.bottomSheetShadow}
       >
-        <View style={[{ height: "100%" }]}>
+        <View style={styles.myTotalsContainer}>
           <MyTotals property={property} />
-          <View
-            style={tw`absolute bottom-0 flex justify-start h-32 p-4 bg-white left-4 right-4`}
-          >
+          <View style={styles.myTotalsButtonContainer}>
             <Pressable onPress={handleMyTotalsCloseModalPress}>
-              <View
-                style={tw`flex items-center justify-center rounded-md bg-green h-15 `}
-              >
-                <Text
-                  style={tw`text-lg text-center text-white font-overpass500`}
-                >
+              <View style={styles.myTotalsButton}>
+                <Text style={styles.myTotalsButtonText}>
                   Ok
                 </Text>
               </View>
@@ -803,20 +697,7 @@ const PropertyView: React.FC<PropertyProps> = ({
         onDismiss={() => {
           setScrollEnabled(true);
         }}
-        style={[
-          {
-            shadowColor: "#000",
-            shadowOffset: {
-              width: 0,
-              height: 12,
-            },
-            shadowOpacity: 0.58,
-            shadowRadius: 16.0,
-
-            elevation: 24,
-          },
-          tw`mt-10`,
-        ]}
+        style={[styles.bottomSheetShadow, styles.bottomSheetMarginTop]}
       >
         <ListingAgentInfo property={property} />
       </BottomSheetModal>
@@ -831,26 +712,24 @@ const PropertyView: React.FC<PropertyProps> = ({
       >
         <View
           style={[
-            tw`flex justify-end flex-1 pb-2 mb-32 ${chartMargin} bg-white rounded-md`,
+            styles.chartModalContainer,
             { width: WINDOW_WIDTH, height: TALL_SHEET },
           ]}
         >
-          <Text
-            style={tw`p-4 text-center capitalize font-overpass600 text-purple ${chartTitle}`}
-          >
+          <Text style={styles.chartTitle}>
             Rextimate Price History
           </Text>
           {/* <Pressable
-            style={tw`absolute -top-8 right-4 w-8 h-8 items-center justify-center`}
+            style={styles.chartCloseButton}
             onPress={() => setState({ ...state, chartIsOpen: false })}
           >
             <Image
-              style={tw`w-3 h-3`}
+              style={styles.chartCloseIcon}
               source={require("../../assets/times_gray.png")}
             />
           </Pressable> */}
           <HorizontalLine />
-          <View style={tw`mt-4`}>
+          <View style={styles.chartContent}>
             {state.chartIsOpen && (
               <PriceHistoryChart
                 currentRextimate={currentRextimate}
@@ -859,23 +738,22 @@ const PropertyView: React.FC<PropertyProps> = ({
               />
             )}
           </View>
-          <Text style={tw`px-4 font-overpass500 ${listPriceText}`}>
+          <Text style={styles.chartInfoText}>
             Listed at: {safeFormatMoney(property.listPrice, 'List price not available')} on{" "}
             {getDateFromTimestamp(property.dateCreated)}
           </Text>
-          <Text style={tw`px-4 font-overpass500 ${listPriceText}`}>
+          <Text style={styles.chartInfoText}>
             Current Rextimate: {formatMoney(currentRextimate.amount)}
           </Text>
           <Image
-            style={tw`w-16 h-16 px-4 mx-auto mt-4`}
+            style={styles.chartLogo}
             resizeMode="contain"
             source={require("../../assets/gsrein_logo.png")}
           ></Image>
-        <Text
-        style={tw`pt-4 px-4  ${listPriceText} text-center    `}
-        >Swipe up to close rextimate price history
+        <Text style={styles.chartSwipeText}>
+        Swipe up to close rextimate price history
         </Text>
-<View style={tw`h-10 bg-gray-400 h-1 w-10 self-center mt-2 rounded-full ` } />
+<View style={styles.chartSwipeIndicator} />
 
         </View>
       </Modal>

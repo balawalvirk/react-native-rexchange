@@ -11,7 +11,7 @@ import {
 import { isLarge } from '../../lib/helpers/dimensions';
 import { formatMoney } from '../../lib/helpers/money';
 import { FixedPriceBid } from '../../lib/models/fixedPriceBids';
-import tw from '../../lib/tailwind/tailwind';
+import { createEnterAGuessStyles } from './enterAGuessStyles';
 import { useScrollEnabled } from '../../providers/scrollEnabledProvider';
 import CircleButton from '../CircleButton';
 import HorizontalLine from '../HorizontalLine';
@@ -41,7 +41,7 @@ const EnterAGuess: React.FC<EnterAGuessProps> = ({
   listPrice,
   currentRextimate,
 }) => {
-  const textSize = isLarge ? 'text-5xl h-16' : 'text-2xl my-2';
+  const styles = createEnterAGuessStyles();
   const [value, setValue] = useState('');
   
   // Set initial value to rextimate price when "Just Right" is selected
@@ -102,62 +102,54 @@ const EnterAGuess: React.FC<EnterAGuessProps> = ({
     }
   }, [existingFixedPriceBid, selectedPosition]);
 
-  const guessInfo = isLarge ? 'text-2xl' : 'text-base';
-  const guessText = isLarge ? 'text-2xl' : 'text-lg';
-  const guessedBidAmount = isLarge ? 'text-5xl' : 'text-2xl';
-  const circleButtonText = isLarge ? 'text-xl font-bold' : 'text-base';
-  const circleButtonPosition = isLarge ? 'mt-16' : '';
-  const guessWhatText = isLarge  ? 'py-8 h-[200px]' : 'py-4';
   return (
-    <View style={tw`mx-4 my-1`}>
+    <View style={styles.mainContainer}>
       {(
-        <View
-          style={tw`px-8 ${guessWhatText}  border-borderGray`}
-        >
+        <View style={styles.guessContainer}>
           <Pressable
-            style={tw`absolute right-2 top-0`}
+            style={styles.infoButton}
             onPress={() => enterAGuessBottomModalRef.current?.present()}
           >
             <Image source={require('../../assets/info_circle_purple.png')} />
           </Pressable>
           {selectedPosition === 1 ? (
             <>
-              <Text style={tw`${guessText} font-rajdhani600 text-center`}>
+              <Text style={styles.guessText}>
               Enter your predicted sales price or simply hit Submit
               </Text>
               <TextInput
                 keyboardType="numeric"
                 placeholder="Enter an amount"
                 placeholderTextColor="#9CA3AF"
-                style={tw`mt-auto ${textSize} text-center border-2 border-orange rounded-lg px-4 py-2 text-orange font-rajdhani500`}
+                style={[styles.textInput, styles.textInputOrange]}
                 onChangeText={handleChange}
                 value={value}
               />
             </>
           ) : selectedPosition === 0 ? (
             <>
-              <Text style={tw`${guessText} font-rajdhani600 text-center`}>
+              <Text style={styles.guessText}>
               Enter your predicted sales price or simply hit Submit
               </Text>
               <TextInput
                 keyboardType="numeric"
                 placeholder="Enter an amount"
                 placeholderTextColor="#B8B8B8"
-                style={tw`mt-auto ${textSize} text-center border-2 border-purple rounded-lg px-4 py-2 text-purple font-rajdhani500`}
+                style={[styles.textInput, styles.textInputPurple]}
                 onChangeText={handleChange}
                 value={value}
               />
             </>
           ) : selectedPosition === 2 ? (
             <>
-              <Text style={tw`${guessText} font-rajdhani600 text-center`}>
+              <Text style={styles.guessText}>
               Your guess should match the current price
               </Text>
               <TextInput
                 keyboardType="numeric"
                 placeholder={formatMoney(currentRextimate.amount)}
                 placeholderTextColor="#9CA3AF"
-                style={tw`mt-auto ${textSize} text-center border-2 border-green rounded-lg px-4 py-2 text-green font-rajdhani500`}
+                style={[styles.textInput, styles.textInputGreen]}
                 onChangeText={handleChange}
                 value={value}
               />
@@ -165,36 +157,30 @@ const EnterAGuess: React.FC<EnterAGuessProps> = ({
           ) : null}
         </View>
       )}
-      <View
-        style={tw`flex flex-row justify-around my-4 ${circleButtonPosition}`}
-      >
+      <View style={styles.buttonContainer}>
         <View>
           <CircleButton
-            style={tw`w-20 h-20 border-2 border-solid border-red`}
+            style={[styles.circleButton, styles.circleButtonRed]}
             imageURL={require('../../assets/times_red.png')}
-            imageStyle={tw`w-6 h-6`}
+            imageStyle={styles.circleButtonImage}
             onPress={handleCancelPress}
           />
-          <Text
-            style={tw`my-2 text-center uppercase text-red ${circleButtonText}`}
-          >
+          <Text style={[styles.buttonText, styles.buttonTextRed]}>
             Cancel
           </Text>
         </View>
         <View>
           <CircleButton
-            style={tw`w-20 h-20 border-2 border-solid border-green bg-green`}
-            imageStyle={tw`w-6 h-6`}
+            style={[styles.circleButton, styles.circleButtonGreen]}
+            imageStyle={styles.circleButtonImage}
             imageURL={require('../../assets/check_white.png')}
             onPress={() => {
-              // Remove validation - always allow submission
-              // If no price entered, use current rextimate as default
+              // Always allow submission - if no price entered, it will use current rextimate
+              // The parent component will handle the logic for empty values
               onSubmit({});
             }}
           />
-          <Text
-            style={tw`my-2 text-center uppercase text-green ${circleButtonText}`}
-          >
+          <Text style={[styles.buttonText, styles.buttonTextGreen]}>
             Submit
           </Text>
         </View>
@@ -205,13 +191,11 @@ const EnterAGuess: React.FC<EnterAGuessProps> = ({
         snapPoints={myTotalsSnapPoints}
         onChange={handleModalChange}
       >
-        <View style={[{ height: '100%', marginBottom: 100 }]}>
-          <ScrollView style={tw`px-4 pb-8`}>
-            <View style={tw`flex flex-row items-center justify-center w-full`}>
+        <View style={styles.bottomSheetContainer}>
+          <ScrollView style={styles.bottomSheetScrollView}>
+            <View style={styles.modalHeader}>
               <Image source={require('../../assets/info_circle_purple.png')} />
-              <Text
-                style={tw`p-4 ${guessInfo} capitalize font-overpass600 text-purple`}
-              >
+              <Text style={styles.modalHeaderText}>
                 Guess the sale price
               </Text>
             </View>
@@ -219,40 +203,34 @@ const EnterAGuess: React.FC<EnterAGuessProps> = ({
               onPress={() => enterAGuessBottomModalRef.current?.dismiss()}
             >
               <Image
-                style={tw`absolute w-3 h-3 -top-8 right-4`}
+                style={styles.modalCloseIcon}
                 source={require('../../assets/times_gray.png')}
               ></Image>
             </Pressable>
             <HorizontalLine />
-            <Text style={tw`my-4 ${guessInfo} font-overpass400`}>
+            <Text style={styles.modalContentText}>
               Tell us what you think the house will actually sell for! Make sure
               you make a guess beacuse when the house sells, you'll be rewarded!
               WHen the house sells in real life, if you're within $2000 of the
               sale price, you'll win big!
             </Text>
-            <Text style={tw`my-4 ${guessInfo} font-overpass400`}>
+            <Text style={styles.modalContentText}>
               Pressed "Too High"? Your guess should be lower than the current
               price.
             </Text>
-            <Text style={tw`my-4 ${guessInfo} font-overpass400`}>
+            <Text style={styles.modalContentText}>
               Pressed "Too Low"? Your guess should be higher than the current
               price.
             </Text>
-            <Text style={tw`my-4 ${guessInfo} font-overpass400`}>
+            <Text style={styles.modalContentText}>
               Pressed "Just Right"? Your guess should match the current price.
             </Text>
-            <View
-              style={tw`flex justify-start w-full h-32 p-4 mx-auto mt-auto bg-white `}
-            >
+            <View style={styles.modalButtonContainer}>
               <Pressable
                 onPress={() => enterAGuessBottomModalRef.current?.dismiss()}
               >
-                <View
-                  style={tw`flex items-center justify-center rounded-md bg-green h-15 `}
-                >
-                  <Text
-                    style={tw`${guessText} text-center text-white font-overpass500`}
-                  >
+                <View style={styles.modalButton}>
+                  <Text style={styles.modalButtonText}>
                     Ok
                   </Text>
                 </View>
