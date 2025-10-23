@@ -4,10 +4,12 @@ import {
   FlatList,
   Image,
   KeyboardAvoidingView,
+  Keyboard,
   Linking,
   Platform,
   Pressable,
   Text,
+  TouchableWithoutFeedback,
   View,
   PermissionsAndroid,
 } from "react-native";
@@ -70,6 +72,8 @@ const PropertyView: React.FC<PropertyProps> = ({
 }) => {
   const route = useRoute();
   const styles = createPropertyStyles();
+  const keyboardBehavior = Platform.OS === 'ios' ? 'position' : 'padding';
+  const keyboardVerticalOffset = Platform.OS === 'ios' ? 0 : 64 * heightRef;
   
   // Validate property bid data on component mount
   useEffect(() => {
@@ -462,315 +466,317 @@ const PropertyView: React.FC<PropertyProps> = ({
   }
   
   return (
-    <View style={styles.mainContainer}>
-      <KeyboardAvoidingView 
-      
-      behavior={Platform.OS === 'ios' ? 'position' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-      >
-        <View style={styles.relativeContainer}>
-          {showImage && (
-            <ImageSlider
-              handleScrollPosition={handleImageIndex}
-              onPress={handleImagePress}
-              property={property}
-              show={true}
-              showThumbnail={Math.abs(queueIndex - currentIndex) <= 3}
-            />
-          )}
-
-          <View style={styles.listPriceContainer}>
-            <Text style={styles.listPriceText}>
-              List Price: {safeFormatMoney(property.listPrice, 'List price not available')}
-            </Text>
-          </View>
-          <View style={styles.homeButtonContainer}>
-            <CircleButton
-              style={styles.circleButtonPurple}
-              imageStyle={styles.circleButtonImageSize}
-              imageURL={require("../../assets/home_logo_white.png")}
-              onPress={navigateHome}
-            />
-          </View>
-          <View style={styles.fullScreenButtonContainer}>
-            <CircleButton
-              style={styles.circleButtonBlack}
-              imageStyle={styles.circleButtonImageSize}
-              imageURL={require("../../assets/fullscreen.png")}
-              onPress={() => handleImagePress(imageIndex - 1)}
-            />
-          </View>
-          <View style={styles.graphButtonContainer}>
-            <CircleButton
-              style={styles.circleButtonYellow}
-              imageStyle={styles.circleButtonImageSizeFlex}
-              imageURL={require("../../assets/chart_purple.png")}
-              onPress={() => setState({ ...state, chartIsOpen: true })}
-            />
-          </View>
-          <View style={styles.imageCountContainer}>
-            <Text style={styles.imageIndexText}>
-              {Math.min(Math.max(imageIndex, 1), property.images.length)} of {property.images.length}
-            </Text>
-          </View>
-        </View>
-        <Details
-          key={`details-${property.id}-${property.fullListingAddress}`}
-          onListingAgentPress={handleShowListingAgentInfoPress}
-          property={property}
-          onAddressPress={handleAddressPress}
-          onMoreInfoPress={handlePresentModalPress}
-          currentRextimate={currentRextimate}
-          isOpenHouse={isOpenHouse}
-        />
-        {step == 1 ? (
-          <>
-            <ActivityGrid
-              property={property}
-              onMyPositionsPress={handleMyTotalsPresentModalPress}
-              currentRextimate={currentRextimate}
-              equity={equity}
-              positions={positions}
-              isOpenHouse={isOpenHouse}
-            />
-            <OpenAPosition
-              positions={positions}
-              positionSinceMidnight={positionSinceMidnight}
-              currentRextimate={currentRextimate}
-              onOpenAPositionInfoPress={handleOpenAPositionPress}
-              selectedPosition={selectedPosition}
-              onPress={onPress}
-              isOpenHouse={isOpenHouse}
-              rextimateUpdatedAfterSubmission={rextimateUpdatedAfterSubmission}
-              isProcessingSubmission={isProcessingSubmission}
-              fixedPriceBid={fixedPriceBid}
-            />
-            <Pressable onPress={handleDisclaimerPress}>
-              <View style={styles.disclaimerContainer}>
-                <Image
-                  style={styles.disclaimerIcon}
-                  source={require("../../assets/gsrein_logo.png")}
-                ></Image>
-                <Text numberOfLines={1} style={styles.disclaimerText}>
-                  Information herein is deemed reliable but not guaranteed and
-                  is provided exclusively for consumers personal, non-commercial
-                  use, and may not be used for any purpose other than to
-                  identify prospective properties consumers may be interested in
-                  purchasing.
-                </Text>
-              </View>
-            </Pressable>
-          </>
-        ) : (
-          <EnterAGuess
-            setStep={setStep}
-            existingFixedPriceBid={existingFixedPriceBid}
-            setFixedPriceBid={setFixedPriceBid}
-            onSubmit={handleSubmit}
-            setSelectedPosition={setSelectedPosition}
-            setPositionWasSet={(positionWasSet) =>
-              setPositionWasSet ? setPositionWasSet(positionWasSet) : null
-            }
-            fixedPriceBid={fixedPriceBid}
-            selectedPosition={selectedPosition}
-            listPrice={property.listPrice}
-            currentRextimate={currentRextimate}
-          />
-        )}
-      </KeyboardAvoidingView>
-
-      {/* Bottom Sheets */}
-      {/* {showOverlay && (
-        <View style={styles.backdrop}></View>
-      )} */}
-      <BottomSheetModal
-        ref={disclaimerBottomSheetRef}
-        index={0}
-        snapPoints={snapPoints}
-        onChange={handleChange}
-        onDismiss={() => {
-          setScrollEnabled(true);
-        }}
-        onAnimate={handleChange}
-        style={styles.bottomSheetShadow}
-      >
-        <Text style={styles.termsConditionTitle}>
-          Terms and Conditions
-        </Text>
-        <Pressable onPress={handleCloseDisclaimerSheet}>
-          <Image
-            style={styles.termsConditionCloseIcon}
-            source={require("../../assets/times_gray.png")}
-          ></Image>
-        </Pressable>
-        <HorizontalLine />
-        <View style={styles.termsConditionContent}>
-          <Text style={styles.termsConditionText}>
-            Information herein is deemed reliable but not guaranteed and is
-            provided exclusively for consumers personal, non-commercial use, and
-            may not be used for any purpose other than to identify prospective
-            properties consumers may be interested in purchasing.
-          </Text>
-        </View>
-      </BottomSheetModal>
-      <BottomSheetModal
-        ref={bottomSheetModalRef}
-        index={0}
-        snapPoints={snapPoints}
-        onChange={handleChange}
-        onDismiss={() => {
-          setScrollEnabled(true);
-        }}
-        style={styles.bottomSheetShadow}
-      >
-        <MoreInfo
-          close={handleCloseModalPress}
-          property={property}
-          currentRextimate={currentRextimate}
-        />
-      </BottomSheetModal>
-      <BottomSheetModal
-        ref={openAPositionBottomSheetModalRef}
-        index={0}
-        snapPoints={myTotalsSnapPoints}
-        onChange={handleChange}
-        onDismiss={() => {
-          setScrollEnabled(true);
-        }}
-        style={[styles.bottomSheetShadow, styles.bottomSheetMarginTop]}
-      >
-        <View style={styles.openPositionInfoContainer}>
-          <Text style={styles.termsConditionText}>
-            <Text style={styles.termsConditionBoldText}>
-              Important:{" "}
-            </Text>
-            Your valuations and guesses made on properties are not real offers
-            or bids to purchase those properties.
-          </Text>
-          <Text style={styles.termsConditionText}>
-            Submitting a Valuation is how you can earn the most Rexbucks on
-            Rexchange.
-          </Text>
-          <Text style={styles.termsConditionText}>
-            Look at the current price and decide whether the Rextimate is 'Too
-            High', 'Too Low', or 'Just Right'. For example, if you think the
-            house will sell for more than the current Rextimate, you should pick
-            'Too Low' because you are saying that the current price is TOO LOW.
-          </Text>
-          <Text style={styles.termsConditionText}>
-            If the position is in line with the majority of players, then you
-            will gain Rexbucks. If it goes against the majority of players, then
-            you'll lose Rexbucks. Your gains/losses are determined by the change
-            in the Rextimate.
-          </Text>
-          <Text style={styles.termsConditionText}>
-            Once the house goes under contract, you will not be able to submit
-            new valuations, and total gains and losses will be calculated based
-            on the actual sale price once the house officially sells.
-          </Text>
-        </View>
-      </BottomSheetModal>
-      <BottomSheetModal
-        ref={myTotalsBottomSheetModalRef}
-        index={0}
-        snapPoints={myTotalsSnapPoints}
-        onChange={handleChange}
-        onDismiss={() => {
-          setScrollEnabled(true);
-        }}
-        style={styles.bottomSheetShadow}
-      >
-        <View style={styles.myTotalsContainer}>
-          <MyTotals property={property} />
-          <View style={styles.myTotalsButtonContainer}>
-            <Pressable onPress={handleMyTotalsCloseModalPress}>
-              <View style={styles.myTotalsButton}>
-                <Text style={styles.myTotalsButtonText}>
-                  Ok
-                </Text>
-              </View>
-            </Pressable>
-          </View>
-        </View>
-      </BottomSheetModal>
-      <BottomSheetModal
-        ref={listingAgentInfoBottomSheetRef}
-        index={0}
-        snapPoints={myTotalsSnapPoints}
-        onChange={handleChange}
-        onDismiss={() => {
-          setScrollEnabled(true);
-        }}
-        style={[styles.bottomSheetShadow, styles.bottomSheetMarginTop]}
-      >
-        <ListingAgentInfo property={property} />
-      </BottomSheetModal>
-      <Modal
-        isVisible={state.chartIsOpen}
-        animationIn={"slideInDown"}
-        animationInTiming={300}
-        onSwipeComplete={() => {
-          setState({ ...state, chartIsOpen: false });
-        }}
-        swipeDirection="up"
-      >
-        <View
-          style={[
-            styles.chartModalContainer,
-            { width: WINDOW_WIDTH, height: TALL_SHEET },
-          ]}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <View style={styles.mainContainer}>
+        <KeyboardAvoidingView
+          style={styles.keyboardAvoidingView}
+          behavior={keyboardBehavior}
+          keyboardVerticalOffset={keyboardVerticalOffset}
         >
-          <Text style={styles.chartTitle}>
-            Rextimate Price History
-          </Text>
-          {/* <Pressable
-            style={styles.chartCloseButton}
-            onPress={() => setState({ ...state, chartIsOpen: false })}
-          >
-            <Image
-              style={styles.chartCloseIcon}
-              source={require("../../assets/times_gray.png")}
-            />
-          </Pressable> */}
-          <HorizontalLine />
-          <View style={styles.chartContent}>
-            {state.chartIsOpen && (
-              <PriceHistoryChart
-                currentRextimate={currentRextimate}
+          <View style={styles.relativeContainer}>
+            {showImage && (
+              <ImageSlider
+                handleScrollPosition={handleImageIndex}
+                onPress={handleImagePress}
                 property={property}
-                isOpenHouse={isOpenHouse}
+                show={true}
+                showThumbnail={Math.abs(queueIndex - currentIndex) <= 3}
               />
             )}
-          </View>
-          <Text style={styles.chartInfoText}>
-            Listed at: {safeFormatMoney(property.listPrice, 'List price not available')} on{" "}
-            {getDateFromTimestamp(property.dateCreated)}
-          </Text>
-          <Text style={styles.chartInfoText}>
-            Current Rextimate: {formatMoney(currentRextimate.amount)}
-          </Text>
-          <Image
-            style={styles.chartLogo}
-            resizeMode="contain"
-            source={require("../../assets/gsrein_logo.png")}
-          ></Image>
-        <Text style={styles.chartSwipeText}>
-        Swipe up to close rextimate price history
-        </Text>
-<View style={styles.chartSwipeIndicator} />
 
-        </View>
-      </Modal>
-      {/* IMAGE SLIDER */}
-      {state.show && (
-        <ImageSliderModal
-          imageUrls={imageUrls}
-          state={state}
-          setState={setState}
-          onClose={() => setScrollEnabled(true)}
-        ></ImageSliderModal>
-      )}
-    </View>
+            <View style={styles.listPriceContainer}>
+              <Text style={styles.listPriceText}>
+                List Price: {safeFormatMoney(property.listPrice, 'List price not available')}
+              </Text>
+            </View>
+            <View style={styles.homeButtonContainer}>
+              <CircleButton
+                style={styles.circleButtonPurple}
+                imageStyle={styles.circleButtonImageSize}
+                imageURL={require("../../assets/home_logo_white.png")}
+                onPress={navigateHome}
+              />
+            </View>
+            <View style={styles.fullScreenButtonContainer}>
+              <CircleButton
+                style={styles.circleButtonBlack}
+                imageStyle={styles.circleButtonImageSize}
+                imageURL={require("../../assets/fullscreen.png")}
+                onPress={() => handleImagePress(imageIndex - 1)}
+              />
+            </View>
+            <View style={styles.graphButtonContainer}>
+              <CircleButton
+                style={styles.circleButtonYellow}
+                imageStyle={styles.circleButtonImageSizeFlex}
+                imageURL={require("../../assets/chart_purple.png")}
+                onPress={() => setState({ ...state, chartIsOpen: true })}
+              />
+            </View>
+            <View style={styles.imageCountContainer}>
+              <Text style={styles.imageIndexText}>
+                {Math.min(Math.max(imageIndex, 1), property.images.length)} of {property.images.length}
+              </Text>
+            </View>
+          </View>
+          <Details
+            key={`details-${property.id}-${property.fullListingAddress}`}
+            onListingAgentPress={handleShowListingAgentInfoPress}
+            property={property}
+            onAddressPress={handleAddressPress}
+            onMoreInfoPress={handlePresentModalPress}
+            currentRextimate={currentRextimate}
+            isOpenHouse={isOpenHouse}
+          />
+          {step == 1 ? (
+            <>
+              <ActivityGrid
+                property={property}
+                onMyPositionsPress={handleMyTotalsPresentModalPress}
+                currentRextimate={currentRextimate}
+                equity={equity}
+                positions={positions}
+                isOpenHouse={isOpenHouse}
+              />
+              <OpenAPosition
+                positions={positions}
+                positionSinceMidnight={positionSinceMidnight}
+                currentRextimate={currentRextimate}
+                onOpenAPositionInfoPress={handleOpenAPositionPress}
+                selectedPosition={selectedPosition}
+                onPress={onPress}
+                isOpenHouse={isOpenHouse}
+                rextimateUpdatedAfterSubmission={rextimateUpdatedAfterSubmission}
+                isProcessingSubmission={isProcessingSubmission}
+                fixedPriceBid={fixedPriceBid}
+              />
+              <Pressable onPress={handleDisclaimerPress}>
+                <View style={styles.disclaimerContainer}>
+                  <Image
+                    style={styles.disclaimerIcon}
+                    source={require("../../assets/gsrein_logo.png")}
+                  ></Image>
+                  <Text numberOfLines={1} style={styles.disclaimerText}>
+                    Information herein is deemed reliable but not guaranteed and
+                    is provided exclusively for consumers personal, non-commercial
+                    use, and may not be used for any purpose other than to
+                    identify prospective properties consumers may be interested in
+                    purchasing.
+                  </Text>
+                </View>
+              </Pressable>
+            </>
+          ) : (
+            <EnterAGuess
+              setStep={setStep}
+              existingFixedPriceBid={existingFixedPriceBid}
+              setFixedPriceBid={setFixedPriceBid}
+              onSubmit={handleSubmit}
+              setSelectedPosition={setSelectedPosition}
+              setPositionWasSet={(positionWasSet) =>
+                setPositionWasSet ? setPositionWasSet(positionWasSet) : null
+              }
+              fixedPriceBid={fixedPriceBid}
+              selectedPosition={selectedPosition}
+              listPrice={property.listPrice}
+              currentRextimate={currentRextimate}
+            />
+          )}
+        </KeyboardAvoidingView>
+
+        {/* Bottom Sheets */}
+        {/* {showOverlay && (
+          <View style={styles.backdrop}></View>
+        )} */}
+        <BottomSheetModal
+          ref={disclaimerBottomSheetRef}
+          index={0}
+          snapPoints={snapPoints}
+          onChange={handleChange}
+          onDismiss={() => {
+            setScrollEnabled(true);
+          }}
+          onAnimate={handleChange}
+          style={styles.bottomSheetShadow}
+        >
+          <Text style={styles.termsConditionTitle}>
+            Terms and Conditions
+          </Text>
+          <Pressable onPress={handleCloseDisclaimerSheet}>
+            <Image
+              style={styles.termsConditionCloseIcon}
+              source={require("../../assets/times_gray.png")}
+            ></Image>
+          </Pressable>
+          <HorizontalLine />
+          <View style={styles.termsConditionContent}>
+            <Text style={styles.termsConditionText}>
+              Information herein is deemed reliable but not guaranteed and is
+              provided exclusively for consumers personal, non-commercial use, and
+              may not be used for any purpose other than to identify prospective
+              properties consumers may be interested in purchasing.
+            </Text>
+          </View>
+        </BottomSheetModal>
+        <BottomSheetModal
+          ref={bottomSheetModalRef}
+          index={0}
+          snapPoints={snapPoints}
+          onChange={handleChange}
+          onDismiss={() => {
+            setScrollEnabled(true);
+          }}
+          style={styles.bottomSheetShadow}
+        >
+          <MoreInfo
+            close={handleCloseModalPress}
+            property={property}
+            currentRextimate={currentRextimate}
+          />
+        </BottomSheetModal>
+        <BottomSheetModal
+          ref={openAPositionBottomSheetModalRef}
+          index={0}
+          snapPoints={myTotalsSnapPoints}
+          onChange={handleChange}
+          onDismiss={() => {
+            setScrollEnabled(true);
+          }}
+          style={[styles.bottomSheetShadow, styles.bottomSheetMarginTop]}
+        >
+          <View style={styles.openPositionInfoContainer}>
+            <Text style={styles.termsConditionText}>
+              <Text style={styles.termsConditionBoldText}>
+                Important:{" "}
+              </Text>
+              Your valuations and guesses made on properties are not real offers
+              or bids to purchase those properties.
+            </Text>
+            <Text style={styles.termsConditionText}>
+              Submitting a Valuation is how you can earn the most Rexbucks on
+              Rexchange.
+            </Text>
+            <Text style={styles.termsConditionText}>
+              Look at the current price and decide whether the Rextimate is 'Too
+              High', 'Too Low', or 'Just Right'. For example, if you think the
+              house will sell for more than the current Rextimate, you should pick
+              'Too Low' because you are saying that the current price is TOO LOW.
+            </Text>
+            <Text style={styles.termsConditionText}>
+              If the position is in line with the majority of players, then you
+              will gain Rexbucks. If it goes against the majority of players, then
+              you'll lose Rexbucks. Your gains/losses are determined by the change
+              in the Rextimate.
+            </Text>
+            <Text style={styles.termsConditionText}>
+              Once the house goes under contract, you will not be able to submit
+              new valuations, and total gains and losses will be calculated based
+              on the actual sale price once the house officially sells.
+            </Text>
+          </View>
+        </BottomSheetModal>
+        <BottomSheetModal
+          ref={myTotalsBottomSheetModalRef}
+          index={0}
+          snapPoints={myTotalsSnapPoints}
+          onChange={handleChange}
+          onDismiss={() => {
+            setScrollEnabled(true);
+          }}
+          style={styles.bottomSheetShadow}
+        >
+          <View style={styles.myTotalsContainer}>
+            <MyTotals property={property} />
+            <View style={styles.myTotalsButtonContainer}>
+              <Pressable onPress={handleMyTotalsCloseModalPress}>
+                <View style={styles.myTotalsButton}>
+                  <Text style={styles.myTotalsButtonText}>
+                    Ok
+                  </Text>
+                </View>
+              </Pressable>
+            </View>
+          </View>
+        </BottomSheetModal>
+        <BottomSheetModal
+          ref={listingAgentInfoBottomSheetRef}
+          index={0}
+          snapPoints={myTotalsSnapPoints}
+          onChange={handleChange}
+          onDismiss={() => {
+            setScrollEnabled(true);
+          }}
+          style={[styles.bottomSheetShadow, styles.bottomSheetMarginTop]}
+        >
+          <ListingAgentInfo property={property} />
+        </BottomSheetModal>
+        <Modal
+          isVisible={state.chartIsOpen}
+          animationIn={"slideInDown"}
+          animationInTiming={300}
+          onSwipeComplete={() => {
+            setState({ ...state, chartIsOpen: false });
+          }}
+          swipeDirection="up"
+        >
+          <View
+            style={[
+              styles.chartModalContainer,
+              { width: WINDOW_WIDTH, height: TALL_SHEET },
+            ]}
+          >
+            <Text style={styles.chartTitle}>
+              Rextimate Price History
+            </Text>
+            {/* <Pressable
+              style={styles.chartCloseButton}
+              onPress={() => setState({ ...state, chartIsOpen: false })}
+            >
+              <Image
+                style={styles.chartCloseIcon}
+                source={require("../../assets/times_gray.png")}
+              />
+            </Pressable> */}
+            <HorizontalLine />
+            <View style={styles.chartContent}>
+              {state.chartIsOpen && (
+                <PriceHistoryChart
+                  currentRextimate={currentRextimate}
+                  property={property}
+                  isOpenHouse={isOpenHouse}
+                />
+              )}
+            </View>
+            <Text style={styles.chartInfoText}>
+              Listed at: {safeFormatMoney(property.listPrice, 'List price not available')} on{" "}
+              {getDateFromTimestamp(property.dateCreated)}
+            </Text>
+            <Text style={styles.chartInfoText}>
+              Current Rextimate: {formatMoney(currentRextimate.amount)}
+            </Text>
+            <Image
+              style={styles.chartLogo}
+              resizeMode="contain"
+              source={require("../../assets/gsrein_logo.png")}
+            ></Image>
+          <Text style={styles.chartSwipeText}>
+          Swipe up to close rextimate price history
+          </Text>
+  <View style={styles.chartSwipeIndicator} />
+
+          </View>
+        </Modal>
+        {/* IMAGE SLIDER */}
+        {state.show && (
+          <ImageSliderModal
+            imageUrls={imageUrls}
+            state={state}
+            setState={setState}
+            onClose={() => setScrollEnabled(true)}
+          ></ImageSliderModal>
+        )}
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 

@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { View, Image, Text, Pressable, TouchableOpacity, Keyboard, StatusBar } from 'react-native';
 import { FloatingLabelInput } from 'react-native-floating-label-input';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { fetchSignInMethodsForEmail } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
 import Alert from '../../components/Alert';
 import {
   customContainerStyles,
@@ -41,17 +43,30 @@ const SignUpScreen: React.FC<SignUpProps> = () => {
     const isValid = validateForm();
     if (!isValid) return;
     
-    // Navigate to user data collection with email and password
-    console.log('🔍 SignUp - Navigating to user-data with params:', {
-      email: state.email,
-      password: state.password ? '***' : 'undefined'
-    });
-    
-    // @ts-expect-error
-    navigation.navigate('user-data', {
-      email: state.email,
-      password: state.password,
-    });
+    // Check if email already exists
+    try {
+      const auth = getAuth();
+      const signInMethods = await fetchSignInMethodsForEmail(auth, state.email);
+      
+      if (signInMethods.length > 0) {
+        setState({
+          ...state,
+          error: 'An account with this email already exists. Please use a different email or try signing in.',
+        });
+        return;
+      }
+      
+      // @ts-expect-error
+      navigation.navigate('user-data', {
+        email: state.email,
+        password: state.password,
+      });
+    } catch (error: any) {
+      setState({
+        ...state,
+        error: 'Error checking email. Please try again.',
+      });
+    }
   };
 
   const validateForm = () => {

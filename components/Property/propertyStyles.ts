@@ -9,7 +9,11 @@ export const createPropertyStyles = () => {
   return StyleSheet.create({
     // Main container styles
     mainContainer: {
+      flex: 1,
       backgroundColor: '#fff',
+    },
+    keyboardAvoidingView: {
+      flex: 1,
     },
     relativeContainer: {
       position: 'relative',

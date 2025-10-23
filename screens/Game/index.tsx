@@ -14,6 +14,7 @@ import {
   ScrollView,
   Dimensions,
   Platform,
+  Keyboard,
 } from "react-native";
 import HorizontalLine from "../../components/HorizontalLine";
 import PropertyView from "../../components/Property";
@@ -51,6 +52,7 @@ const GameScreen: React.FC<GameScreenProps> = () => {
   const tutorialBottomSheetModalRef = useRef<BottomSheetModal>(null);
   const myTotalsSnapPoints = useMemo(() => ["1%", "90%"], []);
   const flatListRef = useRef<FlatList<any>>(null);
+  const currentIndexRef = useRef(0);
 
   const handleChange = (index: number) => {
     if (index == -1) {
@@ -94,6 +96,42 @@ const GameScreen: React.FC<GameScreenProps> = () => {
       addProperties();
     }
   }, [queueIsLoaded]);
+
+  useEffect(() => {
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
+
+  useEffect(() => {
+    if (Platform.OS !== "android") {
+      return;
+    }
+
+    const hideSubscription = Keyboard.addListener("keyboardDidHide", () => {
+      setTimeout(() => {
+        if (!flatListRef.current || !properties?.length) {
+          return;
+        }
+
+        const targetIndex = Math.min(
+          Math.max(currentIndexRef.current, 0),
+          properties.length - 1
+        );
+
+        try {
+          flatListRef.current.scrollToIndex({
+            index: targetIndex,
+            animated: false,
+          });
+        } catch (error) {
+          // ignore out of range errors
+        }
+      }, 50);
+    });
+
+    return () => {
+      hideSubscription.remove();
+    };
+  }, [properties?.length]);
 
   useEffect(() => {
     if (!positionWasSet && consecutiveSkipCount == 1) {

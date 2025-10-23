@@ -116,22 +116,14 @@ const UserDataScreen: React.FC<UserDataScreenProps> = () => {
         const userCredential = await createUserWithEmailAndPassword(getAuth(), email, password);
         fbUser = userCredential.user;
 
-        
         // Send email verification
         if (fbUser) {
           await sendEmailVerification(fbUser);
         }
       } catch (error: any) {
-        console.log('❌ UserData - Error creating Firebase user:', error);
         Alert.alert('Error', error.message);
         return;
       }
-    }
-    
-    if (!fbUser) {
-      console.log('❌ UserData - No Firebase user found!');
-      Alert.alert('Error', 'No user found. Please try signing up again.');
-      return;
     }
     
     const [fn, ln] = fbUser.displayName?.split(' ') || ['', ''];
