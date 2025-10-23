@@ -463,7 +463,11 @@ const PropertyView: React.FC<PropertyProps> = ({
   
   return (
     <View style={styles.mainContainer}>
-      <KeyboardAvoidingView behavior="position">
+      <KeyboardAvoidingView 
+      
+      behavior={Platform.OS === 'ios' ? 'position' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
         <View style={styles.relativeContainer}>
           {showImage && (
             <ImageSlider
