@@ -5,7 +5,7 @@ export type RXCUser = {
   lastName: string;
   authId: string;
   zipCode: string;
-  birthday: Date | undefined;
+  birthday: Date | null | undefined;
   isRealtor: boolean | null;
   isOpenHouse?: boolean;
   id: string;

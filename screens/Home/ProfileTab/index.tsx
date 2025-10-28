@@ -6,6 +6,7 @@ import { formatMoney } from "../../../lib/helpers/money";
 import tw from "../../../lib/tailwind/tailwind";
 import { usePortfolio } from "../../../providers/portfolioProvider";
 import Settings from "../../Settings";
+import { justify } from "@cloudinary/url-gen/qualifiers/textAlignment";
 
 interface ProfileTabProps {}
 
@@ -144,7 +145,7 @@ const ProfileTab: React.FC<ProfileTabProps> = () => {
           <FlatList
             data={portfolioLineItems.filter((item) => item.status === "Sold")}
             renderItem={ListViewItem as any}
-            keyExtractor={(item) => `pli-closed-${item.mlsId}`}
+            keyExtractor={(item) => `pli-${item.mlsId}`}
             showsVerticalScrollIndicator={false}
             scrollEnabled={false}
           ></FlatList>
@@ -190,7 +191,7 @@ const ProfileTab: React.FC<ProfileTabProps> = () => {
           <FlatList
             data={portfolioLineItems.filter((item) => item.status !== "Sold")}
             renderItem={ListViewItem as any}
-            keyExtractor={(item) => `pli-open-${item.mlsId}`}
+            keyExtractor={(item) => `pli-${item.mlsId}`}
             showsVerticalScrollIndicator={false}
             scrollEnabled={false}
             refreshing={isRefreshing}
@@ -217,16 +218,20 @@ const ProfileTab: React.FC<ProfileTabProps> = () => {
           <Text style={tw`text-lg font-rajdhani700 mb-2`}>
             All Portfolio Records
           </Text>
-          {isRefreshing ? (
-            <View style={tw`flex items-center justify-center py-8`}>
-              <Text style={tw`text-purple font-rajdhani700 text-lg`}>Loading portfolio data...</Text>
-              <Text style={tw`text-darkGray font-overpass400 text-sm mt-2`}>Loading portfolio... This can take up to 10 seconds</Text>
-            </View>
-          ) : portfolioLineItems.length === 0 ? (
+          {!portfolioLineItems.length ? (
             <View style={tw`flex items-center justify-center py-8`}>
               <Text style={tw`text-gray-500`}>No portfolio records found</Text>
               <Text style={tw`text-sm text-gray-400 mt-2`}>
                 Place some bids to see your portfolio
+              </Text>
+            </View>
+          ) : isRefreshing ? (
+            <View style={tw`flex items-center justify-center py-8`}>
+              <Text style={tw`text-purple font-rajdhani700 text-lg`}>
+                Loading portfolio data...
+              </Text>
+              <Text style={tw`text-darkGray font-overpass400 text-sm mt-2`}>
+                Loading portfolio... This can take up to 10 seconds
               </Text>
             </View>
           ) : (
@@ -234,7 +239,8 @@ const ProfileTab: React.FC<ProfileTabProps> = () => {
               data={portfolioLineItems}
               keyExtractor={(item, index) => `pli-${item.mlsId}-${index}`}
               renderItem={({ item, index }) => {
-                console.log('🔍 ProfileTab - Rendering portfolio item:', { mlsId: item.mlsId, address: item.address, index });
+  console.log('Portfolio Line Items:', JSON.stringify(item, null, 2));
+
                 return (
                   <View
                     style={tw`flex flex-row justify-between items-center border-b border-borderGray py-2`}
@@ -250,7 +256,7 @@ const ProfileTab: React.FC<ProfileTabProps> = () => {
                         item.equity > 0 ? "text-green" : "text-red"
                       }`}
                     >
-                      {formatMoney(item.equity)}
+                      {formatMoney(item.property.listPrice)}
                     </Text>
                   </View>
                 );

@@ -166,7 +166,16 @@ export const createGameStyles = () => {
       paddingHorizontal: 16,
       paddingBottom: 32,
     },
-    
+    bottomSheetCloseButtonContainer: {
+    // backgroundColor: 'red',
+     position: 'absolute',
+      width: 24 * widthRef,
+      height: 24 * heightRef,
+      top: Platform.OS === 'android' ? 18 * heightRef : 14 * heightRef,
+      right: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     // Bottom sheet title
     bottomSheetTitle: {
       padding: 16,
@@ -178,11 +187,13 @@ export const createGameStyles = () => {
     
     // Bottom sheet close button
     bottomSheetCloseButton: {
-      position: 'absolute',
-      width: 12,
-      height: 12,
-      top: -32,
-      right: 16,
+      // position: 'absolute',
+      // width: 12,
+      // height: 12,
+      // top: -32,
+      // right: 16,
+      width: 14 * widthRef,
+      height: 14 * heightRef,
     },
     
     // Bottom sheet text

@@ -7,6 +7,7 @@ import {
   Pressable,
   Image,
   ScrollView,
+  TouchableOpacity,
 } from 'react-native';
 import { isLarge } from '../../lib/helpers/dimensions';
 import { formatMoney } from '../../lib/helpers/money';
@@ -47,9 +48,11 @@ const EnterAGuess: React.FC<EnterAGuessProps> = ({
   // Set initial value to rextimate price when "Just Right" is selected
   useEffect(() => {
     if (selectedPosition === 2 && !value) {
-      setValue(formatMoney(currentRextimate.amount).replace(/[,$]/g, ''));
+      const rextimateValue = formatMoney(currentRextimate.amount).replace(/[,$]/g, '');
+      setValue(rextimateValue);
+      setFixedPriceBid(currentRextimate.amount);
     }
-  }, [selectedPosition, currentRextimate.amount, value]);
+  }, [selectedPosition, currentRextimate.amount, value, setFixedPriceBid]);
   
   const handleChange = (text: string) => {
     const stripped = text.toString()?.replace(/\D/g, '');
@@ -152,6 +155,7 @@ const EnterAGuess: React.FC<EnterAGuessProps> = ({
                 style={[styles.textInput, styles.textInputGreen]}
                 onChangeText={handleChange}
                 value={value}
+                editable={false}
               />
             </>
           ) : null}
@@ -199,14 +203,15 @@ const EnterAGuess: React.FC<EnterAGuessProps> = ({
                 Guess the sale price
               </Text>
             </View>
-            <Pressable
+            <TouchableOpacity
+              style={styles.modalCloseButton}
               onPress={() => enterAGuessBottomModalRef.current?.dismiss()}
             >
               <Image
-                style={styles.modalCloseIcon}
+                // style={styles.modalCloseIcon}
                 source={require('../../assets/times_gray.png')}
               ></Image>
-            </Pressable>
+            </TouchableOpacity>
             <HorizontalLine />
             <Text style={styles.modalContentText}>
               Tell us what you think the house will actually sell for! Make sure

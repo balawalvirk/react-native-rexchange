@@ -87,6 +87,14 @@ const SignUpScreen: React.FC<SignUpProps> = () => {
       });
       return false;
     }
+    if (state.password.length < 8) {
+      setState({
+        ...state,
+        errorLocation: 'password',
+        errorMessage: 'Must be at least 8 characters.',
+      });
+      return false;
+    }
     if (!ONE_LOWER.test(state.password)) {
       setState({
         ...state,

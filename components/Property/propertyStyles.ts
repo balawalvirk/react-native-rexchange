@@ -112,18 +112,23 @@ export const createPropertyStyles = () => {
     // Disclaimer container
     disclaimerContainer: {
       flexDirection: 'row',
-      paddingHorizontal: Platform.OS === 'android' ? 16 * widthRef : 24 * widthRef,
       paddingVertical: Platform.OS === 'android' ? 16 * heightRef : 24 * heightRef,
-    alignItems: 'center',
+      alignItems: 'center',
+      justifyContent: 'center',
+      alignSelf: 'center',
+      gap: 8 * widthRef,
+    },
+    TermsView:{
+backgroundColor:'red',
+alignItems: 'center',
     },
     disclaimerIcon: {
       width: isLarge ? 32 * widthRef : 12 * widthRef,
       height: isLarge ? 32 * heightRef : 12 * heightRef,
-      marginRight: 8 * widthRef,
     },
     disclaimerText: {
-      flex: 1,
       fontSize: isLarge ? 18 * fontRef : 12 * fontRef,
+      textAlign: 'center',
     },
     
     // Bottom sheet styles
@@ -152,10 +157,12 @@ export const createPropertyStyles = () => {
     },
     termsConditionCloseIcon: {
       position: 'absolute',
-      width: 12 * widthRef,
-      height: 12 * heightRef,
-      top: -32 * heightRef,
-      right: 16 * widthRef,
+      width: 20 * widthRef,
+      height: 20 * heightRef,
+      top: Platform.OS === 'android' ? 20 * heightRef : 16 * heightRef,
+      right: 20 * widthRef,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     termsConditionContent: {
       paddingHorizontal: 16 * widthRef,

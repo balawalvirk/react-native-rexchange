@@ -1,9 +1,10 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { RXCUser } from '../lib/models/rxcUser';
 import { getAuth, signOut } from 'firebase/auth';
-import { getUser } from '../firebase/collections/users';
+import { addUser, getUser, updateUser } from '../firebase/collections/users';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import app from '../firebase/config';
+import { User as FirebaseUser } from 'firebase/auth';
 
 const AuthContext = createContext<{
   user: RXCUser | null;
@@ -18,6 +19,64 @@ const AuthContext = createContext<{
 export function AuthProvider({ children }: any) {
   const [user, setUser] = useState<RXCUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  
+  const ensureUserRecord = async (firebaseUser: FirebaseUser) => {
+    const { uid, email, displayName } = firebaseUser;
+    try {
+      console.log('🔐 ensureUserRecord firebase user:', {
+        uid,
+        email,
+        displayName,
+      });
+      const existingUser = await getUser(uid);
+      if (existingUser?.id) {
+        const ensuredUser = {
+          ...existingUser,
+          emailAddress: existingUser.emailAddress || email || '',
+        };
+        console.log('ℹ️ ensureUserRecord using existing RXC user:', ensuredUser);
+        return ensuredUser;
+      }
+      
+      const nameParts = (displayName || '').trim().split(' ');
+      const firstName = nameParts.shift() || '';
+      const lastName = nameParts.join(' ') || '';
+      
+      const newUser = {
+        emailAddress: email || '',
+        firstName,
+        lastName,
+        authId: uid,
+        zipCode: '',
+        isRealtor: null as boolean | null,
+        isOpenHouse: false,
+        id: uid,
+        birthday: null,
+        isSetUp: false,
+        tutorialFinished: false,
+        zipCodeOrder: [] as string[],
+        totalEarnings: 0,
+        totalEquity: 0,
+        openPositions: 0,
+        token: '',
+        docId: '',
+      };
+      
+      const docRef = await addUser(newUser);
+      const docId = docRef.id;
+      await updateUser(docId, { docId });
+      
+      const ensuredUser = {
+        ...newUser,
+        docId,
+      };
+      console.log('🆕 ensureUserRecord created RXC user:', ensuredUser);
+      return ensuredUser;
+    } catch (error) {
+      console.error('Error ensuring user record:', error);
+      throw error;
+    }
+  };
   
   useEffect(() => {
     const initializeAuth = async () => {
@@ -52,11 +111,13 @@ export function AuthProvider({ children }: any) {
             return;
           }
           
-          const { uid } = user;
           try {
-            const rxcUser = await getUser(uid);
-            // Ensure Firebase user email is available
-            setUser({ ...rxcUser, email: user.email || rxcUser.emailAddress });
+            const ensuredUser = await ensureUserRecord(user);
+            console.log('✅ AuthProvider signed in user:', ensuredUser);
+            setUser({
+              ...ensuredUser,
+              email: user.email || ensuredUser.emailAddress,
+            } as RXCUser);
             setIsLoading(false);
           } catch (error: any) {
             console.error('Error getting user:', error);
@@ -97,6 +158,12 @@ export function AuthProvider({ children }: any) {
     // clean up setInterval
     return () => clearInterval(handle);
   }, []);
+
+  useEffect(() => {
+    if (!isLoading) {
+      console.log('🔐 AuthProvider current user:', user);
+    }
+  }, [user, isLoading]);
 
   return (
     <AuthContext.Provider

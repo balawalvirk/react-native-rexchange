@@ -57,37 +57,51 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({ onBackPress }) => {
   }, [user]);
 
   const handleSave = async () => {
-    const isValid = validateForm();
     setSuccess(false);
+    const isValid = validateForm();
     if (!isValid) return;
-  
-    // Check if user email exists
+
     if (!user?.email) {
-      setError({ ...error, formError: 'User email not found. Please log out and log back in.' });
+      setError({
+        inputErrorLocation: '',
+        inputErrorMessage: '',
+        formError: 'User email not found. Please log out and log back in.',
+      });
       return;
     }
-    
-    signInWithEmailAndPassword(
-      getAuth(),
-      user.email,
-      state.currentPassword,
-    )
-      .then(async (res) => {
-        if (!user) return;
-        try {
-          await updatePassword(res.user, state.newPassword);
-          setSuccess(true);
-          // Automatically go back after showing success message
-          setTimeout(() => {
-            onBackPress();
-          }, 2000); // Show success message for 2 seconds then go back
-        } catch (err: any) {
-          setError({ ...error, formError: err.message });
-        }
-      })
-      .catch((err: any) => {
-        setError({ ...error, formError: 'Current password is incorrect.' });
+
+    try {
+      setError(defaultError);
+      const auth = getAuth();
+      const credentials = await signInWithEmailAndPassword(
+        auth,
+        user.email,
+        state.currentPassword,
+      );
+
+      await updatePassword(credentials.user, state.newPassword);
+      setSuccess(true);
+      setState({
+        currentPassword: '',
+        newPassword: '',
+        confirmNewPassword: '',
       });
+
+      setTimeout(() => {
+        onBackPress();
+      }, 2000);
+    } catch (err: any) {
+      const isWrongPassword = err?.code === 'auth/wrong-password';
+      const message = isWrongPassword
+        ? 'Current password is incorrect.'
+        : err?.message || 'Unable to update password. Please try again.';
+
+      setError({
+        inputErrorLocation: isWrongPassword ? 'current' : '',
+        inputErrorMessage: '',
+        formError: message,
+      });
+    }
   };
 
   const handleResetPress = () => {
@@ -238,7 +252,7 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({ onBackPress }) => {
           inputStyles={settingsInputStyles}
           labelStyles={settingsLabelStyles}
           isPassword
-          eyeconColor='#121212'
+          eyeIconColor='#121212'
 
         />
         {error.inputErrorLocation == 'current' && (
@@ -262,7 +276,7 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({ onBackPress }) => {
           inputStyles={settingsInputStyles}
           labelStyles={settingsLabelStyles}
           isPassword
-          eyeconColor='#121212'
+          eyeIconColor='#121212'
 
         />
         {error.inputErrorLocation == 'new' && (
@@ -288,7 +302,8 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({ onBackPress }) => {
           inputStyles={settingsInputStyles}
           labelStyles={settingsLabelStyles}
           isPassword
-          eyeconColor='#121212'
+          eyeIconColor='#121212'
+
         />
         {error.inputErrorLocation == 'confirm' && (
           <Text style={tw`text-xs text-red font-overpass600 my-0.5`}>

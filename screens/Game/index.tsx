@@ -15,6 +15,7 @@ import {
   Dimensions,
   Platform,
   Keyboard,
+  TouchableOpacity,
 } from "react-native";
 import HorizontalLine from "../../components/HorizontalLine";
 import PropertyView from "../../components/Property";
@@ -27,6 +28,7 @@ import { useAuth } from "../../providers/authProvider";
 import { useScrollEnabled } from "../../providers/scrollEnabledProvider";
 import { Skip, getQueuedProperties } from "../../firebase/game";
 import { createGameStyles } from "./gameStyles";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface GameScreenProps {}
 
@@ -36,6 +38,7 @@ const GameScreen: React.FC<GameScreenProps> = () => {
   const [properties, setProperties] = useState<Property[] | null>(null);
   const { scrollEnabled, setScrollEnabled } = useScrollEnabled();
   const { user, setUser } = useAuth();
+  const [shouldShowTutorial, setShouldShowTutorial] = useState(false);
 
   const [mlsIdsSinceMidnight, setMLSIdsSinceMidnight] = useState(
     [] as string[]
@@ -63,6 +66,22 @@ const GameScreen: React.FC<GameScreenProps> = () => {
   };
 
   useEffect(() => {
+    const resolveSignUpFlag = async () => {
+      try {
+        const flag = await AsyncStorage.getItem("hasJustSignedUp");
+        if (flag === "true") {
+          setShouldShowTutorial(true);
+          await AsyncStorage.removeItem("hasJustSignedUp");
+        }
+      } catch (error) {
+        console.warn("Failed to resolve sign-up flag", error);
+      }
+    };
+
+    resolveSignUpFlag();
+  }, []);
+
+  useEffect(() => {
     let unsubscribe: Unsubscribe;
     if (user && !mlsIdsLoaded) {
       unsubscribe = positionsSinceMidnightSnapshot(
@@ -81,10 +100,10 @@ const GameScreen: React.FC<GameScreenProps> = () => {
   }, [user]);
 
   useEffect(() => {
-    if (user && !user.tutorialFinished && queueIsLoaded && properties?.length) {
+    if (user && shouldShowTutorial && queueIsLoaded && properties?.length) {
       tutorialBottomSheetModalRef.current?.present();
     }
-  }, [user, queueIsLoaded, properties]);
+  }, [user, queueIsLoaded, properties, shouldShowTutorial]);
   useEffect(() => {
     if (mlsIdsLoaded) {
       loadProperties();
@@ -385,21 +404,24 @@ const GameScreen: React.FC<GameScreenProps> = () => {
         onDismiss={() => {
           updateUser(user?.docId, { tutorialFinished: true });
           setUser({ ...user, tutorialFinished: true });
+          setShouldShowTutorial(false);
         }}
       >
         <View style={styles.bottomSheetContainer}>
           <ScrollView style={styles.bottomSheetScrollView}>
+            
             <Text style={styles.bottomSheetTitle}>
               Welcome to Rexchange!
             </Text>
-            <Pressable
+            <TouchableOpacity
               onPress={() => tutorialBottomSheetModalRef.current?.dismiss()}
+              style={styles.bottomSheetCloseButtonContainer}
             >
               <Image
                 style={styles.bottomSheetCloseButton}
                 source={require("../../assets/times_gray.png")}
               />
-            </Pressable>
+            </TouchableOpacity>
             <HorizontalLine />
             <Text style={styles.bottomSheetText}>
               Who knows how much a house is worth? At Rexchange, we believe that

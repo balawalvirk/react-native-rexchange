@@ -22,6 +22,7 @@ const PortfolioContext = createContext({
   subscriptions: [] as Unsubscribe[],
   refresh: () => {},
   isRefreshing: false,
+  hasLoaded: false,
 });
 
 type PortfolioLineItem = {
@@ -46,6 +47,7 @@ export function PortfolioProvider({ children }: any) {
   const [subscriptions, setSubscriptions] = useState([] as Unsubscribe[]);
   const [_ref, setRefresh] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(true); // Start with loading state
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   const refresh = () => {
     setIsRefreshing(true);
@@ -120,6 +122,7 @@ export function PortfolioProvider({ children }: any) {
     if (mlsIds.length === 0) {
       setPortfolioLineItems([]);
       setIsRefreshing(false);
+      setHasLoaded(true);
       return;
     }
     
@@ -162,6 +165,7 @@ export function PortfolioProvider({ children }: any) {
     
     setPortfolioLineItems(plis);
     setIsRefreshing(false);
+    setHasLoaded(true);
   };
 
   const getGainsLosses = () => {
@@ -189,6 +193,7 @@ export function PortfolioProvider({ children }: any) {
         subscriptions,
         refresh,
         isRefreshing,
+        hasLoaded,
       }}
     >
       {children}

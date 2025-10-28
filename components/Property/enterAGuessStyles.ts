@@ -123,6 +123,16 @@ export const createEnterAGuessStyles = () => {
       justifyContent: 'center',
       width: '100%',
     },
+    modalCloseButton:{
+      // backgroundColor: 'red',
+      position: 'absolute',
+      width: 20 * widthRef,
+      height: 20 * heightRef,
+      top: Platform.OS === 'android' ? 20 * heightRef : 16 * heightRef,
+      right: 16 * widthRef,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     modalHeaderText: {
       padding: 16 * widthRef,
       fontSize: isLargeScreen ? 24 : 16,
@@ -131,11 +141,11 @@ export const createEnterAGuessStyles = () => {
       color: '#5d26c1',
     },
     modalCloseIcon: {
-      position: 'absolute',
-      width: 12 * widthRef,
-      height: 12 * heightRef,
-      top: -32 * heightRef,
-      right: 16 * widthRef,
+        position: 'absolute',
+        width: 12 * widthRef,
+        height: 12 * heightRef,
+        top: -32 * heightRef,
+        right: 16 * widthRef,
     },
     
     // Modal content text
@@ -148,7 +158,7 @@ export const createEnterAGuessStyles = () => {
     // Modal button container
     modalButtonContainer: {
       flexDirection: 'row',
-      justifyContent: 'flex-start',
+      justifyContent: 'center',
       width: '100%',
       height: 128 * heightRef,
       padding: 16 * widthRef,
@@ -163,6 +173,7 @@ export const createEnterAGuessStyles = () => {
       borderRadius: 6 * widthRef,
       backgroundColor: '#10998e',
       height: 60 * heightRef,
+      width: 120 * widthRef,
     },
     modalButtonText: {
       fontSize: isLargeScreen ? 24 * fontRef : 18 * fontRef,

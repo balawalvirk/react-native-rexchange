@@ -23,6 +23,7 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../../providers/authProvider';
 import { Keyboard } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface UserDataScreenProps {}
 
@@ -148,6 +149,7 @@ const UserDataScreen: React.FC<UserDataScreenProps> = () => {
     console.log('🔍 UserData - Creating user object:', user);
     
     try {
+      await AsyncStorage.setItem('hasJustSignedUp', 'true');
       await addUser(user);
       console.log('✅ UserData - User created successfully:', user);
       setUser(user);

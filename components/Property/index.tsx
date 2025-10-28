@@ -12,6 +12,7 @@ import {
   TouchableWithoutFeedback,
   View,
   PermissionsAndroid,
+  TouchableOpacity,
 } from "react-native";
 import Modal from "react-native-modal";
 import { useEquity } from "../../firebase/equity";
@@ -42,7 +43,7 @@ import ImageSlider from "./ImageSlider";
 import ImageSliderModal from "./ImageSliderModal";
 import OpenAPosition from "./OpenAPosition";
 import PriceHistoryChart from "./PriceHistoryChart";
-import { heightRef } from "../../config/screenSizes";
+import { heightRef, widthRef } from "../../config/screenSizes";
 interface PropertyProps {
   property: Property;
   queueIndex: number;
@@ -550,20 +551,19 @@ const PropertyView: React.FC<PropertyProps> = ({
                 isProcessingSubmission={isProcessingSubmission}
                 fixedPriceBid={fixedPriceBid}
               />
-              <Pressable onPress={handleDisclaimerPress}>
-                <View style={styles.disclaimerContainer}>
+              <Pressable
+              // style={styles.TermsView}
+              style={styles.disclaimerContainer}
+              onPress={handleDisclaimerPress}>
+                {/* <View style={styles.disclaimerContainer}> */}
                   <Image
                     style={styles.disclaimerIcon}
                     source={require("../../assets/gsrein_logo.png")}
                   ></Image>
                   <Text numberOfLines={1} style={styles.disclaimerText}>
-                    Information herein is deemed reliable but not guaranteed and
-                    is provided exclusively for consumers personal, non-commercial
-                    use, and may not be used for any purpose other than to
-                    identify prospective properties consumers may be interested in
-                    purchasing.
+                  Terms and Conditions
                   </Text>
-                </View>
+                {/* </View> */}
               </Pressable>
             </>
           ) : (
@@ -602,12 +602,15 @@ const PropertyView: React.FC<PropertyProps> = ({
           <Text style={styles.termsConditionTitle}>
             Terms and Conditions
           </Text>
-          <Pressable onPress={handleCloseDisclaimerSheet}>
+          <TouchableOpacity
+            style={styles.termsConditionCloseIcon}
+          onPress={handleCloseDisclaimerSheet}>
             <Image
-              style={styles.termsConditionCloseIcon}
+            width={12 * widthRef}
+            height={12 * heightRef}
               source={require("../../assets/times_gray.png")}
             ></Image>
-          </Pressable>
+          </TouchableOpacity>
           <HorizontalLine />
           <View style={styles.termsConditionContent}>
             <Text style={styles.termsConditionText}>

@@ -22,7 +22,7 @@ const SSOButtons: React.FC<SSOButtonsProps> = () => {
   const [request, response, promptAsync] = Google.useAuthRequest({
     expoClientId: '546177265088-kre07ao0v1h91ln5hn7e1v64rd0bp8o4.apps.googleusercontent.com',
     iosClientId: '546177265088-ll93f5utg5cb7v6ltcrpj69pi5ms3k6i.apps.googleusercontent.com',
-    androidClientId: '546177265088-dttrm4b9ssdvdur0460e8rd024if2tk6.apps.googleusercontent.com', // Android client
+    androidClientId: '546177265088-dttrm4b9ssdvdur0460e8rd024if2tk6.apps.googleusercontent.com', 
   });
 
   useEffect(() => {
