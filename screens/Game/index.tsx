@@ -29,6 +29,8 @@ import { useScrollEnabled } from "../../providers/scrollEnabledProvider";
 import { Skip, getQueuedProperties } from "../../firebase/game";
 import { createGameStyles } from "./gameStyles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { startWalkthrough, resetWalkthroughForDevelopment } from "../../store/walkthroughSlice";
 
 interface GameScreenProps {}
 
@@ -38,6 +40,8 @@ const GameScreen: React.FC<GameScreenProps> = () => {
   const [properties, setProperties] = useState<Property[] | null>(null);
   const { scrollEnabled, setScrollEnabled } = useScrollEnabled();
   const { user, setUser } = useAuth();
+  const dispatch = useAppDispatch();
+  const walkthroughState = useAppSelector((state: any) => state.walkthrough);
   const [shouldShowTutorial, setShouldShowTutorial] = useState(false);
 
   const [mlsIdsSinceMidnight, setMLSIdsSinceMidnight] = useState(
@@ -104,6 +108,31 @@ const GameScreen: React.FC<GameScreenProps> = () => {
       tutorialBottomSheetModalRef.current?.present();
     }
   }, [user, queueIsLoaded, properties, shouldShowTutorial]);
+
+  // Start walkthrough when conditions are met
+  useEffect(() => {
+    if (
+      user &&
+      !user.tutorialFinished &&
+      queueIsLoaded &&
+      properties?.length &&
+      !walkthroughState.isActive &&
+      !walkthroughState.hasCompleted
+    ) {
+      // Add a small delay to ensure all components are mounted and targets are registered
+      setTimeout(() => {
+        console.log('Starting walkthrough...');
+        dispatch(startWalkthrough());
+      }, 1000);
+    }
+  }, [
+    dispatch,
+    properties,
+    queueIsLoaded,
+    user,
+    walkthroughState.hasCompleted,
+    walkthroughState.isActive,
+  ]);
   useEffect(() => {
     if (mlsIdsLoaded) {
       loadProperties();
@@ -459,6 +488,27 @@ const GameScreen: React.FC<GameScreenProps> = () => {
           </ScrollView>
         </View>
       </BottomSheetModal>
+      
+      {/* Development Testing Buttons */}
+      <View style={styles.testButtonsContainer}>
+        <Pressable
+          style={styles.testButton}
+          onPress={() => {
+            dispatch(resetWalkthroughForDevelopment());
+            dispatch(startWalkthrough());
+          }}
+        >
+          <Text style={styles.testButtonText}>Reset & Start</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.testButton, styles.testButtonSecondary]}
+          onPress={() => {
+            console.log('Current walkthrough state:', walkthroughState);
+          }}
+        >
+          <Text style={styles.testButtonText}>Debug State</Text>
+        </Pressable>
+      </View>
     </View>
   );
 };

@@ -44,6 +44,8 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import * as Sentry from "@sentry/react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Provider } from 'react-redux';
+import { store } from './store';
 
 Sentry.init({
   dsn: "https://3773fdc070c7f8eb426f2e9fa9b9a92f@o1221440.ingest.us.sentry.io/4506856629075968",
@@ -263,10 +265,12 @@ export default function App() {
     );
   }
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaView style={{ flex: 1 }}>
-        <AppNavigator />
-      </SafeAreaView>
-    </GestureHandlerRootView>
+    <Provider store={store}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaView style={{ flex: 1 }}>
+          <AppNavigator />
+        </SafeAreaView>
+      </GestureHandlerRootView>
+    </Provider>
   );
 }

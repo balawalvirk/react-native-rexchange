@@ -241,5 +241,35 @@ export const createGameStyles = () => {
       color: 'white',
       fontFamily: 'Overpass_500Medium',
     },
+    
+    // Test buttons container (development only)
+    testButtonsContainer: {
+      position: 'absolute',
+      bottom: 20,
+      right: 20,
+      flexDirection: 'column',
+      gap: 8,
+      zIndex: 1000,
+    },
+    
+    // Test button (development only)
+    testButton: {
+      backgroundColor: '#5d26c1',
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 6,
+    },
+    
+    // Test button secondary
+    testButtonSecondary: {
+      backgroundColor: '#10998e',
+    },
+    
+    // Test button text
+    testButtonText: {
+      color: 'white',
+      fontSize: 10,
+      fontFamily: 'Overpass_500Medium',
+    },
   });
 };

@@ -7,6 +7,7 @@ import { Property } from "../../lib/models/property";
 import { RextimatePriceHistory } from "../../lib/models/rextimatePriceHistory";
 import CircleButton from "../CircleButton";
 import HorizontalLine from "../HorizontalLine";
+import WalkthroughTarget from "../Walkthrough/WalkthroughTarget";
 import { createDetailsStyles } from "./detailsStyles";
 
 interface DetailsProps {
@@ -91,17 +92,19 @@ const Details: React.FC<DetailsProps> = ({
             {safeFormatSqft(property.size)}
           </Text>
         </View>
-        <Pressable onPress={onMoreInfoPress}>
-          <View style={styles.moreInfoButton}>
-            <Image
-              style={styles.moreInfoIcon}
-              source={require("../../assets/info_outline_purple.png")}
-            />
-            <Text style={styles.moreInfoText}>
-              more info
-            </Text>
-          </View>
-        </Pressable>
+        <WalkthroughTarget id="more-info">
+          <Pressable onPress={onMoreInfoPress}>
+            <View style={styles.moreInfoButton}>
+              <Image
+                style={styles.moreInfoIcon}
+                source={require("../../assets/info_outline_purple.png")}
+              />
+              <Text style={styles.moreInfoText}>
+                more info
+              </Text>
+            </View>
+          </Pressable>
+        </WalkthroughTarget>
       </View>
       <View style={styles.horizontalLineContainer}>
         <HorizontalLine />

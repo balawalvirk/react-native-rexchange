@@ -31,11 +31,15 @@ import { Property } from "../../lib/models/property";
 import { useAuth } from "../../providers/authProvider";
 import { useScrollEnabled } from "../../providers/scrollEnabledProvider";
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { startWalkthrough, syncWalkthroughCompletion } from "../../store/walkthroughSlice";
 import CircleButton from "../CircleButton";
 import HorizontalLine from "../HorizontalLine";
 import ListingAgentInfo from "../ListingAgentInfo";
 import MoreInfo from "../MoreInfo";
 import MyTotals from "../MyTotals";
+import WalkthroughOverlay from "../Walkthrough/WalkthroughOverlay";
+import WalkthroughTarget from "../Walkthrough/WalkthroughTarget";
 import ActivityGrid from "./ActivityGrid";
 import Details from "./Details";
 import EnterAGuess from "./EnterAGuess";
@@ -153,6 +157,8 @@ const PropertyView: React.FC<PropertyProps> = ({
     null
   );
   const { user } = useAuth();
+  const dispatch = useAppDispatch();
+  const walkthroughState = useAppSelector((state: any) => state.walkthrough);
   const [step, setStep] = useState<1 | 2>(1);
   const [fixedPriceBid, setFixedPriceBid] = useState(0);
   const [rextimateUpdatedAfterSubmission, setRextimateUpdatedAfterSubmission] = useState(false);
@@ -232,6 +238,13 @@ const PropertyView: React.FC<PropertyProps> = ({
     // Reset image index to 1 when property changes
     setImageIndex(1);
   }, [property.id]);
+
+  // Sync walkthrough completion with Firebase user data
+  useEffect(() => {
+    if (user) {
+      dispatch(syncWalkthroughCompletion(Boolean(user.tutorialFinished)));
+    }
+  }, [dispatch, user]);
 
   // Listen for rextimate changes after submission
   useEffect(() => {
@@ -778,6 +791,12 @@ const PropertyView: React.FC<PropertyProps> = ({
             onClose={() => setScrollEnabled(true)}
           ></ImageSliderModal>
         )}
+        
+        {/* WALKTHROUGH OVERLAY */}
+        <WalkthroughOverlay
+          isOpenHouse={isOpenHouse}
+          currentRextimateAmount={currentRextimate.amount}
+        />
       </View>
     </TouchableWithoutFeedback>
   );
