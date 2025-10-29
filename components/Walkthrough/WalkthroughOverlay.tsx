@@ -16,7 +16,7 @@ import {
 } from '../../store/walkthroughSlice';
 import CircleButton from '../CircleButton';
 import { formatMoney } from '../../lib/helpers/money';
-import { heightRef, widthRef } from '../../config/screenSizes';
+import { fontRef, heightRef, widthRef } from '../../config/screenSizes';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -112,6 +112,10 @@ const WalkthroughOverlay: React.FC<WalkthroughOverlayProps> = ({
               step.targetId === 'more-info' && styles.moreInfoButtonContainer,
               step.targetId === 'home' && styles.homeButtonContainer,
               step.targetId === 'history' && styles.historyButtonContainer,
+              step.targetId === 'too-low' && styles.tooLowButtonContainer,
+              step.targetId === 'too-high' && styles.tooHighButtonContainer,
+              step.targetId === 'just-right' && styles.justRightButtonContainer,
+              step.targetId === 'enter-amount' && styles.enterAmountButtonContainer,
             ]}
           >
             <View style={styles.buttonHighlightShadow} />
@@ -126,22 +130,25 @@ const WalkthroughOverlay: React.FC<WalkthroughOverlayProps> = ({
             step.targetId === 'more-info' && styles.moreInfoTooltipContainer,
             step.targetId === 'home' && styles.homeTooltipContainer,
             step.targetId === 'history' && styles.historyTooltipContainer,
+            step.targetId === 'too-low' && styles.tooLowTooltipContainer,
+            step.targetId === 'too-high' && styles.tooHighTooltipContainer,
+            step.targetId === 'just-right' && styles.justRightTooltipContainer,
+            step.targetId === 'enter-amount' && styles.enterAmountTooltipContainer,
           ]}
         >
           <View style={styles.tooltipHeader}>
-            <Text style={styles.tooltipProgress}>
-              {walkthrough.currentStepIndex + 1}/{walkthrough.steps.length}
-            </Text>
-            <Pressable onPress={handleSkip} hitSlop={8}>
+        
+          <Text style={styles.tooltipTitle}>{step.title}</Text>
+          <Pressable onPress={handleSkip} hitSlop={8}>
               <Text style={styles.closeText}>×</Text>
             </Pressable>
           </View>
-          <Text style={styles.tooltipTitle}>{step.title}</Text>
+          
           <Text style={styles.tooltipBody}>{step.description}</Text>
           <View style={styles.tooltipActions}>
-            <Pressable onPress={handleSkip} style={styles.skipButton}>
-              <Text style={styles.skipButtonText}>Skip</Text>
-            </Pressable>
+          <Text style={styles.tooltipProgress}>
+              {walkthrough.currentStepIndex + 1}/{walkthrough.steps.length}
+            </Text>
             <Pressable onPress={handleAdvance} style={styles.primaryButton}>
               <Text style={styles.primaryButtonText}>Got it</Text>
             </Pressable>
@@ -188,6 +195,31 @@ const styles = StyleSheet.create({
     top: 216,
     width: 48,
     height: 48,
+  },
+  // Additional button container anchors for other steps (approximate positions)
+  tooLowButtonContainer: {
+    left: 16,
+    bottom: 200,
+    width: 120 * widthRef,
+    height: 48 * heightRef,
+  },
+  tooHighButtonContainer: {
+    left: 16 + 130 * widthRef,
+    bottom: 200,
+    width: 120 * widthRef,
+    height: 48 * heightRef,
+  },
+  justRightButtonContainer: {
+    left: 16 + 260 * widthRef,
+    bottom: 200,
+    width: 120 * widthRef,
+    height: 48 * heightRef,
+  },
+  enterAmountButtonContainer: {
+    left: 16,
+    bottom: 140,
+    width: 280 * widthRef,
+    height: 56 * heightRef,
   },
   circleButtonPurple: {
     width: 48,
@@ -255,29 +287,46 @@ const styles = StyleSheet.create({
     left: 16,
     top: 150,
   },
+  // Tooltip positions for additional steps
+  tooLowTooltipContainer: {
+    left: 16,
+    bottom: 260,
+  },
+  tooHighTooltipContainer: {
+    left: 16 + 130 * widthRef,
+    bottom: 260,
+  },
+  justRightTooltipContainer: {
+    left: 16 + 260 * widthRef,
+    bottom: 260,
+  },
+  enterAmountTooltipContainer: {
+    left: 16,
+    bottom: 200,
+  },
   tooltipHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
+    // alignItems: 'center',
     justifyContent: 'space-between',
   },
   tooltipProgress: {
-    fontSize: 14,
-    color: '#5d26c1',
+    fontSize: 14 * fontRef,
+    color: '#121212',
     fontFamily: 'Overpass_600SemiBold',
   },
   closeText: {
-    fontSize: 18,
+    fontSize: 28 * fontRef,
     color: '#575757',
   },
   tooltipTitle: {
     marginTop: 8,
-    fontSize: 18,
+    fontSize: 18 * fontRef,
     fontFamily: 'Rajdhani_700Bold',
     color: '#101828',
   },
   tooltipBody: {
     marginTop: 8,
-    fontSize: 14,
+    fontSize: 14 * fontRef,
     lineHeight: 20,
     color: '#475467',
     fontFamily: 'Overpass_400Regular',
@@ -285,7 +334,7 @@ const styles = StyleSheet.create({
   tooltipActions: {
     marginTop: 16,
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
   skipButton: {
@@ -298,15 +347,15 @@ const styles = StyleSheet.create({
     fontFamily: 'Overpass_500Medium',
   },
   primaryButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: '#5d26c1',
+    paddingHorizontal: 16 * widthRef,
+    paddingVertical: 6 * heightRef,
+    borderRadius: 20,
+    backgroundColor: '#10998D',
   },
   primaryButtonText: {
     color: '#ffffff',
     fontFamily: 'Overpass_600SemiBold',
-    fontSize: 14,
+    fontSize: 16 * fontRef,
   },
 });
 
