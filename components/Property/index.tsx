@@ -182,6 +182,14 @@ const PropertyView: React.FC<PropertyProps> = ({
   const [showImage, setShowImage] = useState(true);
   const [imageIndex, setImageIndex] = useState(1);
 
+  // When walkthrough overlay is on the enter-amount step, we want the full Enter view
+  const showEnterGuessForWalkthrough =
+    walkthroughState?.isActive &&
+    walkthroughState?.steps?.[walkthroughState.currentStepIndex]?.targetId === 'enter-amount';
+
+  // Ensure input field is visible by simulating a position selection during walkthrough step 5
+  const effectiveSelectedPosition: 0 | 1 | 2 | null = showEnterGuessForWalkthrough ? 1 : selectedPosition;
+
   // Memoize image URLs with optimized caching and sizes
   const imageUrls = useMemo(() => {
     if (!property?.images) return [];
@@ -214,6 +222,20 @@ const PropertyView: React.FC<PropertyProps> = ({
       }
     }
   }, [selectedPosition, setPositionWasSet, fixedPriceBid, currentRextimate.amount]);
+
+  // When walkthrough is active on the "enter-amount" step, open the Enter view on the game screen.
+  useEffect(() => {
+    const isEnterAmountStep =
+      walkthroughState?.isActive &&
+      walkthroughState?.steps?.[walkthroughState.currentStepIndex]?.targetId === 'enter-amount';
+
+    if (isEnterAmountStep) {
+      setStep(2);
+    } else if (selectedPosition === null) {
+      // Revert to the default view only if user hasn’t chosen a position
+      setStep(1);
+    }
+  }, [walkthroughState?.isActive, walkthroughState?.currentStepIndex, walkthroughState?.steps, selectedPosition]);
 
   // Ensure scrolling is re-enabled when component unmounts
   useEffect(() => {
@@ -590,7 +612,7 @@ const PropertyView: React.FC<PropertyProps> = ({
                 setPositionWasSet ? setPositionWasSet(positionWasSet) : null
               }
               fixedPriceBid={fixedPriceBid}
-              selectedPosition={selectedPosition}
+              selectedPosition={effectiveSelectedPosition}
               listPrice={property.listPrice}
               currentRextimate={currentRextimate}
             />

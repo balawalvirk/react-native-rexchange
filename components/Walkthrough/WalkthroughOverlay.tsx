@@ -7,16 +7,16 @@ import {
   StyleSheet,
   Text,
   View,
-  Platform,
 } from 'react-native';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import {
   advanceWalkthrough,
-  skipWalkthrough,
+  dismissWalkthrough,
 } from '../../store/walkthroughSlice';
 import CircleButton from '../CircleButton';
 import { formatMoney } from '../../lib/helpers/money';
 import { fontRef, heightRef, widthRef } from '../../config/screenSizes';
+import { styles } from './styles';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -25,6 +25,8 @@ type WalkthroughOverlayProps = {
   currentRextimateAmount: number;
 };
 
+
+// const TOOLTIP_WIDTH = Math.min(320, SCREEN_WIDTH - 32);
 const TOOLTIP_WIDTH = Math.min(320, SCREEN_WIDTH - 32);
 
 const WalkthroughOverlay: React.FC<WalkthroughOverlayProps> = ({
@@ -83,6 +85,30 @@ const WalkthroughOverlay: React.FC<WalkthroughOverlayProps> = ({
             </View>
           </Pressable>
         );
+      case 'too-low':
+        return (
+          <View style={styles.tooLowDemoButton}>
+            <Text style={styles.tooLowDemoButtonText}>Too Low</Text>
+          </View>
+        );
+      case 'too-high':
+        return (
+          <View style={styles.tooHighwDemoButton}>
+          <Text style={styles.tooHighDemoButtonText}>Too High</Text>
+        </View>
+        );
+      case 'just-right':
+        return (
+          <View style={styles.JustRightDemoButton}>
+          <Text style={styles.JustRightDemoButtonText}>Just Right</Text>
+        </View>
+        );
+      case 'enter-amount':
+        return (
+          <View style={styles.EnterAmountDemoButton}>
+            <Text style={styles.EnterAmountDemoButtonText}>Enter Full Amount</Text>
+          </View>
+        );
       default:
         return null;
     }
@@ -94,17 +120,17 @@ const WalkthroughOverlay: React.FC<WalkthroughOverlayProps> = ({
     dispatch(advanceWalkthrough());
   };
 
-  const handleSkip = () => {
-    dispatch(skipWalkthrough());
+  const handleDismiss = () => {
+    dispatch(dismissWalkthrough());
   };
 
   return (
     <Modal transparent visible animationType="fade" statusBarTranslucent>
       <View style={styles.overlay}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={handleSkip} />
+        <View style={StyleSheet.absoluteFill} />
 
         {/* Render button at the same position as on the game screen */}
-        {button && targetLayout && (
+        {button && (
           <View
             pointerEvents="none"
             style={[
@@ -136,10 +162,24 @@ const WalkthroughOverlay: React.FC<WalkthroughOverlayProps> = ({
             step.targetId === 'enter-amount' && styles.enterAmountTooltipContainer,
           ]}
         >
+          {/* Arrow pointer */}
+          <View
+            pointerEvents="none"
+            style={[
+              styles.arrowBase,
+              step.targetId === 'more-info' && styles.moreInfoArrow,
+              step.targetId === 'home' && styles.homeArrow,
+              step.targetId === 'history' && styles.historyArrow,
+              step.targetId === 'too-low' && styles.tooLowArrow,
+              step.targetId === 'too-high' && styles.tooHighArrow,
+              step.targetId === 'just-right' && styles.justRightArrow,
+              step.targetId === 'enter-amount' && styles.enterAmountArrow,
+            ]}
+          />
           <View style={styles.tooltipHeader}>
         
           <Text style={styles.tooltipTitle}>{step.title}</Text>
-          <Pressable onPress={handleSkip} hitSlop={8}>
+          <Pressable onPress={handleDismiss} hitSlop={8}>
               <Text style={styles.closeText}>×</Text>
             </Pressable>
           </View>
@@ -159,204 +199,5 @@ const WalkthroughOverlay: React.FC<WalkthroughOverlayProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(1, 1, 1, 0.4)',
-  },
-  buttonHighlightShadow: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 16,
-  },
-  buttonHighlightContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonContainer: {
-    position: 'absolute',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  moreInfoButtonContainer: {
-    right: Platform.OS === 'android' ? 11 : 11,
-    top: Platform.OS === 'android' ? 456 : 418,
-    width: 100 * widthRef,
-    height: 60 * heightRef,
-  },
-  homeButtonContainer: {
-    right: 24,
-    top: 80,
-    width: 48,
-    height: 48,
-  },
-  historyButtonContainer: {
-    right: 24,
-    top: 216,
-    width: 48,
-    height: 48,
-  },
-  // Additional button container anchors for other steps (approximate positions)
-  tooLowButtonContainer: {
-    left: 16,
-    bottom: 200,
-    width: 120 * widthRef,
-    height: 48 * heightRef,
-  },
-  tooHighButtonContainer: {
-    left: 16 + 130 * widthRef,
-    bottom: 200,
-    width: 120 * widthRef,
-    height: 48 * heightRef,
-  },
-  justRightButtonContainer: {
-    left: 16 + 260 * widthRef,
-    bottom: 200,
-    width: 120 * widthRef,
-    height: 48 * heightRef,
-  },
-  enterAmountButtonContainer: {
-    left: 16,
-    bottom: 140,
-    width: 280 * widthRef,
-    height: 56 * heightRef,
-  },
-  circleButtonPurple: {
-    width: 48,
-    height: 48,
-    backgroundColor: '#5d26c1',
-    borderRadius: 24,
-  },
-  circleButtonYellow: {
-    width: 48,
-    height: 48,
-    backgroundColor: '#f1c84c',
-    borderRadius: 24,
-  },
-  circleButtonImageSize: {
-    width: 20,
-    height: 20,
-  },
-  circleButtonImageSizeFlex: {
-    width: 20,
-    height: 20,
-    flex: 1,
-  },
-  moreInfoButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 4,
-    marginHorizontal: 0,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#5d26c1',
-    backgroundColor: '#ffffff',
-  },
-  moreInfoIcon: {
-    marginRight: 4,
-    width: 12,
-    height: 12,
-  },
-  moreInfoText: {
-    fontSize: 12,
-    color: '#5d26c1',
-    fontFamily: 'Overpass_600SemiBold',
-  },
-  tooltipContainer: {
-    position: 'absolute',
-    padding: 16,
-    borderRadius: 12,
-    backgroundColor: '#ffffff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18,
-    shadowRadius: 20,
-    elevation: 12,
-    width: TOOLTIP_WIDTH,
-  },
-  moreInfoTooltipContainer: {
-    left: 16,
-    top: Platform.OS === 'android' ? 520 : 480,
-  },
-  homeTooltipContainer: {
-    left: 16,
-    top: 100,
-  },
-  historyTooltipContainer: {
-    left: 16,
-    top: 150,
-  },
-  // Tooltip positions for additional steps
-  tooLowTooltipContainer: {
-    left: 16,
-    bottom: 260,
-  },
-  tooHighTooltipContainer: {
-    left: 16 + 130 * widthRef,
-    bottom: 260,
-  },
-  justRightTooltipContainer: {
-    left: 16 + 260 * widthRef,
-    bottom: 260,
-  },
-  enterAmountTooltipContainer: {
-    left: 16,
-    bottom: 200,
-  },
-  tooltipHeader: {
-    flexDirection: 'row',
-    // alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  tooltipProgress: {
-    fontSize: 14 * fontRef,
-    color: '#121212',
-    fontFamily: 'Overpass_600SemiBold',
-  },
-  closeText: {
-    fontSize: 28 * fontRef,
-    color: '#575757',
-  },
-  tooltipTitle: {
-    marginTop: 8,
-    fontSize: 18 * fontRef,
-    fontFamily: 'Rajdhani_700Bold',
-    color: '#101828',
-  },
-  tooltipBody: {
-    marginTop: 8,
-    fontSize: 14 * fontRef,
-    lineHeight: 20,
-    color: '#475467',
-    fontFamily: 'Overpass_400Regular',
-  },
-  tooltipActions: {
-    marginTop: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  skipButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    marginRight: 12,
-  },
-  skipButtonText: {
-    color: '#475467',
-    fontFamily: 'Overpass_500Medium',
-  },
-  primaryButton: {
-    paddingHorizontal: 16 * widthRef,
-    paddingVertical: 6 * heightRef,
-    borderRadius: 20,
-    backgroundColor: '#10998D',
-  },
-  primaryButtonText: {
-    color: '#ffffff',
-    fontFamily: 'Overpass_600SemiBold',
-    fontSize: 16 * fontRef,
-  },
-});
 
 export default WalkthroughOverlay;

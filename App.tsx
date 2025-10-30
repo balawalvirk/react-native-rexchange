@@ -56,7 +56,7 @@ Sentry.init({
 // Clear all cache on app version change
 const clearCacheOnVersionChange = async () => {
   try {
-    const currentVersion = "3.2.1";
+    const currentVersion = "3.2.2";
     const storedVersion = await AsyncStorage.getItem('appVersion');
     
     if (storedVersion !== currentVersion) {

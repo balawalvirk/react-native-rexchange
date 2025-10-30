@@ -154,6 +154,69 @@ export const createGameStyles = () => {
       backgroundColor: 'rgba(0,0,0,0.5)',
       zIndex: 100,
     },
+    walkthroughPromptContainer: {
+      position: 'absolute',
+      left: 16 * widthRef,
+      right: 16 * widthRef,
+      bottom: 32 * heightRef,
+      paddingHorizontal: 16 * widthRef,
+      paddingVertical: 14 * heightRef,
+      backgroundColor: '#ffffff',
+      borderRadius: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.2,
+      shadowRadius: 16,
+      elevation: 8,
+      zIndex: 120,
+    },
+    walkthroughPromptTextContainer: {
+      flex: 1,
+      paddingRight: 12 * widthRef,
+    },
+    walkthroughPromptTitle: {
+      fontFamily: 'Rajdhani_700Bold',
+      fontSize: 16 * fontRef,
+      color: '#1a1a1a',
+    },
+    walkthroughPromptSubtitle: {
+      marginTop: 4 * heightRef,
+      fontFamily: 'Overpass_400Regular',
+      fontSize: 12 * fontRef,
+      color: '#4b5563',
+    },
+    walkthroughPromptActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    walkthroughPromptButton: {
+      paddingHorizontal: 14 * widthRef,
+      paddingVertical: 8 * heightRef,
+      borderRadius: 999,
+      borderWidth: 1,
+    },
+    walkthroughPromptResumeButton: {
+      borderColor: '#5d26c1',
+      backgroundColor: '#5d26c1',
+    },
+    walkthroughPromptIgnoreButton: {
+      borderColor: '#d1d5db',
+      backgroundColor: '#ffffff',
+      marginLeft: 8 * widthRef,
+    },
+    walkthroughPromptResumeText: {
+      fontFamily: 'Overpass_600SemiBold',
+      fontSize: 12 * fontRef,
+      color: '#ffffff',
+    },
+    walkthroughPromptIgnoreText: {
+      fontFamily: 'Overpass_500Medium',
+      fontSize: 12 * fontRef,
+      color: '#4b5563',
+    },
     
     // Bottom sheet container
     bottomSheetContainer: {

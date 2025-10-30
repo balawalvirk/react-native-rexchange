@@ -30,7 +30,7 @@ import { Skip, getQueuedProperties } from "../../firebase/game";
 import { createGameStyles } from "./gameStyles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { startWalkthrough, resetWalkthroughForDevelopment } from "../../store/walkthroughSlice";
+import { startWalkthrough, resetWalkthroughForDevelopment, resumeWalkthrough, ignoreWalkthroughPrompt } from "../../store/walkthroughSlice";
 
 interface GameScreenProps {}
 
@@ -43,6 +43,10 @@ const GameScreen: React.FC<GameScreenProps> = () => {
   const dispatch = useAppDispatch();
   const walkthroughState = useAppSelector((state: any) => state.walkthrough);
   const [shouldShowTutorial, setShouldShowTutorial] = useState(false);
+  const [isNewAccount, setIsNewAccount] = useState(false);
+  const [welcomeDismissed, setWelcomeDismissed] = useState(false);
+  const [hasPresentedWelcome, setHasPresentedWelcome] = useState(false);
+  const [hasTriggeredWalkthrough, setHasTriggeredWalkthrough] = useState(false);
 
   const [mlsIdsSinceMidnight, setMLSIdsSinceMidnight] = useState(
     [] as string[]
@@ -75,6 +79,8 @@ const GameScreen: React.FC<GameScreenProps> = () => {
         const flag = await AsyncStorage.getItem("hasJustSignedUp");
         if (flag === "true") {
           setShouldShowTutorial(true);
+          setIsNewAccount(true);
+          setHasTriggeredWalkthrough(false);
           await AsyncStorage.removeItem("hasJustSignedUp");
         }
       } catch (error) {
@@ -84,6 +90,41 @@ const GameScreen: React.FC<GameScreenProps> = () => {
 
     resolveSignUpFlag();
   }, []);
+  useEffect(() => {
+    setHasTriggeredWalkthrough(false);
+  }, [user?.id]);
+
+  // When walkthrough completes, mark tutorialFinished in backend and local user
+  useEffect(() => {
+    if (!walkthroughState.hasCompleted) {
+      return;
+    }
+
+    const activeStep = walkthroughState.steps[walkthroughState.currentStepIndex];
+    if (!activeStep || activeStep.targetId !== 'home') {
+      console.log('Walkthrough completed outside the home step; not marking tutorial as finished.');
+      return;
+    }
+
+    if (!user || user.tutorialFinished) {
+      return;
+    }
+
+    if (!user.docId) {
+      console.log('Walkthrough complete but user docId missing; deferring tutorialFinished update.');
+      return;
+    }
+
+    (async () => {
+      try {
+        console.log('Marking tutorial as finished for user', user.id);
+        await updateUser(user.docId, { tutorialFinished: true });
+        setUser({ ...user, tutorialFinished: true });
+      } catch (error) {
+        console.error('Failed to mark tutorialFinished:', error);
+      }
+    })();
+  }, [walkthroughState.hasCompleted, walkthroughState.currentStepIndex, walkthroughState.steps, user, setUser]);
 
   useEffect(() => {
     let unsubscribe: Unsubscribe;
@@ -104,34 +145,53 @@ const GameScreen: React.FC<GameScreenProps> = () => {
   }, [user]);
 
   useEffect(() => {
-    if (user && shouldShowTutorial && queueIsLoaded && properties?.length) {
-      tutorialBottomSheetModalRef.current?.present();
-    }
-  }, [user, queueIsLoaded, properties, shouldShowTutorial]);
-
-  // Start walkthrough when conditions are met
-  useEffect(() => {
     if (
       user &&
-      !user.tutorialFinished &&
+      shouldShowTutorial &&
+      !hasPresentedWelcome &&
       queueIsLoaded &&
-      properties?.length &&
-      !walkthroughState.isActive &&
-      !walkthroughState.hasCompleted
+      properties?.length
     ) {
-      // Add a small delay to ensure all components are mounted and targets are registered
-      setTimeout(() => {
-        console.log('Starting walkthrough...');
-        dispatch(startWalkthrough());
-      }, 1000);
+      setHasPresentedWelcome(true);
+      tutorialBottomSheetModalRef.current?.present();
     }
+  }, [user, queueIsLoaded, properties, shouldShowTutorial, hasPresentedWelcome]);
+
+  // Start walkthrough only for brand-new accounts, after welcome modal is dismissed
+  useEffect(() => {
+    if (
+      walkthroughState.isActive ||
+      walkthroughState.hasCompleted ||
+      hasTriggeredWalkthrough
+    ) {
+      return;
+    }
+
+    if (!queueIsLoaded || !properties?.length) {
+      return;
+    }
+
+    if (!user || user.tutorialFinished) {
+      return;
+    }
+
+    if (shouldShowTutorial && !welcomeDismissed) {
+      return;
+    }
+
+    console.log('Triggering walkthrough start...');
+    setHasTriggeredWalkthrough(true);
+    dispatch(startWalkthrough());
   }, [
     dispatch,
+    hasTriggeredWalkthrough,
     properties,
     queueIsLoaded,
+    shouldShowTutorial,
     user,
     walkthroughState.hasCompleted,
     walkthroughState.isActive,
+    welcomeDismissed,
   ]);
   useEffect(() => {
     if (mlsIdsLoaded) {
@@ -425,15 +485,39 @@ const GameScreen: React.FC<GameScreenProps> = () => {
           <ActivityIndicator />
         </View>
       )}
+
+      {/* Walkthrough resume/ignore prompt */}
+      {walkthroughState.resumeAvailable && !walkthroughState.isActive && !walkthroughState.hasCompleted && (
+        <View style={styles.walkthroughPromptContainer}>
+          <View style={styles.walkthroughPromptTextContainer}>
+            <Text style={styles.walkthroughPromptTitle}>Continue walkthrough?</Text>
+            <Text style={styles.walkthroughPromptSubtitle}>Pick up where you left off or ignore.</Text>
+          </View>
+          <View style={styles.walkthroughPromptActions}>
+            <Pressable
+              onPress={() => dispatch(resumeWalkthrough())}
+              style={[styles.walkthroughPromptButton, styles.walkthroughPromptResumeButton]}
+            >
+              <Text style={styles.walkthroughPromptResumeText}>Resume</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => dispatch(ignoreWalkthroughPrompt())}
+              style={[styles.walkthroughPromptButton, styles.walkthroughPromptIgnoreButton]}
+            >
+              <Text style={styles.walkthroughPromptIgnoreText}>Ignore</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
       <BottomSheetModal
         ref={tutorialBottomSheetModalRef}
         index={1}
         snapPoints={myTotalsSnapPoints}
         onChange={handleChange}
         onDismiss={() => {
-          updateUser(user?.docId, { tutorialFinished: true });
-          setUser({ ...user, tutorialFinished: true });
-          setShouldShowTutorial(false);
+          // Only close welcome and allow walkthrough to start via effect
+          setShouldShowTutorial(false); // prevent re-presenting the welcome modal
+          setWelcomeDismissed(true);
         }}
       >
         <View style={styles.bottomSheetContainer}>
@@ -490,7 +574,8 @@ const GameScreen: React.FC<GameScreenProps> = () => {
       </BottomSheetModal>
       
       {/* Development Testing Buttons */}
-      <View style={styles.testButtonsContainer}>
+      
+      {/* <View style={styles.testButtonsContainer}>
         <Pressable
           style={styles.testButton}
           onPress={() => {
@@ -508,7 +593,7 @@ const GameScreen: React.FC<GameScreenProps> = () => {
         >
           <Text style={styles.testButtonText}>Debug State</Text>
         </Pressable>
-      </View>
+      </View> */}
     </View>
   );
 };

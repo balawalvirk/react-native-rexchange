@@ -127,12 +127,12 @@ const UserDataScreen: React.FC<UserDataScreenProps> = () => {
       }
     }
     
-    const [fn, ln] = fbUser.displayName?.split(' ') || ['', ''];
+    const [fn, ln] = fbUser?.displayName?.split(' ') || ['', ''];
     const user = {
       emailAddress: fbUser?.email || '',
       firstName: fn || '',
       lastName: ln || '',
-      authId: fbUser.uid,
+      authId: fbUser?.uid,
       zipCode: zip.join(''),
       ...(birthday ? { birthday } : {}),
       isRealtor: realEstate,
@@ -143,7 +143,7 @@ const UserDataScreen: React.FC<UserDataScreenProps> = () => {
       totalEquity: 0,
       openPositions: 0,
       token: '',
-      id: fbUser.uid,
+      id: fbUser?.uid,
     };
     
     console.log('🔍 UserData - Creating user object:', user);
