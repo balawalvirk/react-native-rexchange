@@ -18,9 +18,7 @@ const WalkthroughTarget: React.FC<WalkthroughTargetProps> = ({
   const dispatch = useAppDispatch();
   const isActiveTarget = useAppSelector((state: any) => {
     const step = state.walkthrough.steps[state.walkthrough.currentStepIndex];
-    return (
-      state.walkthrough.isActive && step && step.targetId === id
-    );
+    return state.walkthrough.isActive && step && step.targetId === id;
   });
 
   const ref = useRef<View>(null);
@@ -59,8 +57,6 @@ const WalkthroughTarget: React.FC<WalkthroughTargetProps> = ({
       ref={ref}
       collapsable={false}
       onLayout={handleLayout}
-      pointerEvents={isActiveTarget ? 'none' : 'auto'}
-      style={isActiveTarget ? { opacity: 0 } : undefined}
     >
       {children}
     </View>
