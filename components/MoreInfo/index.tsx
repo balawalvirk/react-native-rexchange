@@ -117,9 +117,9 @@ const MoreInfo: React.FC<MoreInfoProps> = ({
           )}
           <Image
             resizeMode="contain"
-            style={tw`w-20 mx-auto`}
+            style={tw`w-20 h-20 mx-auto`}
             source={require('../../assets/gsrein_logo.png')}
-          ></Image>
+          />
         </View>
       </ScrollView>
     </>

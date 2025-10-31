@@ -187,8 +187,8 @@ export const styles = StyleSheet.create({
     },
     tooltipContainer: {
       position: 'absolute',
-      paddingVertical: 10 * heightRef,
-      paddingHorizontal: 12 * widthRef,
+      paddingBottom: 10 * heightRef,
+      // paddingHorizontal: 12 * widthRef,
       borderRadius: 12,
       backgroundColor: '#ffffff',
       shadowColor: '#000',
@@ -201,8 +201,8 @@ export const styles = StyleSheet.create({
     // Arrow (triangle-like) that points from the tooltip to the highlighted control
     arrowBase: {
       position: 'absolute',
-      width: 12 * widthRef,
-      height: 12 * heightRef,
+      width: 10 * widthRef,
+      height: 10 * heightRef,
       backgroundColor: '#ffffff',
       transform: [{ rotate: '45deg' }],
     },
@@ -230,41 +230,41 @@ export const styles = StyleSheet.create({
     moreInfoArrow: {
       // Tooltip for more-info sits below the target; arrow points upward
       top: -6 * heightRef,
-      right: 40 * widthRef,
+      right: 20 * widthRef,
     },
     homeTooltipContainer: {
       right: 90 * widthRef,
-      top: 90 * widthRef,
+      top: Platform.OS == 'android' ? 100 * widthRef : 90 * heightRef,
     },
     homeArrow: {
       right: -6 * widthRef,
-      top: 24 * heightRef,
+      top: 16 * heightRef,
     },
     historyTooltipContainer: {
       right: 90 * widthRef,
-      top: 240 * heightRef,
+      top: Platform.OS == 'android' ? 240 * heightRef : 224 * heightRef,
     },
     historyArrow: {
       right: -6 * widthRef,
-      top: 24 * heightRef,
+      top: 14 * heightRef,
     },
     // Tooltip positions for additional steps
     tooLowTooltipContainer: {
-      right: 16 * widthRef,
+      right: 30 * widthRef,
       bottom: Platform.OS === 'android' ? 200 * heightRef : 230 * heightRef,
 
     },
     tooLowArrow: {
-      bottom: -6 * heightRef,
-      left: 24 * widthRef,
+      bottom: -5 * heightRef,
+      left: 20 * widthRef,
     },
     tooHighTooltipContainer: {
-      left: 16 * widthRef,
+      left: 36 * widthRef,
       bottom: Platform.OS === 'android' ? 200 * heightRef : 230 * heightRef,
     },
     tooHighArrow: {
       bottom: -6 * heightRef,
-      right: 24 * widthRef,
+      right: 20 * widthRef,
     },
     justRightTooltipContainer: {
       right: 16 * widthRef,
@@ -284,8 +284,10 @@ export const styles = StyleSheet.create({
     },
     tooltipHeader: {
       flexDirection: 'row',
-    //   alignItems: 'center',
+      // alignItems: 'center',
       justifyContent: 'space-between',
+      // backgroundColor: 'yellow'
+paddingHorizontal: 12 * widthRef
     },
     tooltipProgress: {
       fontSize: 10 * fontRef,
@@ -293,26 +295,39 @@ export const styles = StyleSheet.create({
       fontFamily: 'Overpass_600SemiBold',
     },
     closeText: {
-      fontSize: 14 * fontRef,
+      fontSize: 16 * fontRef,
       color: '#575757',
     },
     tooltipTitle: {
       fontSize: 12 * fontRef,
       fontFamily: 'Rajdhani_700Bold',
       color: '#101828',
-      marginRight: 10 * widthRef
+      marginRight: 10 * widthRef,
+      marginTop: 10 * heightRef
+    },
+    crossIconView:{
+// backgroundColor: 'red',
+height: 16 * heightRef,
+width: 16 * widthRef,
+alignItems: 'center',
+justifyContent: 'center',
+position: 'absolute',
+top: Platform.OS == "android" ? 3 : 4 * heightRef,
+right: 4 * widthRef
     },
     tooltipBody: {
       fontSize: 10 * fontRef,
       color: '#475467',
       fontFamily: 'Overpass_400Regular',
-      marginRight: 10 * widthRef
+      marginRight: 10 * widthRef,
+      paddingHorizontal: 12 * widthRef
     },
     tooltipActions: {
       marginTop: 6,
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
+      paddingHorizontal: 12 * widthRef
     },
     skipButton: {
       paddingVertical: 6,

@@ -127,8 +127,14 @@ alignItems: 'center',
       height: isLarge ? 32 * heightRef : 12 * heightRef,
     },
     disclaimerText: {
-      fontSize: isLarge ? 18 * fontRef : 12 * fontRef,
+      fontSize: 12 * fontRef,
       textAlign: 'center',
+      letterSpacing: -0.6 
+    },
+    disclaimerSeeMore: {
+      color: '#121212',
+      textDecorationLine: 'underline',
+      fontFamily: 'Overpass_700Bold',
     },
     
     // Bottom sheet styles
@@ -241,11 +247,12 @@ alignItems: 'center',
       fontSize: isLarge ? 18 * fontRef : 12 * fontRef,
     },
     chartLogo: {
-      width: 64 * widthRef,
-      height: 64 * heightRef,
+      width: 80 * widthRef,
+      height: 80 * heightRef,
       paddingHorizontal: 16 * widthRef,
       marginHorizontal: 'auto',
       marginTop: 8 * heightRef,
+      // backgroundColor: 'red'
     },
     chartSwipeText: {
       paddingTop: 8 * heightRef,

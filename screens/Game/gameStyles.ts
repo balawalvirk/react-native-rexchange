@@ -238,6 +238,8 @@ export const createGameStyles = () => {
       right: 16,
       alignItems: 'center',
       justifyContent: 'center',
+      zIndex: 50,
+      elevation: 10,
     },
     // Bottom sheet title
     bottomSheetTitle: {

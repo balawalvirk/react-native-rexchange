@@ -23,6 +23,7 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../../providers/authProvider';
 import { Keyboard } from 'react-native';
+import AlertBar from '../../components/Alert';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface UserDataScreenProps {}
@@ -39,6 +40,7 @@ const UserDataScreen: React.FC<UserDataScreenProps> = () => {
   const [zip, setZip] = useState(['', '', '', '', '']);
   const [birthday, setBirthday] = useState<Date | undefined>();
   const [realEstate, setRealEstate] = useState<boolean | null>(null);
+  const [uiError, setUiError] = useState<string>('');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const translateX = useRef(new Animated.Value(0)).current;
   const position = {
@@ -189,6 +191,7 @@ const UserDataScreen: React.FC<UserDataScreenProps> = () => {
     setShowDatePicker(false); // Always close the modal
     if (event.type === 'set' && selectedDate) {
       setBirthday(selectedDate);
+      setUiError('');
     }
   };
 
@@ -196,6 +199,7 @@ const UserDataScreen: React.FC<UserDataScreenProps> = () => {
     <KeyboardAvoidingView style={tw`flex w-full h-full`} behavior="padding">
       <Gradient />
       <SafeAreaView>
+        {Boolean(uiError) && <AlertBar message={uiError} status={'error'} />}
         <Animated.View style={[tw`flex flex-row`, position]}>
           <View style={tw`w-full pt-32`}>
             <Text
@@ -337,7 +341,14 @@ const UserDataScreen: React.FC<UserDataScreenProps> = () => {
               style={[
                 tw`flex items-center justify-center mr-1 border-solid rounded-md border-1 bg-green border-green h-15`,
               ]}
-              onPress={slideRight}
+              onPress={() => {
+                if (!birthday) {
+                  setUiError('Please select your birth day.');
+                  return;
+                }
+                setUiError('');
+                slideRight();
+              }}
             >
               <Text style={[tw`text-lg text-white font-overpass500`]}>
                 Next
@@ -375,7 +386,7 @@ const UserDataScreen: React.FC<UserDataScreenProps> = () => {
                   tw`flex items-center justify-center flex-1 mr-1 border-white border-solid rounded-md border-1 h-15`,
                   realEstate == false ? tw`bg-green border-green` : {},
                 ]}
-                onPress={() => setRealEstate(false)}
+                onPress={() => { setRealEstate(false); setUiError(''); }}
               >
                 <Text style={[tw`text-lg text-white font-overpass500`]}>
                   No
@@ -386,7 +397,7 @@ const UserDataScreen: React.FC<UserDataScreenProps> = () => {
                   tw`flex items-center justify-center flex-1 ml-1 border-white border-solid rounded-md border-1 h-15`,
                   realEstate == true ? tw`bg-green border-green` : {},
                 ]}
-                onPress={() => setRealEstate(true)}
+                onPress={() => { setRealEstate(true); setUiError(''); }}
               >
                 <Text style={[tw`text-lg text-white font-overpass500`]}>
                   Yes
@@ -397,7 +408,14 @@ const UserDataScreen: React.FC<UserDataScreenProps> = () => {
               style={[
                 tw`flex items-center justify-center mt-auto ml-1 border-solid rounded-md border-1 bg-green border-green h-15`,
               ]}
-              onPress={createUser}
+              onPress={() => {
+                if (realEstate === null) {
+                  setUiError('Please select an option from above.');
+                  return;
+                }
+                setUiError('');
+                createUser();
+              }}
             >
               <Text style={[tw`text-lg text-white font-overpass500`]}>
                 Start Playing

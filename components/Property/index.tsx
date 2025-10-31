@@ -587,18 +587,22 @@ const PropertyView: React.FC<PropertyProps> = ({
                 fixedPriceBid={fixedPriceBid}
               />
               <Pressable
-              // style={styles.TermsView}
-              style={styles.disclaimerContainer}
-              onPress={handleDisclaimerPress}>
-                {/* <View style={styles.disclaimerContainer}> */}
-                  <Image
-                    style={styles.disclaimerIcon}
-                    source={require("../../assets/gsrein_logo.png")}
-                  ></Image>
-                  <Text numberOfLines={1} style={styles.disclaimerText}>
-                  Terms and Conditions
+                style={styles.disclaimerContainer}
+                onPress={handleDisclaimerPress}
+              >
+                <Image
+                  style={styles.disclaimerIcon}
+                  source={require("../../assets/gsrein_logo.png")}
+                />
+                <Text numberOfLines={1} style={styles.disclaimerText}>
+                  Information herein is deemed reliable but not guaranteed and
+                  <Text
+                    onPress={handleDisclaimerPress}
+                    style={styles.disclaimerSeeMore}
+                  >
+                    {' '}See More
                   </Text>
-                {/* </View> */}
+                </Text>
               </Pressable>
             </>
           ) : (

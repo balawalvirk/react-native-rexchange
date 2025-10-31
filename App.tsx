@@ -35,6 +35,7 @@ import UserDataScreen from "./screens/UserData";
 import _ from "lodash";
 import ProfileTab from "./screens/Home/ProfileTab";
 import ForgotPasswordScreen from "./screens/ForgotPassword";
+import TermsWebView from "./screens/TermsWebView";
 import OpenHouseForm from "./screens/OpenHouseForm";
 import OpenHouseHomeTabs from "./screens/OpenHouseHomeTabs/OpenHouseHomeTabs";
 import { View, Text } from "react-native";
@@ -164,6 +165,7 @@ const NavigationContent = () => {
       <Stack.Screen name="login" component={LoginScreen} />
       <Stack.Screen name="register" component={RegisterScreen} />
       <Stack.Screen name="sign-up" component={SignUpScreen} />
+      <Stack.Screen name="terms-webview" component={TermsWebView} />
       <Stack.Screen
         name="forgot-password"
         component={ForgotPasswordScreen}

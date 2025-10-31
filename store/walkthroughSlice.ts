@@ -40,7 +40,7 @@ const walkthroughSteps: WalkthroughStep[] = [
   {
     id: 'step-just-right',
     targetId: 'just-right',
-    title: '"“Just Right” means your estimate matches the current price',
+    title: '"Just Right” means your estimate matches the current price',
     description: 'Tap “Just Right” when you believe the property’s listed value is accurate or close to its true market price.',
   },
   {
@@ -52,7 +52,7 @@ const walkthroughSteps: WalkthroughStep[] = [
   {
     id: 'step-history',
     targetId: 'history',
-    title: 'View Rextimate history',
+    title: 'View Rextimate History',
     description: 'Tap this icon to see a graphical chart showing the valuation trends and price history for this property.',
   },
   {
@@ -147,12 +147,12 @@ const walkthroughSlice = createSlice({
       state.resumeStepIndex = 0;
     },
     dismissWalkthrough(state) {
-      if (!state.isActive) {
-        return;
-      }
+      if (!state.isActive) return;
+      // Close and consider the walkthrough completed for this session
       state.isActive = false;
-      state.resumeAvailable = true;
-      state.resumeStepIndex = state.currentStepIndex;
+      state.hasCompleted = true;
+      state.resumeAvailable = false;
+      // do not change currentStepIndex; Game gate prevents tutorialFinished unless on 'home'
     },
     resumeWalkthrough(state) {
       if (!state.resumeAvailable) {

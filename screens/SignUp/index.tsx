@@ -36,6 +36,10 @@ const defaultState = {
 const SignUpScreen: React.FC<SignUpProps> = () => {
   const [state, setState] = useState(defaultState);
   const navigation = useNavigation();
+  const handleOpenEULA = () => {
+    // @ts-expect-error - navigation type not declared here
+    navigation.navigate('terms-webview', { url: 'https://rexchange-next.vercel.app/terms' });
+  };
   const handlePress = async () => {
     // Dismiss keyboard before validation
     Keyboard.dismiss();
@@ -216,6 +220,15 @@ const SignUpScreen: React.FC<SignUpProps> = () => {
               </Text>
             </View>
           </TouchableOpacity>
+        </View>
+        {/* Consent line kept inside SafeAreaView to avoid disappearing */}
+        <View style={tw`pt-2 pb-4`}>
+          <Text style={tw`text-center text-white font-overpass500`}>
+            I have read and agree with the
+            <Text onPress={handleOpenEULA} style={tw`font-overpass700 underline`}>
+              {` `}End User License Agreement
+            </Text>
+          </Text>
         </View>
       </SafeAreaView>
     </View>

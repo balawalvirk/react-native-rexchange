@@ -30,7 +30,7 @@ import { Skip, getQueuedProperties } from "../../firebase/game";
 import { createGameStyles } from "./gameStyles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { startWalkthrough, resetWalkthroughForDevelopment, resumeWalkthrough, ignoreWalkthroughPrompt } from "../../store/walkthroughSlice";
+import { startWalkthrough, resetWalkthroughForDevelopment } from "../../store/walkthroughSlice";
 
 interface GameScreenProps {}
 
@@ -159,27 +159,39 @@ const GameScreen: React.FC<GameScreenProps> = () => {
 
   // Start walkthrough only for brand-new accounts, after welcome modal is dismissed
   useEffect(() => {
-    if (
-      walkthroughState.isActive ||
-      walkthroughState.hasCompleted ||
-      hasTriggeredWalkthrough
-    ) {
+    const guards = {
+      isActive: walkthroughState.isActive,
+      hasCompleted: walkthroughState.hasCompleted,
+      hasTriggeredWalkthrough,
+      queueIsLoaded,
+      propertiesLen: properties?.length || 0,
+      hasUser: Boolean(user),
+      userTutorialFinished: Boolean(user?.tutorialFinished),
+      shouldShowTutorial,
+      welcomeDismissed,
+    };
+
+    if (guards.isActive || guards.hasCompleted || guards.hasTriggeredWalkthrough) {
+      if (__DEV__) console.log('WT start blocked: running/completed/triggered', guards);
       return;
     }
 
-    if (!queueIsLoaded || !properties?.length) {
+    if (!guards.queueIsLoaded || !guards.propertiesLen) {
+      if (__DEV__) console.log('WT start blocked: feed not ready', guards);
       return;
     }
 
-    if (!user || user.tutorialFinished) {
+    if (!guards.hasUser || guards.userTutorialFinished) {
+      if (__DEV__) console.log('WT start blocked: user not eligible', guards);
       return;
     }
 
-    if (shouldShowTutorial && !welcomeDismissed) {
+    if (guards.shouldShowTutorial && !guards.welcomeDismissed) {
+      if (__DEV__) console.log('WT start blocked: welcome not dismissed', guards);
       return;
     }
 
-    console.log('Triggering walkthrough start...');
+    console.log('Triggering walkthrough start...', guards);
     setHasTriggeredWalkthrough(true);
     dispatch(startWalkthrough());
   }, [
@@ -486,29 +498,7 @@ const GameScreen: React.FC<GameScreenProps> = () => {
         </View>
       )}
 
-      {/* Walkthrough resume/ignore prompt */}
-      {walkthroughState.resumeAvailable && !walkthroughState.isActive && !walkthroughState.hasCompleted && (
-        <View style={styles.walkthroughPromptContainer}>
-          <View style={styles.walkthroughPromptTextContainer}>
-            <Text style={styles.walkthroughPromptTitle}>Continue walkthrough?</Text>
-            <Text style={styles.walkthroughPromptSubtitle}>Pick up where you left off or ignore.</Text>
-          </View>
-          <View style={styles.walkthroughPromptActions}>
-            <Pressable
-              onPress={() => dispatch(resumeWalkthrough())}
-              style={[styles.walkthroughPromptButton, styles.walkthroughPromptResumeButton]}
-            >
-              <Text style={styles.walkthroughPromptResumeText}>Resume</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => dispatch(ignoreWalkthroughPrompt())}
-              style={[styles.walkthroughPromptButton, styles.walkthroughPromptIgnoreButton]}
-            >
-              <Text style={styles.walkthroughPromptIgnoreText}>Ignore</Text>
-            </Pressable>
-          </View>
-        </View>
-      )}
+      {/* Walkthrough resume/ignore prompt removed per client request */}
       <BottomSheetModal
         ref={tutorialBottomSheetModalRef}
         index={1}
@@ -518,23 +508,25 @@ const GameScreen: React.FC<GameScreenProps> = () => {
           // Only close welcome and allow walkthrough to start via effect
           setShouldShowTutorial(false); // prevent re-presenting the welcome modal
           setWelcomeDismissed(true);
+          if (__DEV__) console.log('Welcome modal dismissed');
         }}
       >
         <View style={styles.bottomSheetContainer}>
+          {/* Place close button outside the ScrollView so it renders immediately */}
+          <TouchableOpacity
+            onPress={() => tutorialBottomSheetModalRef.current?.dismiss()}
+            style={styles.bottomSheetCloseButtonContainer}
+          >
+            <Image
+              style={styles.bottomSheetCloseButton}
+              source={require("../../assets/times_gray.png")}
+            />
+          </TouchableOpacity>
+
           <ScrollView style={styles.bottomSheetScrollView}>
-            
             <Text style={styles.bottomSheetTitle}>
               Welcome to Rexchange!
             </Text>
-            <TouchableOpacity
-              onPress={() => tutorialBottomSheetModalRef.current?.dismiss()}
-              style={styles.bottomSheetCloseButtonContainer}
-            >
-              <Image
-                style={styles.bottomSheetCloseButton}
-                source={require("../../assets/times_gray.png")}
-              />
-            </TouchableOpacity>
             <HorizontalLine />
             <Text style={styles.bottomSheetText}>
               Who knows how much a house is worth? At Rexchange, we believe that
@@ -575,7 +567,7 @@ const GameScreen: React.FC<GameScreenProps> = () => {
       
       {/* Development Testing Buttons */}
       
-      {/* <View style={styles.testButtonsContainer}>
+      <View style={styles.testButtonsContainer}>
         <Pressable
           style={styles.testButton}
           onPress={() => {
@@ -593,7 +585,19 @@ const GameScreen: React.FC<GameScreenProps> = () => {
         >
           <Text style={styles.testButtonText}>Debug State</Text>
         </Pressable>
-      </View> */}
+        {/* <Pressable
+          style={[styles.testButton, styles.testButtonSecondary]}
+          onPress={() => {
+            // Allow manual presentation of the welcome modal for testing
+            setShouldShowTutorial(true);
+            setWelcomeDismissed(false);
+            setHasPresentedWelcome(true);
+            tutorialBottomSheetModalRef.current?.present();
+          }}
+        >
+          <Text style={styles.testButtonText}>Open Welcome</Text>
+        </Pressable> */}
+      </View>
     </View>
   );
 };

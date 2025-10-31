@@ -57,6 +57,8 @@ const WalkthroughTarget: React.FC<WalkthroughTargetProps> = ({
       ref={ref}
       collapsable={false}
       onLayout={handleLayout}
+      pointerEvents={isActiveTarget ? 'none' : 'auto'}
+      style={isActiveTarget ? { opacity: 0 } : undefined}
     >
       {children}
     </View>
